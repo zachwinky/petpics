@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npm install)",
+      "Bash(taskkill //F //PID 48000)",
+      "Bash(curl:*)",
+      "WebFetch(domain:fal.ai)"
+    ]
+  }
+}
