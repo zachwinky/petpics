@@ -171,8 +171,10 @@ export async function POST(request: Request) {
       const updatedModel = await mergeModelProductFeatures(modelId, userId, features);
 
       // Also update legacy product_description for backward compatibility
-      if (features.tag_text?.content) {
-        await updateModelProductDescription(modelId, features.tag_text.content);
+      // Use type assertion since we're storing collar-specific fields dynamically
+      const tagText = (features as Record<string, ProductFeature | undefined>).tag_text;
+      if (tagText?.content) {
+        await updateModelProductDescription(modelId, tagText.content);
       }
 
       return NextResponse.json({
