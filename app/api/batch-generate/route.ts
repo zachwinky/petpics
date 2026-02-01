@@ -143,10 +143,10 @@ export async function POST(request: Request) {
 
       // Generate all batches in parallel
       const generatePromises = prompts.map(async (prompt) => {
-        // Build prompt with product description for text accuracy
-        let fullPrompt = `Professional pet photography of ${triggerWord}, ${prompt}, high quality, detailed, studio lighting`;
+        // Build prompt with enhanced photography keywords for engagement
+        let fullPrompt = `Award-winning pet portrait of ${triggerWord}, ${prompt}, looking at camera with expressive eyes, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
         if (productDescription && productDescription !== 'NO_TEXT_VISIBLE') {
-          fullPrompt = `Professional pet photography of ${triggerWord} with text ${productDescription}, ${prompt}, high quality, detailed, studio lighting`;
+          fullPrompt = `Award-winning pet portrait of ${triggerWord} with text ${productDescription}, ${prompt}, looking at camera with expressive eyes, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
         }
 
         const falResponse = await fetch('https://fal.run/fal-ai/flux-lora', {

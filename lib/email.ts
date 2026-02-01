@@ -20,20 +20,20 @@ export async function sendVerificationEmail(
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Petpics!</h1>
+            <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Petpics 🐾</h1>
             </div>
 
             <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
               <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Thanks for signing up! To get started with creating stunning AI pet photos, please verify your email address by clicking the button below:
+                Thanks for signing up! To get started creating beautiful pet photos, please verify your email address:
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${verificationUrl}"
-                   style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                   style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
                   Verify Email Address
                 </a>
               </div>
@@ -75,7 +75,7 @@ export async function sendTrainingCompleteEmail(
     await resend.emails.send({
       from: 'Petpics <onboarding@resend.dev>',
       to,
-      subject: 'Your photo subject is ready!',
+      subject: `${triggerWord} is ready! 📸`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -85,29 +85,29 @@ export async function sendTrainingCompleteEmail(
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">Training Complete!</h1>
+              <h1 style="color: white; margin: 0; font-size: 28px;">${triggerWord} is Ready! 🐾</h1>
             </div>
 
             <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
               <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Great news! Your photo subject <strong>"${triggerWord}"</strong> has finished training and is ready to use.
+                Great news! <strong>${triggerWord}</strong> has finished training and is ready for photos.
               </p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                You can now generate unlimited pet photos with your trained model.
+                You can now create photos of ${triggerWord} in any setting you can imagine.
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${baseUrl}/generate"
-                   style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                  Generate Photos Now
+                   style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Create Photos Now
                 </a>
               </div>
 
               <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                Tip: Try different prompts and settings to get the best results for your pet photography!
+                Tip: Try different scenes and settings to find your favorites!
               </p>
             </div>
 
@@ -136,7 +136,7 @@ export async function sendTrainingFailedEmail(
     await resend.emails.send({
       from: 'Petpics <onboarding@resend.dev>',
       to,
-      subject: 'Training issue - credits refunded',
+      subject: 'Training didn\'t complete - credits refunded',
       html: `
         <!DOCTYPE html>
         <html>
@@ -153,7 +153,7 @@ export async function sendTrainingFailedEmail(
               <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Unfortunately, there was an issue training your photo subject <strong>"${modelName}"</strong>.
+                Unfortunately, there was an issue training <strong>${modelName}</strong>.
               </p>
 
               <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0;">
@@ -178,7 +178,7 @@ export async function sendTrainingFailedEmail(
 
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${baseUrl}/"
-                   style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                   style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
                   Try Again
                 </a>
               </div>

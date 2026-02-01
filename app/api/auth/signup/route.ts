@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import { getUserByEmail, createUser, setEmailVerificationToken } from '@/lib/db';
-import { sendVerificationEmail } from '@/lib/email';
+// Email verification disabled - uncomment when re-enabling
+// import crypto from 'crypto';
+import { getUserByEmail, createUser } from '@/lib/db';
+// import { setEmailVerificationToken } from '@/lib/db';
+// import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,23 +50,18 @@ export async function POST(request: NextRequest) {
     // Create user
     const user = await createUser(email, name, passwordHash);
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24); // Token expires in 24 hours
-
-    // Store verification token
-    await setEmailVerificationToken(user.id, verificationToken, expiresAt);
-
-    // Send verification email
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
-
-    await sendVerificationEmail(email, name || email, verificationUrl);
+    // Email verification disabled for now - will re-enable once email provider is configured
+    // const verificationToken = crypto.randomBytes(32).toString('hex');
+    // const expiresAt = new Date();
+    // expiresAt.setHours(expiresAt.getHours() + 24);
+    // await setEmailVerificationToken(user.id, verificationToken, expiresAt);
+    // const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
+    // await sendVerificationEmail(email, name || email, verificationUrl);
 
     return NextResponse.json({
       success: true,
-      message: 'Account created! Please check your email to verify your account.',
+      message: 'Account created! You can now sign in.',
       email: user.email,
     });
 

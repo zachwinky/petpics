@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 
 // Create a connection pool with proper SSL configuration
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: process.env.NODE_ENV === 'production'
     ? { rejectUnauthorized: true }  // Enforce SSL certificate validation in production
@@ -193,6 +193,39 @@ export async function updateUserCredits(
 }
 
 // Model operations
+
+// Generate unique model name by appending numbers if duplicate exists
+async function getUniqueModelName(userId: number, baseName: string): Promise<string> {
+  const result = await pool.query(
+    'SELECT name FROM models WHERE user_id = $1 AND (name = $2 OR name LIKE $3)',
+    [userId, baseName, `${baseName} %`]
+  );
+
+  if (result.rows.length === 0) return baseName;
+
+  // Check if exact base name exists
+  const names = result.rows.map(r => r.name as string);
+  const hasExactMatch = names.includes(baseName);
+
+  if (!hasExactMatch) return baseName;
+
+  // Find highest number suffix
+  let maxNum = 1;
+  for (const name of names) {
+    if (name === baseName) continue;
+    const match = name.match(/^.+ (\d+)$/);
+    if (match) {
+      const num = parseInt(match[1]);
+      if (num >= maxNum) maxNum = num + 1;
+    }
+  }
+
+  // If only base name exists, start with 2
+  if (maxNum === 1) maxNum = 2;
+
+  return `${baseName} ${maxNum}`;
+}
+
 export async function createModel(
   userId: number,
   name: string,
@@ -200,9 +233,12 @@ export async function createModel(
   triggerWord: string,
   trainingImagesCount: number
 ): Promise<Model> {
+  // Get unique name in case of duplicates
+  const uniqueName = await getUniqueModelName(userId, name);
+
   const result = await pool.query(
     'INSERT INTO models (user_id, name, lora_url, trigger_word, training_images_count) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-    [userId, name, loraUrl, triggerWord, trainingImagesCount]
+    [userId, uniqueName, loraUrl, triggerWord, trainingImagesCount]
   );
   return result.rows[0] as Model;
 }

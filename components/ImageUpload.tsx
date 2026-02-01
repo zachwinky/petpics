@@ -694,17 +694,17 @@ export default function ImageUpload() {
                 Thanks! We are now training your AI model. Check your dashboard in about <strong>10 minutes</strong> to see the result.
               </p>
             </div>
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <p className="text-sm text-indigo-800">
-                <strong>Pet Name:</strong> <code className="bg-indigo-100 px-2 py-0.5 rounded">{triggerWord}</code>
+            <div className="bg-coral-50 border border-coral-200 rounded-lg p-4">
+              <p className="text-sm text-coral-800">
+                <strong>Pet Name:</strong> <code className="bg-coral-100 px-2 py-0.5 rounded">{triggerWord}</code>
               </p>
-              <p className="text-sm text-indigo-700 mt-1">
+              <p className="text-sm text-coral-700 mt-1">
                 Your model will appear in your dashboard once training is complete.
               </p>
             </div>
             <a
               href="/dashboard"
-              className="block w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors text-center"
+              className="block w-full py-3 px-6 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors text-center"
             >
               Go to Dashboard
             </a>
@@ -765,7 +765,7 @@ export default function ImageUpload() {
         {isMobile && (
           <button
             onClick={() => setShowCamera(true)}
-            className="w-full py-4 px-6 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-3"
+            className="w-full py-4 px-6 bg-coral-500 text-white font-medium rounded-xl hover:bg-coral-600 transition-colors flex items-center justify-center gap-3"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -792,8 +792,8 @@ export default function ImageUpload() {
           onDragLeave={handleDragLeave}
           className={`border-2 border-dashed rounded-xl p-8 md:p-12 transition-all cursor-pointer ${
             isDragging
-              ? 'border-indigo-500 bg-indigo-50'
-              : 'border-gray-300 bg-gray-50 hover:border-indigo-400'
+              ? 'border-coral-500 bg-coral-50'
+              : 'border-gray-300 bg-gray-50 hover:border-coral-400'
           }`}
         >
           <div className="text-center space-y-4">
@@ -804,7 +804,7 @@ export default function ImageUpload() {
               </p>
               <p className="text-sm text-gray-500">
                 PNG, JPG, WEBP, HEIC up to 10MB (max {MAX_FILES} images)
-                {mode === 'flux' && <span className="block mt-1 font-medium text-indigo-600">Custom AI: Upload 5-20 images of your pet</span>}
+                {mode === 'flux' && <span className="block mt-1 font-medium text-coral-600">Upload 5-20 photos of your pet</span>}
               </p>
             </div>
           </div>
@@ -879,11 +879,11 @@ export default function ImageUpload() {
 
           {/* FLUX Training Section */}
           {mode === 'flux' && !trainedLoraUrl && !trainingSuccess && (
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-indigo-900">Step 1: Train Your Custom AI</h4>
+            <div className="bg-coral-50 border border-coral-200 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-coral-900">Step 1: Add Your Pet</h4>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What should we call this pet? <span className="text-red-600">*</span>
+                  What&apos;s your pet&apos;s name? <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
@@ -894,17 +894,17 @@ export default function ImageUpload() {
                       setTriggerWord('');
                     }
                   }}
-                  placeholder="e.g., FLUFFY, MAXTHEDOG, WHISKERS"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder:text-gray-400"
+                  placeholder="e.g., MAX, LUNA, WHISKERS"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-coral-500 text-gray-900 placeholder:text-gray-400"
                   disabled={isTraining}
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  A short nickname to identify your pet (at least 2 characters)
+                  A short name to identify your pet (at least 2 characters)
                 </p>
               </div>
               <button
-                className="w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full py-3 px-6 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
                 onClick={handleTrain}
                 disabled={isTraining || selectedFiles.length < 5 || !triggerWord || triggerWord === 'TOK' || triggerWord.trim().length < 2}
               >
@@ -914,15 +914,15 @@ export default function ImageUpload() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Training AI Model (~10 minutes)...
+                    Training (about 10 minutes)...
                   </span>
                 ) : 'Train Pet Model (10 credits)'}
               </button>
               {selectedFiles.length < 5 && (
-                <p className="text-sm text-red-600">Upload at least 5 images of your pet to train the AI</p>
+                <p className="text-sm text-red-600">Upload at least 5 photos to train the AI</p>
               )}
               {(!triggerWord || triggerWord === 'TOK' || triggerWord.trim().length < 2) && selectedFiles.length >= 5 && (
-                <p className="text-sm text-red-600">Please enter a unique pet name (at least 2 characters)</p>
+                <p className="text-sm text-red-600">Please enter your pet&apos;s name (at least 2 characters)</p>
               )}
               {isTraining && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
@@ -1066,12 +1066,12 @@ export default function ImageUpload() {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {mode === 'flux' ? `Step 2: Choose Your Scene` : 'Describe Your Scene'}
+                  {mode === 'flux' ? `Step 2: Pick a Scene` : 'Describe Your Scene'}
                 </label>
 
                 {/* Preset dropdown for both modes */}
                 <select
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mb-2 text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-coral-500 mb-2 text-gray-900"
                   onChange={(e) => {
                     setPrompt(e.target.value);
                   }}
@@ -1107,20 +1107,20 @@ export default function ImageUpload() {
                 </select>
 
                 {mode === 'flux' && prompt && (
-                  <div className="mb-2 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <p className="text-xs font-medium text-indigo-900 mb-1">Preview:</p>
-                    <p className="text-sm text-indigo-700">
+                  <div className="mb-2 p-3 bg-coral-50 border border-coral-200 rounded-lg">
+                    <p className="text-xs font-medium text-coral-900 mb-1">Preview:</p>
+                    <p className="text-sm text-coral-700">
                       Professional pet photography of {triggerWord}, {prompt}, high quality, detailed, studio lighting
                     </p>
                   </div>
                 )}
               </div>
               <button
-                className="w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full py-3 px-6 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
                 onClick={handleGenerate}
                 disabled={isGenerating || !prompt}
               >
-                {isGenerating ? 'Creating your photos...' : mode === 'flux' ? 'Generate 4 Photos with Custom AI' : 'Generate Background'}
+                {isGenerating ? 'Creating photos...' : mode === 'flux' ? 'Create Photos' : 'Generate Background'}
               </button>
             </div>
           )}
@@ -1150,7 +1150,7 @@ export default function ImageUpload() {
                     download={`generated-image-${index + 1}.png`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 bg-white text-coral-600 font-medium rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
                   >
                     Download
                   </a>

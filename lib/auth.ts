@@ -37,10 +37,10 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        // Check if email is verified for non-Google users
-        if (!user.email_verified && !user.google_id) {
-          throw new Error('Please verify your email before signing in. Check your inbox for the verification link.');
-        }
+        // Email verification disabled for now - will re-enable once email provider is configured
+        // if (!user.email_verified && !user.google_id) {
+        //   throw new Error('Please verify your email before signing in. Check your inbox for the verification link.');
+        // }
 
         const isValid = await bcrypt.compare(
           credentials.password as string,

@@ -5,28 +5,32 @@ import { useState } from 'react';
 const creditPackages = [
   {
     id: 'starter',
-    name: 'Starter Pack',
+    name: 'Starter',
     credits: 15,
     price: 12,
+    description: 'Great for trying it out',
   },
   {
     id: 'popular',
-    name: 'Popular Pack',
-    credits: 35,
+    name: 'Popular',
+    credits: 40,
     price: 30,
     popular: true,
+    description: 'Best value',
   },
   {
     id: 'pro',
-    name: 'Pro Pack',
-    credits: 105,
+    name: 'Pro',
+    credits: 110,
     price: 80,
+    description: 'For regular use',
   },
   {
     id: 'business',
-    name: 'Business Pack',
+    name: 'Studio',
     credits: 305,
     price: 200,
+    description: 'Maximum savings',
   },
 ];
 
@@ -60,10 +64,10 @@ export default function CreditPurchase() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-coral-100 p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Buy Credits</h2>
       <p className="text-gray-600 mb-6">
-        Purchase credits to create product photos and photo subjects
+        Purchase credits to train pets and create photos
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -72,27 +76,28 @@ export default function CreditPurchase() {
             key={pkg.id}
             className={`relative border-2 rounded-lg p-6 ${
               pkg.popular
-                ? 'border-indigo-600 bg-indigo-50'
+                ? 'border-coral-500 bg-coral-50'
                 : 'border-gray-200 bg-white'
             }`}
           >
             {pkg.popular && (
-              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
+              <div className="absolute top-0 right-0 bg-coral-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
                 POPULAR
               </div>
             )}
 
             <div className="text-center">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
                 {pkg.name}
               </h3>
+              <p className="text-xs text-gray-500 mb-3">{pkg.description}</p>
               <div className="mb-4">
                 <span className="text-4xl font-bold text-gray-900">
                   {pkg.credits}
                 </span>
                 <span className="text-gray-600 ml-2">credits</span>
               </div>
-              <div className="text-2xl font-bold text-indigo-600 mb-4">
+              <div className="text-2xl font-bold text-coral-600 mb-4">
                 ${pkg.price.toFixed(2)}
               </div>
               <div className="text-sm text-gray-500 mb-6">
@@ -103,7 +108,7 @@ export default function CreditPurchase() {
                 disabled={loading !== null}
                 className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                   pkg.popular
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    ? 'bg-coral-500 text-white hover:bg-coral-600'
                     : 'bg-gray-900 text-white hover:bg-gray-800'
                 } disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
               >
@@ -140,14 +145,14 @@ export default function CreditPurchase() {
         ))}
       </div>
 
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h4 className="font-semibold text-blue-900 mb-2">Credit Usage:</h4>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Photo subject training: 10 credits</li>
-          <li>• Generate 4 images: 1 credit</li>
-          <li>• Generate 12 images: 3 credits</li>
-          <li>• Generate 20 images: 4 credits</li>
-          <li>• Video generation: 5 credits</li>
+      <div className="mt-6 p-4 bg-coral-50 border border-coral-200 rounded-lg">
+        <h4 className="font-semibold text-coral-900 mb-2">Credit Usage:</h4>
+        <ul className="text-sm text-coral-800 space-y-1">
+          <li>🐾 Train a new pet: 10 credits</li>
+          <li>📸 Create 4 photos: 1 credit</li>
+          <li>📸 Create 12 photos: 3 credits</li>
+          <li>📸 Create 20 photos: 4 credits</li>
+          <li>🎬 Create a video: 5 credits</li>
         </ul>
       </div>
     </div>

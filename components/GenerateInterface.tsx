@@ -117,9 +117,9 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
   return (
     <div className="space-y-6">
       {/* Model Selection */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-md border border-coral-100 p-6">
         <label className="block text-lg font-semibold text-gray-900 mb-3">
-          {models.length > 1 ? 'Select Your Photo Subject' : 'Your Photo Subject'}
+          {models.length > 1 ? 'Choose a Pet' : 'Your Pet'}
         </label>
         <ModelSelector
           models={models}
@@ -134,7 +134,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
       </div>
 
       {selectedModel && (
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 space-y-6">
+        <div className="bg-white rounded-xl shadow-md border border-coral-100 p-6 space-y-6">
           {/* Platform/Aspect Ratio Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -148,8 +148,8 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                   onClick={() => setSelectedPlatform(preset.id)}
                   className={`p-3 border-2 rounded-lg text-center transition-all cursor-pointer ${
                     selectedPlatform === preset.id
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-300 bg-white hover:border-indigo-400'
+                      ? 'border-coral-500 bg-coral-50'
+                      : 'border-gray-300 bg-white hover:border-coral-400'
                   }`}
                 >
                   {/* Visual aspect ratio preview */}
@@ -185,13 +185,13 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                 }}
                 className={`p-4 border-2 rounded-lg text-center transition-all cursor-pointer ${
                   batchSize === 4
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 bg-white hover:border-indigo-400'
+                    ? 'border-coral-500 bg-coral-50'
+                    : 'border-gray-300 bg-white hover:border-coral-400'
                 }`}
               >
                 <div className="font-bold text-lg text-gray-900">4 Images</div>
                 <div className="text-sm text-gray-600">1 scene</div>
-                <div className="text-xs font-medium text-indigo-600 mt-1">1 credit</div>
+                <div className="text-xs font-medium text-coral-600 mt-1">1 credit</div>
               </button>
               <button
                 type="button"
@@ -201,13 +201,13 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                 }}
                 className={`p-4 border-2 rounded-lg text-center transition-all cursor-pointer ${
                   batchSize === 12
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 bg-white hover:border-indigo-400'
+                    ? 'border-coral-500 bg-coral-50'
+                    : 'border-gray-300 bg-white hover:border-coral-400'
                 }`}
               >
                 <div className="font-bold text-lg text-gray-900">12 Images</div>
                 <div className="text-sm text-gray-600">Up to 3 scenes</div>
-                <div className="text-xs font-medium text-indigo-600 mt-1">3 credits</div>
+                <div className="text-xs font-medium text-coral-600 mt-1">3 credits</div>
               </button>
               <button
                 type="button"
@@ -217,13 +217,13 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                 }}
                 className={`p-4 border-2 rounded-lg text-center transition-all cursor-pointer ${
                   batchSize === 20
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-300 bg-white hover:border-indigo-400'
+                    ? 'border-coral-500 bg-coral-50'
+                    : 'border-gray-300 bg-white hover:border-coral-400'
                 }`}
               >
                 <div className="font-bold text-lg text-gray-900">20 Images</div>
                 <div className="text-sm text-gray-600">Up to 5 scenes</div>
-                <div className="text-xs font-medium text-indigo-600 mt-1">4 credits</div>
+                <div className="text-xs font-medium text-coral-600 mt-1">4 credits</div>
               </button>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
           {/* Scene Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Choose {batchSize === 4 ? 'a Background' : `Backgrounds (${selectedScenes.length}/${maxScenes})`}
+              Pick {batchSize === 4 ? 'a Scene' : `Scenes (${selectedScenes.length}/${maxScenes})`}
             </label>
             {batchSize > 4 && (
               <p className="text-xs text-gray-500 mb-3">
@@ -247,8 +247,8 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                   disabled={batchSize > 4 && !selectedScenes.includes(preset.id) && selectedScenes.length >= maxScenes}
                   className={`p-4 border-2 rounded-lg text-left transition-all cursor-pointer ${
                     selectedScenes.includes(preset.id)
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-300 bg-white hover:border-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed'
+                      ? 'border-coral-500 bg-coral-50'
+                      : 'border-gray-300 bg-white hover:border-coral-400 disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
                 >
                   <div className="font-medium text-gray-900 text-sm mb-1">
@@ -287,7 +287,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                   Custom Prompt
                 </label>
                 <textarea
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder:text-gray-400"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-coral-500 text-gray-900 placeholder:text-gray-400"
                   rows={3}
                   placeholder={`e.g., ${selectedModel.trigger_word} on a wooden table with morning light, cozy coffee shop atmosphere`}
                   value={customPrompt}
@@ -307,11 +307,11 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
 
           {/* Generate Button */}
           <button
-            className="w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3 px-6 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleGenerate}
             disabled={isGenerating || (selectedScenes.length === 0 && !customPrompt)}
           >
-            {isGenerating ? 'Generating Your Photos...' : `Generate ${batchSize} Photos (${batchCost} credits)`}
+            {isGenerating ? 'Creating photos...' : `Create ${batchSize} Photos (${batchCost} credits)`}
           </button>
         </div>
       )}

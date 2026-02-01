@@ -148,6 +148,7 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
                             alt={`Generated ${globalIndex + 1}`}
                             downloadFilename={`${model.trigger_word}-${generation.id}-${globalIndex + 1}.png`}
                             qualityScore={qualityScore}
+                            petName={model.trigger_word}
                             onAnimateClick={handleAnimateClick}
                             onImageClick={() => handleImageClick(generation.image_urls, globalIndex)}
                           />
@@ -206,6 +207,7 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
         isOpen={galleryOpen}
         onClose={() => setGalleryOpen(false)}
         downloadPrefix={model.trigger_word}
+        petName={model.trigger_word}
       />
     </div>
   );
