@@ -31,6 +31,7 @@ interface GenerationsPanelProps {
   generations: Generation[];
   model: Model;
   onVideoGenerated?: (videoId: number) => void;
+  onAddToFrame?: (imageUrl: string) => void;
 }
 
 // Split array into chunks of specified size
@@ -42,7 +43,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return chunks;
 }
 
-export default function GenerationsPanel({ generations: initialGenerations, model, onVideoGenerated }: GenerationsPanelProps) {
+export default function GenerationsPanel({ generations: initialGenerations, model, onVideoGenerated, onAddToFrame }: GenerationsPanelProps) {
   const [generations, setGenerations] = useState<Generation[]>(initialGenerations);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
@@ -151,6 +152,7 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
                             petName={model.trigger_word}
                             onAnimateClick={handleAnimateClick}
                             onImageClick={() => handleImageClick(generation.image_urls, globalIndex)}
+                            onAddToFrame={onAddToFrame}
                           />
                         );
                       })}

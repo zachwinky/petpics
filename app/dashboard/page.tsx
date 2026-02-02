@@ -4,6 +4,7 @@ import { getUserById, getUserModels, getModelGenerationCount, getUserPendingTrai
 import CreditPurchase from '@/components/CreditPurchase';
 import NavbarWrapper from '@/components/NavbarWrapper';
 import ModelsGrid from '@/components/ModelsGrid';
+import DashboardActions from '@/components/DashboardActions';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -42,25 +43,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Primary Actions - Top Priority on Mobile */}
-          <div className="space-y-4">
-            {/* Train New Model */}
-            <a
-              href="/"
-              className="block w-full px-6 py-4 bg-coral-500 text-white font-semibold rounded-xl hover:bg-coral-600 transition-colors shadow-lg text-center text-lg"
-            >
-              🐾 Add a Pet
-            </a>
-
-            {/* Generate from Existing Models */}
-            {models.length > 0 && (
-              <a
-                href="/generate"
-                className="block w-full px-6 py-4 bg-peach-500 text-white font-semibold rounded-xl hover:bg-peach-600 transition-colors shadow-lg text-center text-lg"
-              >
-                📸 Create Photos
-              </a>
-            )}
-          </div>
+          <DashboardActions hasModels={models.length > 0} totalGenerations={totalGenerations} />
 
           {/* My Models */}
           <div className="bg-white rounded-xl shadow-md border border-coral-100 p-4 md:p-6">

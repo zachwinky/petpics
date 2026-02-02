@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import GenerationsPanel from './GenerationsPanel';
 import VideoGallery from './videos/VideoGallery';
+import { FrameBuilder } from './FrameBuilder';
 
 interface Generation {
   id: number;
@@ -51,6 +52,14 @@ export default function SubjectDetailContent({
   const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   const [videos, setVideos] = useState<Video[]>(initialVideos);
   const [newVideoId, setNewVideoId] = useState<number | null>(null);
+  const [isFrameBuilderOpen, setIsFrameBuilderOpen] = useState(false);
+  const [frameBuilderInitialImage, setFrameBuilderInitialImage] = useState<string | undefined>(undefined);
+
+  // Open Frame Builder with an initial image
+  const handleAddToFrame = (imageUrl: string) => {
+    setFrameBuilderInitialImage(imageUrl);
+    setIsFrameBuilderOpen(true);
+  };
 
   // When a new video is generated, switch to videos tab
   // The useEffect will automatically fetch the updated video list
@@ -120,11 +129,22 @@ export default function SubjectDetailContent({
           generations={generations}
           model={model}
           onVideoGenerated={handleVideoGenerated}
+          onAddToFrame={handleAddToFrame}
         />
       )}
       {activeTab === 'videos' && (
         <VideoGallery initialVideos={videos} />
       )}
+
+      {/* Frame Builder Modal */}
+      <FrameBuilder
+        isOpen={isFrameBuilderOpen}
+        onClose={() => {
+          setIsFrameBuilderOpen(false);
+          setFrameBuilderInitialImage(undefined);
+        }}
+        initialImage={frameBuilderInitialImage}
+      />
     </div>
   );
 }
