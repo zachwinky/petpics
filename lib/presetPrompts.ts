@@ -102,4 +102,35 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     description: 'Tucked in bed like a human',
     prompt: 'adorably tucked into cozy bed with soft blankets and pillows, wearing reading glasses, holding a book or scrolling smartphone, or with cucumber slices on eyes and face mask, nightstand with lamp, warm bedroom lighting, hilarious human-like pose, comfortable and relatable',
   },
+  // Valentine's Day
+  {
+    id: 'valentine-cupid',
+    label: 'Cupid',
+    description: 'Adorable cupid with wings and bow',
+    prompt: 'dressed as adorable cupid with tiny white angel wings and golden bow and arrow, surrounded by floating hearts, soft pink clouds, Valentine romantic atmosphere, cherub-like cuteness',
+  },
+  {
+    id: 'valentine-rose',
+    label: 'Rose Delivery',
+    description: 'Holding a rose or love letter',
+    prompt: 'holding single red rose in mouth or paws, sitting beside love letter with heart seal, romantic red and pink setting, Valentine gift delivery, sweet devoted expression',
+  },
+  {
+    id: 'valentine-chocolates',
+    label: 'Chocolates',
+    description: 'With heart-shaped chocolate box',
+    prompt: 'peeking out of giant heart-shaped chocolate box, surrounded by wrapped chocolates and candy hearts, Valentine gift surprise, adorable mischievous expression, pink and red decor',
+  },
+  {
+    id: 'valentine-balloons',
+    label: 'Heart Balloons',
+    description: 'Surrounded by heart balloons',
+    prompt: 'surrounded by floating red and pink heart-shaped balloons, festive Valentine party atmosphere, confetti, joyful celebratory mood, bright cheerful lighting',
+  },
+  {
+    id: 'valentine-portrait',
+    label: 'Be My Valentine',
+    description: 'Classic Valentine portrait',
+    prompt: 'elegant Valentine portrait with red bow tie or pink ribbon collar, soft romantic bokeh hearts in background, studio lighting, greeting card perfect, loving gaze',
+  },
 ];
