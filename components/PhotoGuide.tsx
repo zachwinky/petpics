@@ -9,10 +9,15 @@ export default function PhotoGuide() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check stored preference
+    // Check stored preference first
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'true') {
-      setIsCollapsed(true);
+    if (stored !== null) {
+      // User has a saved preference, use it
+      setIsCollapsed(stored === 'true');
+    } else {
+      // No saved preference - default to collapsed on mobile (< 768px)
+      const isMobile = window.innerWidth < 768;
+      setIsCollapsed(isMobile);
     }
     setIsLoaded(true);
   }, []);
