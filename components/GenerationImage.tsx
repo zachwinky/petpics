@@ -124,20 +124,20 @@ export default function GenerationImage({ url, alt, downloadFilename, qualitySco
           </div>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {/* Download button - hidden on mobile (users can long-press to save) */}
         <a
           href={url}
           download={downloadFilename}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden md:flex text-center justify-center items-center px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors"
+          className="hidden md:inline-flex text-center justify-center items-center px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors whitespace-nowrap"
         >
           Download
         </a>
 
         {/* Share button with dropdown - full width on mobile, auto on desktop */}
-        <div className="relative flex-1 md:flex-initial">
+        <div className="relative flex-1 md:flex-none">
           <button
             onClick={() => setShareMenuOpen(!shareMenuOpen)}
             className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
@@ -205,7 +205,7 @@ export default function GenerationImage({ url, alt, downloadFilename, qualitySco
         {onAddToFrame && (
           <button
             onClick={() => onAddToFrame(url)}
-            className="px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors flex items-center justify-center gap-1"
+            className="px-3 py-2 bg-purple-500 text-white text-sm font-medium rounded-lg hover:bg-purple-600 transition-colors inline-flex items-center justify-center gap-1 whitespace-nowrap"
             title="Add to frame collage"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
