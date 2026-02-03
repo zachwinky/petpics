@@ -131,13 +131,13 @@ export default function GenerationImage({ url, alt, downloadFilename, qualitySco
           download={downloadFilename}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden md:flex flex-1 text-center justify-center items-center px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors"
+          className="hidden md:flex text-center justify-center items-center px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors"
         >
           Download
         </a>
 
-        {/* Share button with dropdown - full width on mobile */}
-        <div className="relative flex-1 md:flex-none">
+        {/* Share button with dropdown - full width on mobile, auto on desktop */}
+        <div className="relative flex-1 md:flex-initial">
           <button
             onClick={() => setShareMenuOpen(!shareMenuOpen)}
             className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"

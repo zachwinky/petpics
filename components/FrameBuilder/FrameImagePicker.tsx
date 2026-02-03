@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 interface Model {
   id: number;
@@ -182,12 +181,10 @@ export default function FrameImagePicker({
                     : 'opacity-50 cursor-not-allowed'
               }`}
             >
-              <Image
+              <img
                 src={img.url}
                 alt={img.modelName}
-                fill
-                sizes="80px"
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
               {selected && (
                 <div className="absolute inset-0 bg-coral-500/20 flex items-center justify-center">
