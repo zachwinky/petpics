@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import GenerationImage from './GenerationImage';
 import RowActions from './RowActions';
-import VideoPromptModal from './videos/VideoPromptModal';
 import ImageGallery from './ImageGallery';
 import Link from 'next/link';
 
@@ -30,7 +29,6 @@ interface Model {
 interface GenerationsPanelProps {
   generations: Generation[];
   model: Model;
-  onVideoGenerated?: (videoId: number) => void;
   onAddToFrame?: (imageUrl: string) => void;
 }
 
@@ -43,27 +41,16 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return chunks;
 }
 
-export default function GenerationsPanel({ generations: initialGenerations, model, onVideoGenerated, onAddToFrame }: GenerationsPanelProps) {
+export default function GenerationsPanel({ generations: initialGenerations, model, onAddToFrame }: GenerationsPanelProps) {
   const [generations, setGenerations] = useState<Generation[]>(initialGenerations);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
-
-  const handleAnimateClick = (imageUrl: string) => {
-    setSelectedImageUrl(imageUrl);
-    setVideoModalOpen(true);
-  };
 
   const handleImageClick = (allImages: string[], clickedIndex: number) => {
     setGalleryImages(allImages);
     setGalleryInitialIndex(clickedIndex);
     setGalleryOpen(true);
-  };
-
-  const handleVideoGenerated = (videoId: number) => {
-    onVideoGenerated?.(videoId);
   };
 
   const handleRowImagesUpdated = (generationId: number, rowIndex: number, newUrls: string[]) => {
@@ -123,13 +110,6 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
               </div>
             </div>
 
-            {/* Prompt */}
-            {(generation.custom_prompt || generation.preset_prompt_id) && (
-              <div className="mb-3 text-sm text-gray-600">
-                <span className="font-medium">Prompt:</span> {generation.custom_prompt || generation.preset_prompt_id}
-              </div>
-            )}
-
             {/* Image rows with action buttons */}
             <div className="space-y-6 md:space-y-4">
               {imageRows.map((rowImages, rowIndex) => (
@@ -150,7 +130,6 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
                             downloadFilename={`${model.trigger_word}-${generation.id}-${globalIndex + 1}.png`}
                             qualityScore={qualityScore}
                             petName={model.trigger_word}
-                            onAnimateClick={handleAnimateClick}
                             onImageClick={() => handleImageClick(generation.image_urls, globalIndex)}
                             onAddToFrame={onAddToFrame}
                           />
@@ -189,18 +168,6 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
           </div>
         );
       })}
-
-      {/* Video Prompt Modal */}
-      <VideoPromptModal
-        isOpen={videoModalOpen}
-        onClose={() => {
-          setVideoModalOpen(false);
-          setSelectedImageUrl(null);
-        }}
-        imageUrl={selectedImageUrl || ''}
-        modelId={model.id}
-        onVideoGenerated={handleVideoGenerated}
-      />
 
       {/* Mobile Image Gallery */}
       <ImageGallery

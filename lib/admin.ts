@@ -40,20 +40,17 @@ export interface UserSummary {
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
+  // Use separate subqueries to avoid cartesian product from multiple JOINs
   const stats = await pool.query(`
     SELECT
-      COUNT(DISTINCT u.id) as total_users,
-      COALESCE(SUM(CASE WHEN t.type = 'purchase' THEN t.credits_change ELSE 0 END), 0) as total_credits_issued,
-      COALESCE(SUM(CASE WHEN t.type IN ('training', 'generation') THEN ABS(t.credits_change) ELSE 0 END), 0) as total_credits_spent,
-      COALESCE(SUM(t.amount_usd), 0) as total_revenue,
-      COUNT(DISTINCT m.id) as total_models,
-      COUNT(DISTINCT g.id) as total_generations,
-      COUNT(DISTINCT CASE WHEN u.created_at > NOW() - INTERVAL '7 days' THEN u.id END) as recent_signups,
-      COALESCE(SUM(CASE WHEN t.type = 'purchase' AND t.created_at > NOW() - INTERVAL '30 days' THEN t.amount_usd ELSE 0 END), 0) as recent_revenue
-    FROM users u
-    LEFT JOIN transactions t ON u.id = t.user_id
-    LEFT JOIN models m ON u.id = m.user_id
-    LEFT JOIN generations g ON u.id = g.user_id
+      (SELECT COUNT(*) FROM users) as total_users,
+      (SELECT COALESCE(SUM(credits_change), 0) FROM transactions WHERE type = 'purchase') as total_credits_issued,
+      (SELECT COALESCE(SUM(ABS(credits_change)), 0) FROM transactions WHERE type IN ('training', 'generation', 'video')) as total_credits_spent,
+      (SELECT COALESCE(SUM(amount_usd), 0) FROM transactions WHERE amount_usd IS NOT NULL) as total_revenue,
+      (SELECT COUNT(*) FROM models) as total_models,
+      (SELECT COUNT(*) FROM generations) as total_generations,
+      (SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days') as recent_signups,
+      (SELECT COALESCE(SUM(amount_usd), 0) FROM transactions WHERE type = 'purchase' AND created_at > NOW() - INTERVAL '30 days') as recent_revenue
   `);
 
   const row = stats.rows[0];
@@ -81,27 +78,25 @@ export async function getAllUsers(
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
   const sortOrder = order === 'ASC' ? 'ASC' : 'DESC';
 
+  // Use subqueries to avoid cartesian product from multiple JOINs
   const result = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
       u.credits_balance,
-      COALESCE(SUM(CASE WHEN t.type IN ('training', 'generation') THEN ABS(t.credits_change) ELSE 0 END), 0) as total_spent,
-      COALESCE(SUM(CASE WHEN t.type = 'purchase' THEN t.credits_change ELSE 0 END), 0) as total_purchased,
-      COUNT(DISTINCT m.id) as models_count,
-      COUNT(DISTINCT g.id) as generations_count,
+      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
+      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
+      (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
-      MAX(GREATEST(
-        COALESCE(m.created_at, '1970-01-01'::timestamp),
-        COALESCE(g.created_at, '1970-01-01'::timestamp),
-        COALESCE(t.created_at, '1970-01-01'::timestamp)
-      )) as last_activity
+      GREATEST(
+        u.created_at,
+        COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+      ) as last_activity
     FROM users u
-    LEFT JOIN transactions t ON u.id = t.user_id
-    LEFT JOIN models m ON u.id = m.user_id
-    LEFT JOIN generations g ON u.id = g.user_id
-    GROUP BY u.id, u.email, u.name, u.credits_balance, u.created_at
     ORDER BY ${sortColumn} ${sortOrder}
     LIMIT $1 OFFSET $2
   `, [limit, offset]);
@@ -147,29 +142,26 @@ export interface UserDetail extends UserSummary {
 }
 
 export async function getUserDetail(userId: number): Promise<UserDetail | null> {
-  // Get user summary
+  // Get user summary using subqueries to avoid cartesian product
   const userResult = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
       u.credits_balance,
-      COALESCE(SUM(CASE WHEN t.type IN ('training', 'generation') THEN ABS(t.credits_change) ELSE 0 END), 0) as total_spent,
-      COALESCE(SUM(CASE WHEN t.type = 'purchase' THEN t.credits_change ELSE 0 END), 0) as total_purchased,
-      COUNT(DISTINCT m.id) as models_count,
-      COUNT(DISTINCT g.id) as generations_count,
+      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
+      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
+      (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
-      MAX(GREATEST(
-        COALESCE(m.created_at, '1970-01-01'::timestamp),
-        COALESCE(g.created_at, '1970-01-01'::timestamp),
-        COALESCE(t.created_at, '1970-01-01'::timestamp)
-      )) as last_activity
+      GREATEST(
+        u.created_at,
+        COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+      ) as last_activity
     FROM users u
-    LEFT JOIN transactions t ON u.id = t.user_id
-    LEFT JOIN models m ON u.id = m.user_id
-    LEFT JOIN generations g ON u.id = g.user_id
     WHERE u.id = $1
-    GROUP BY u.id, u.email, u.name, u.credits_balance, u.created_at
   `, [userId]);
 
   if (userResult.rows.length === 0) return null;
@@ -245,28 +237,26 @@ export async function searchUsers(
 ): Promise<UserSummary[]> {
   const searchPattern = `%${query.toLowerCase()}%`;
 
+  // Use subqueries to avoid cartesian product from multiple JOINs
   const result = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
       u.credits_balance,
-      COALESCE(SUM(CASE WHEN t.type IN ('training', 'generation') THEN ABS(t.credits_change) ELSE 0 END), 0) as total_spent,
-      COALESCE(SUM(CASE WHEN t.type = 'purchase' THEN t.credits_change ELSE 0 END), 0) as total_purchased,
-      COUNT(DISTINCT m.id) as models_count,
-      COUNT(DISTINCT g.id) as generations_count,
+      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
+      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
+      (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
-      MAX(GREATEST(
-        COALESCE(m.created_at, '1970-01-01'::timestamp),
-        COALESCE(g.created_at, '1970-01-01'::timestamp),
-        COALESCE(t.created_at, '1970-01-01'::timestamp)
-      )) as last_activity
+      GREATEST(
+        u.created_at,
+        COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+      ) as last_activity
     FROM users u
-    LEFT JOIN transactions t ON u.id = t.user_id
-    LEFT JOIN models m ON u.id = m.user_id
-    LEFT JOIN generations g ON u.id = g.user_id
     WHERE LOWER(u.email) LIKE $1 OR LOWER(COALESCE(u.name, '')) LIKE $1
-    GROUP BY u.id, u.email, u.name, u.credits_balance, u.created_at
     ORDER BY u.created_at DESC
     LIMIT $2
   `, [searchPattern, limit]);

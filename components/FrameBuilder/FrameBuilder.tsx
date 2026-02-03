@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import FramePreview from './FramePreview';
 import FrameImagePicker from './FrameImagePicker';
 import { LayoutType, FRAME_LAYOUTS } from './frameLayouts';
@@ -52,6 +52,7 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
   const [showSavedFrames, setShowSavedFrames] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const imagePickerRef = useRef<HTMLDivElement>(null);
 
   const { canvasRef, exportAsBlob, exportAsDataURL } = useFrameCanvas({
     images,
@@ -190,6 +191,11 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
     setSavedFrames(getSavedFrames());
   }, []);
 
+  // Scroll to image picker when empty slot is clicked
+  const handleEmptySlotClick = useCallback(() => {
+    imagePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   if (!isOpen) return null;
 
   const hasImages = images.some(img => img !== null);
@@ -220,6 +226,7 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
                   layout={layout}
                   style={style}
                   size={1024}
+                  onEmptySlotClick={handleEmptySlotClick}
                 />
                 {/* Hidden canvas for export */}
                 <canvas ref={canvasRef} className="hidden" />
@@ -272,7 +279,7 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
             </div>
 
             {/* Image Selection Section */}
-            <div className="space-y-4">
+            <div ref={imagePickerRef} className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-700">Select Images</h3>
                 {savedFrames.length > 0 && (

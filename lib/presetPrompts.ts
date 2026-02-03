@@ -96,4 +96,10 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     description: 'Cozy rainy day indoors',
     prompt: 'gazing thoughtfully out rain-streaked window, soft moody lighting, contemplative mood, cozy rainy day vibes, reflective',
   },
+  {
+    id: 'cozy-bedtime',
+    label: 'Cozy Bedtime',
+    description: 'Tucked in bed like a human',
+    prompt: 'adorably tucked into cozy bed with soft blankets and pillows, wearing reading glasses, holding a book or scrolling smartphone, or with cucumber slices on eyes and face mask, nightstand with lamp, warm bedroom lighting, hilarious human-like pose, comfortable and relatable',
+  },
 ];

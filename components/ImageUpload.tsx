@@ -28,6 +28,7 @@ export default function ImageUpload() {
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [prompt, setPrompt] = useState('');
   const [trainedLoraUrl, setTrainedLoraUrl] = useState<string | null>(null);
+  const [trainedModelId, setTrainedModelId] = useState<number | null>(null);
   const [triggerWord, setTriggerWord] = useState('TOK');
   const [showCamera, setShowCamera] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -54,11 +55,15 @@ export default function ImageUpload() {
   useEffect(() => {
     const savedLoraUrl = localStorage.getItem('trainedLoraUrl');
     const savedTriggerWord = localStorage.getItem('triggerWord');
+    const savedModelId = localStorage.getItem('trainedModelId');
     if (savedLoraUrl) {
       setTrainedLoraUrl(savedLoraUrl);
     }
     if (savedTriggerWord) {
       setTriggerWord(savedTriggerWord);
+    }
+    if (savedModelId) {
+      setTrainedModelId(parseInt(savedModelId, 10));
     }
   }, []);
 
@@ -490,6 +495,10 @@ export default function ImageUpload() {
 
       if (data.success && data.loraUrl) {
         setTrainedLoraUrl(data.loraUrl);
+        if (data.modelId) {
+          setTrainedModelId(data.modelId);
+          localStorage.setItem('trainedModelId', String(data.modelId));
+        }
         setTrainingSuccess(true);
         setTrainingStage('complete');
         showToast('Training complete! Your AI model is ready.', 'success');
@@ -547,6 +556,10 @@ export default function ImageUpload() {
 
         if (data.status === 'completed' && data.loraUrl) {
           setTrainedLoraUrl(data.loraUrl);
+          if (data.modelId) {
+            setTrainedModelId(data.modelId);
+            localStorage.setItem('trainedModelId', String(data.modelId));
+          }
           setTrainingSuccess(true);
           setTrainingStage('complete');
           setPendingRequestId(null);
@@ -614,6 +627,7 @@ export default function ImageUpload() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            modelId: trainedModelId,
             loraUrl: trainedLoraUrl,
             triggerWord,
             prompt: prompt || 'professional pet photoshoot, natural lighting, beautiful background',
@@ -1048,7 +1062,9 @@ export default function ImageUpload() {
                 <button
                   onClick={() => {
                     setTrainedLoraUrl(null);
+                    setTrainedModelId(null);
                     localStorage.removeItem('trainedLoraUrl');
+                    localStorage.removeItem('trainedModelId');
                     localStorage.removeItem('triggerWord');
                     setTriggerWord('TOK');
                   }}

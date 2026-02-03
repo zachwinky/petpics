@@ -174,6 +174,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         status: 'completed',
+        modelId: model.id,
         loraUrl,
         triggerWord,
         message: 'Model trained successfully!',

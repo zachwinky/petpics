@@ -128,7 +128,6 @@ export default function SubjectDetailContent({
         <GenerationsPanel
           generations={generations}
           model={model}
-          onVideoGenerated={handleVideoGenerated}
           onAddToFrame={handleAddToFrame}
         />
       )}
