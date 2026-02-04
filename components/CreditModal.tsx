@@ -7,26 +7,26 @@ const creditPackages = [
     id: 'starter',
     name: 'Starter Pack',
     credits: 15,
-    price: 12,
+    price: 8.99,
   },
   {
     id: 'popular',
     name: 'Popular Pack',
-    credits: 35,
-    price: 30,
+    credits: 40,
+    price: 24.99,
     popular: true,
   },
   {
     id: 'pro',
     name: 'Pro Pack',
-    credits: 105,
-    price: 80,
+    credits: 110,
+    price: 64.99,
   },
   {
     id: 'business',
     name: 'Business Pack',
     credits: 305,
-    price: 200,
+    price: 179.99,
   },
 ];
 
