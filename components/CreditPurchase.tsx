@@ -8,6 +8,7 @@ const creditPackages = [
     name: 'Starter',
     credits: 15,
     price: 8.99,
+    oldPrice: 12,
     description: 'Great for trying it out',
   },
   {
@@ -15,6 +16,7 @@ const creditPackages = [
     name: 'Popular',
     credits: 45,
     price: 24.99,
+    oldPrice: 30,
     popular: true,
     description: 'Most popular',
   },
@@ -23,6 +25,7 @@ const creditPackages = [
     name: 'Pro',
     credits: 110,
     price: 64.99,
+    oldPrice: 80,
     description: 'For power users',
   },
   {
@@ -30,6 +33,7 @@ const creditPackages = [
     name: 'Studio',
     credits: 305,
     price: 179.99,
+    oldPrice: 200,
     description: 'Go all out',
   },
 ];
@@ -97,8 +101,13 @@ export default function CreditPurchase() {
                 </span>
                 <span className="text-gray-600 ml-2">credits</span>
               </div>
-              <div className="text-2xl font-bold text-coral-600 mb-4">
-                ${pkg.price.toFixed(2)}
+              <div className="mb-4">
+                <span className="text-sm text-gray-400 line-through mr-2">
+                  ${pkg.oldPrice.toFixed(2)}
+                </span>
+                <span className="text-2xl font-bold text-coral-600">
+                  ${pkg.price.toFixed(2)}
+                </span>
               </div>
               <div className="text-sm text-gray-500 mb-6">
                 ${(pkg.price / pkg.credits).toFixed(3)} per credit

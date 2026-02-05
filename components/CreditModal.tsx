@@ -8,12 +8,14 @@ const creditPackages = [
     name: 'Starter Pack',
     credits: 15,
     price: 8.99,
+    oldPrice: 12,
   },
   {
     id: 'popular',
     name: 'Popular Pack',
     credits: 45,
     price: 24.99,
+    oldPrice: 30,
     popular: true,
   },
   {
@@ -21,12 +23,14 @@ const creditPackages = [
     name: 'Pro Pack',
     credits: 110,
     price: 64.99,
+    oldPrice: 80,
   },
   {
     id: 'business',
     name: 'Business Pack',
     credits: 305,
     price: 179.99,
+    oldPrice: 200,
   },
 ];
 
@@ -142,8 +146,13 @@ export default function CreditModal({ isOpen, onClose, required, current }: Cred
                   </span>
                   <span className="text-gray-600 text-xs ml-1">credits</span>
                 </div>
-                <div className="text-lg font-bold text-indigo-600 mb-2">
-                  ${pkg.price}
+                <div className="mb-2">
+                  <span className="text-xs text-gray-400 line-through mr-1">
+                    ${pkg.oldPrice}
+                  </span>
+                  <span className="text-lg font-bold text-indigo-600">
+                    ${pkg.price}
+                  </span>
                 </div>
                 <div className="text-xs text-gray-500 mb-3">
                   ${(pkg.price / pkg.credits).toFixed(2)}/credit
