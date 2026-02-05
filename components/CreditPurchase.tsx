@@ -13,7 +13,7 @@ const creditPackages = [
   {
     id: 'popular',
     name: 'Popular',
-    credits: 40,
+    credits: 45,
     price: 24.99,
     popular: true,
     description: 'Most popular',

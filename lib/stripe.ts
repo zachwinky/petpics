@@ -24,7 +24,7 @@ export const creditPackages: CreditPackage[] = [
   {
     id: 'popular',
     name: 'Popular Pack',
-    credits: 40,
+    credits: 45,
     price: 24.99,
     popular: true,
   },
