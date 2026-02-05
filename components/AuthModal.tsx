@@ -17,7 +17,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [signupSuccess, setSignupSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -83,8 +82,26 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
         return;
       }
 
-      // Show success message for email verification
-      setSignupSuccess(true);
+      // Auto sign in after successful signup
+      const signInResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        // Signup succeeded but auto-signin failed - switch to signin mode
+        setError('Account created! Please sign in.');
+        setMode('signin');
+      } else {
+        // Success - close and trigger callback
+        onClose();
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+          }, 100);
+        }
+      }
     } catch (err) {
       setError('An error occurred');
     } finally {
@@ -103,7 +120,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
     setPassword('');
     setName('');
     setError('');
-    setSignupSuccess(false);
   };
 
   const switchMode = (newMode: 'signin' | 'signup') => {
@@ -138,25 +154,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
           )}
         </div>
 
-        {signupSuccess ? (
-          // Email verification success state
-          <div className="text-center space-y-4">
-            <div className="text-5xl mb-4">📧</div>
-            <h3 className="text-xl font-semibold text-gray-900">Check Your Email</h3>
-            <p className="text-gray-600">
-              We've sent a verification link to <strong>{email}</strong>.
-              Please check your inbox and click the link to verify your account.
-            </p>
-            <button
-              onClick={() => switchMode('signin')}
-              className="w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Back to Sign In
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Google Sign In */}
+        {/* Google Sign In */}
             <button
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:border-indigo-400 hover:bg-gray-50 transition-all font-medium text-gray-700 cursor-pointer"
@@ -291,8 +289,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
                 </>
               )}
             </div>
-          </>
-        )}
       </div>
     </div>
   );
