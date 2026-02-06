@@ -74,9 +74,9 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📸</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No product images yet</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">No pet photos yet</h3>
         <p className="text-gray-600 mb-6">
-          Generate your first product images for this photo subject
+          Generate your first pet photos for this photo subject
         </p>
         <Link
           href={`/generate?modelId=${model.id}`}

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getUserById, createGeneration, updateUserCredits, getModelById } from '@/lib/db';
-import { PRESET_PROMPTS } from '@/lib/presetPrompts';
+import { PRESET_PROMPTS, getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { scoreImagesWithPrompts } from '@/lib/imageQuality';
 import { getImageDimensions, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
 
@@ -69,9 +69,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch model to get product description (for text accuracy)
+    // Fetch model to get product description (for text accuracy) and pet type (for prompt selection)
     const model = await getModelById(modelId, userId);
     const productDescription = model?.product_description;
+    const petType: PetType = (model?.pet_type as PetType) || 'dog';
 
     // Calculate cost in credits
     // Base cost + upscale cost (1 extra credit per 4 images if upscaling)
@@ -99,12 +100,12 @@ export async function POST(request: Request) {
       const batchCount = batchSize / 4;
       prompts = Array(batchCount).fill(customPrompt);
     } else if (selectedScenes && selectedScenes.length > 0) {
-      // Multi-scene mode: distribute images across scenes
-      const scenesData = selectedScenes
-        .map((sceneId: string) => PRESET_PROMPTS.find(p => p.id === sceneId))
-        .filter((scene: any): scene is { id: string; name: string; prompt: string } => scene !== null && scene !== undefined);
+      // Multi-scene mode: distribute images across scenes with pet-type-specific prompts
+      const validSceneIds = selectedScenes.filter((sceneId: string) =>
+        PRESET_PROMPTS.find(p => p.id === sceneId)
+      );
 
-      if (scenesData.length === 0) {
+      if (validSceneIds.length === 0) {
         return NextResponse.json(
           { error: 'Invalid scenes selected' },
           { status: 400 }
@@ -113,15 +114,17 @@ export async function POST(request: Request) {
 
       // Calculate how many batches (of 4) per scene
       const totalBatches = batchSize / 4;
-      const batchesPerScene = Math.floor(totalBatches / scenesData.length);
-      const remainder = totalBatches % scenesData.length;
+      const batchesPerScene = Math.floor(totalBatches / validSceneIds.length);
+      const remainder = totalBatches % validSceneIds.length;
 
-      // Distribute batches across scenes
+      // Distribute batches across scenes, using pet-type-specific prompts
       prompts = [];
-      scenesData.forEach((scene: { id: string; name: string; prompt: string }, index: number) => {
+      validSceneIds.forEach((sceneId: string, index: number) => {
         const batchesForThisScene = batchesPerScene + (index < remainder ? 1 : 0);
+        // Get pet-type-specific prompt (uses catPrompt if cat, otherwise default)
+        const promptText = getPromptForPetType(sceneId, petType);
         for (let i = 0; i < batchesForThisScene; i++) {
-          prompts.push(scene.prompt);
+          prompts.push(promptText);
         }
       });
     } else {

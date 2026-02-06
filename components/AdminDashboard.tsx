@@ -94,6 +94,11 @@ export default function AdminDashboard() {
   // Quick credits state
   const [addingCreditsUserId, setAddingCreditsUserId] = useState<number | null>(null);
 
+  // Sample prompts config state
+  const [samplePromptIds, setSamplePromptIds] = useState<string[]>([]);
+  const [availablePresets, setAvailablePresets] = useState<{ id: string; label: string; description: string }[]>([]);
+  const [savingSampleConfig, setSavingSampleConfig] = useState(false);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -121,6 +126,14 @@ export default function AdminDashboard() {
       const countsRes = await fetch('/api/admin/stats?type=failure-counts');
       const countsData = await countsRes.json();
       setFailureCounts(countsData.counts);
+
+      // Load sample prompts config
+      const sampleConfigRes = await fetch('/api/admin/sample-config');
+      if (sampleConfigRes.ok) {
+        const sampleConfigData = await sampleConfigRes.json();
+        setSamplePromptIds(sampleConfigData.samplePromptIds || []);
+        setAvailablePresets(sampleConfigData.availablePresets || []);
+      }
     } catch (error) {
       console.error('Failed to load admin data:', error);
     } finally {
@@ -216,6 +229,46 @@ export default function AdminDashboard() {
       alert('Network error');
     } finally {
       setAddingCreditsUserId(null);
+    }
+  };
+
+  // Toggle sample prompt selection
+  const toggleSamplePrompt = (promptId: string) => {
+    setSamplePromptIds(prev => {
+      if (prev.includes(promptId)) {
+        return prev.filter(id => id !== promptId);
+      } else if (prev.length < 2) {
+        return [...prev, promptId];
+      }
+      return prev; // Can't add more than 2
+    });
+  };
+
+  // Save sample prompt config
+  const saveSampleConfig = async () => {
+    if (samplePromptIds.length !== 2) {
+      alert('Please select exactly 2 prompts');
+      return;
+    }
+
+    setSavingSampleConfig(true);
+    try {
+      const res = await fetch('/api/admin/sample-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ samplePromptIds }),
+      });
+
+      if (res.ok) {
+        alert('Sample prompts config saved successfully!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save config');
+      }
+    } catch (error) {
+      alert('Network error');
+    } finally {
+      setSavingSampleConfig(false);
     }
   };
 
@@ -430,6 +483,52 @@ export default function AdminDashboard() {
             </form>
           </div>
         )}
+      </div>
+
+      {/* Sample Prompts Config */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Training Completion Samples</h2>
+          <p className="text-sm text-gray-500">Select 2 prompts to generate watermarked samples when training completes (shown in email)</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+            {availablePresets.map(preset => {
+              const isSelected = samplePromptIds.includes(preset.id);
+              const canSelect = isSelected || samplePromptIds.length < 2;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => toggleSamplePrompt(preset.id)}
+                  disabled={!canSelect}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    isSelected
+                      ? 'border-coral-500 bg-coral-50 text-coral-700'
+                      : canSelect
+                        ? 'border-gray-200 hover:border-coral-300 hover:bg-coral-50/50'
+                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="font-medium text-sm">{preset.label}</div>
+                  <div className="text-xs text-gray-500 mt-1">{preset.description}</div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {samplePromptIds.length}/2 selected
+              {samplePromptIds.length === 2 && <span className="text-green-600 ml-2">Ready to save</span>}
+            </span>
+            <button
+              onClick={saveSampleConfig}
+              disabled={samplePromptIds.length !== 2 || savingSampleConfig}
+              className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {savingSampleConfig ? 'Saving...' : 'Save Config'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}

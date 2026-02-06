@@ -21,7 +21,7 @@ async function upscaleImage(imageUrl: string): Promise<string> {
     body: JSON.stringify({
       image_url: imageUrl,
       upscale_factor: 2,
-      prompt: 'professional product photography, high quality, sharp details, studio lighting',
+      prompt: 'professional pet photography, high quality, sharp details, studio lighting',
       negative_prompt: '(worst quality, low quality, blurry, noise, artifacts:2)',
       creativity: 0.2,
       resemblance: 0.8,

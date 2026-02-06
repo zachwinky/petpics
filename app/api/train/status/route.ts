@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createModel, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId } from '@/lib/db';
-import { sendTrainingCompleteEmail, sendTrainingFailedEmail } from '@/lib/email';
+import { getUserById, updateUserCredits, createModel, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId, getAdminConfig } from '@/lib/db';
+import { sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
+import { PetType } from '@/lib/petTypeDetection';
+import { getPromptForPetType } from '@/lib/presetPrompts';
+import { watermarkAndUpload } from '@/lib/watermark';
 
-// Generate a preview image for a newly trained model (runs in background)
-async function generatePreviewImage(modelId: number, loraUrl: string, triggerWord: string) {
+// Generate a single image using flux-lora
+async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string): Promise<string | null> {
+  const FAL_KEY = process.env.FAL_KEY;
+  if (!FAL_KEY) return null;
+
   try {
-    console.log(`Generating preview image for model ${modelId}...`);
-
-    const FAL_KEY = process.env.FAL_KEY;
-    if (!FAL_KEY) {
-      console.error('FAL_KEY not configured for preview generation');
-      return;
-    }
+    const fullPrompt = `Award-winning pet portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
 
     const response = await fetch('https://fal.run/fal-ai/flux-lora', {
       method: 'POST',
@@ -22,18 +22,10 @@ async function generatePreviewImage(modelId: number, loraUrl: string, triggerWor
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: `Professional pet photography of ${triggerWord}, clean white studio background, professional lighting, high quality, detailed, commercial photography`,
-        loras: [
-          {
-            path: loraUrl,
-            scale: 1,
-          },
-        ],
+        prompt: fullPrompt,
+        loras: [{ path: loraUrl, scale: 1 }],
         num_images: 1,
-        image_size: {
-          width: 512,
-          height: 512,
-        },
+        image_size: { width: 512, height: 512 },
         num_inference_steps: 20,
         guidance_scale: 3.5,
         enable_safety_checker: false,
@@ -41,20 +33,63 @@ async function generatePreviewImage(modelId: number, loraUrl: string, triggerWor
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Preview generation failed:', errorText);
-      return;
+      console.error('Image generation failed:', await response.text());
+      return null;
     }
 
     const data = await response.json();
-    const previewUrl = data.images?.[0]?.url;
+    return data.images?.[0]?.url || null;
+  } catch (error) {
+    console.error('Error generating image:', error);
+    return null;
+  }
+}
 
-    if (previewUrl) {
-      await updateModelPreviewImage(modelId, previewUrl);
+// Generate 3 sample images (preview + 2 admin-selected prompts) with watermarks
+async function generateSampleImages(
+  modelId: number,
+  loraUrl: string,
+  triggerWord: string,
+  petType: PetType
+): Promise<string[]> {
+  try {
+    console.log(`Generating sample images for model ${modelId}...`);
+
+    // Get admin-configured sample prompt IDs
+    const samplePromptIds = await getAdminConfig<string[]>('sample_prompt_ids') || ['studio-white', 'park-scene'];
+
+    // Build prompts: preview + 2 admin-selected
+    const previewPrompt = 'elegant studio portrait, crisp white backdrop, professional lighting, magazine cover quality';
+    const samplePrompts = samplePromptIds.map(id => getPromptForPetType(id, petType));
+
+    const allPrompts = [previewPrompt, ...samplePrompts];
+
+    // Generate all 3 images in parallel
+    const imagePromises = allPrompts.map(prompt => generateSingleImage(loraUrl, triggerWord, prompt));
+    const imageUrls = await Promise.all(imagePromises);
+
+    const validImageUrls = imageUrls.filter((url): url is string => url !== null);
+
+    if (validImageUrls.length === 0) {
+      console.error('No sample images generated successfully');
+      return [];
+    }
+
+    // Save first image (preview) to model record
+    if (validImageUrls[0]) {
+      await updateModelPreviewImage(modelId, validImageUrls[0]);
       console.log(`Preview image saved for model ${modelId}`);
     }
+
+    // Watermark all images for email
+    const watermarkPromises = validImageUrls.map(url => watermarkAndUpload(url));
+    const watermarkedUrls = await Promise.all(watermarkPromises);
+
+    console.log(`Sample images generated and watermarked for model ${modelId}`);
+    return watermarkedUrls;
   } catch (error) {
-    console.error('Error generating preview image:', error);
+    console.error('Error generating sample images:', error);
+    return [];
   }
 }
 
@@ -101,6 +136,11 @@ export async function POST(request: NextRequest) {
 
     fal.config({ credentials: apiKey });
 
+    // Get pending training record to retrieve model_name and pet_type
+    const pendingTraining = await getPendingTrainingByRequestId(requestId);
+    const modelName = pendingTraining?.model_name || `Photo Subject ${triggerWord}`;
+    const petType: PetType = (pendingTraining?.pet_type as PetType) || 'dog';
+
     // Check status
     const statusResponse = await fal.queue.status('fal-ai/flux-lora-fast-training', {
       requestId,
@@ -108,7 +148,7 @@ export async function POST(request: NextRequest) {
     });
 
     const currentStatus = statusResponse.status as string;
-    console.log('Training status check:', currentStatus, 'for request:', requestId);
+    console.log('Training status check:', currentStatus, 'for request:', requestId, 'petType:', petType);
 
     if (currentStatus === 'COMPLETED') {
       // Get the result
@@ -132,7 +172,6 @@ export async function POST(request: NextRequest) {
         );
 
         // Send failure email
-        const modelName = `Photo Subject ${triggerWord}`;
         sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training completed but no model file was generated');
 
         return NextResponse.json({
@@ -144,8 +183,7 @@ export async function POST(request: NextRequest) {
       // Delete pending training record since we're creating the actual model
       await deletePendingTraining(requestId);
 
-      // Create model record
-      const modelName = `Photo Subject ${triggerWord}`;
+      // Create model record (using modelName and petType from earlier lookup)
       let model;
       try {
         model = await createModel(
@@ -153,7 +191,8 @@ export async function POST(request: NextRequest) {
           modelName,
           loraUrl,
           triggerWord,
-          imagesCount || 5
+          imagesCount || 5,
+          petType
         );
       } catch (error) {
         console.error('Error creating model record:', error);
@@ -166,11 +205,21 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Generate preview image in background (don't await)
-      generatePreviewImage(model.id, loraUrl, triggerWord);
+      // Generate sample images with watermarks, then send email
+      console.log('Generating sample images for email...');
+      const sampleImages = await generateSampleImages(model.id, loraUrl, triggerWord, petType);
 
-      // Send success email notification
-      sendTrainingCompleteEmail(user.email, user.name || '', modelName, triggerWord);
+      // Send success email with sample images
+      if (sampleImages.length > 0) {
+        await sendTrainingCompleteEmailWithImages(
+          user.email,
+          user.name || '',
+          modelName,
+          triggerWord,
+          sampleImages
+        );
+        console.log('Training complete email sent with sample images');
+      }
 
       return NextResponse.json({
         status: 'completed',
@@ -192,7 +241,6 @@ export async function POST(request: NextRequest) {
       );
 
       // Send failure email
-      const modelName = `Photo Subject ${triggerWord}`;
       sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training failed on FAL servers');
 
       return NextResponse.json({

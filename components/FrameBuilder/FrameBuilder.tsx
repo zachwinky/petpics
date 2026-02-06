@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import FramePreview from './FramePreview';
 import FrameImagePicker from './FrameImagePicker';
 import { LayoutType, FRAME_LAYOUTS } from './frameLayouts';
@@ -52,7 +52,13 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
   const [showSavedFrames, setShowSavedFrames] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const imagePickerRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
 
   const { canvasRef, exportAsBlob, exportAsDataURL } = useFrameCanvas({
     images,
@@ -109,6 +115,27 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }, [exportAsBlob]);
+
+  // Save to photos (mobile) using Web Share API
+  const handleSaveToPhotos = useCallback(async () => {
+    const blob = await exportAsBlob();
+    if (!blob) return;
+
+    const file = new File([blob], `petpics-frame-${Date.now()}.png`, { type: 'image/png' });
+
+    // Check if Web Share API supports file sharing
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Pet Photo Frame' });
+        return;
+      } catch (e) {
+        // User cancelled or share failed
+        if ((e as Error).name === 'AbortError') return;
+      }
+    }
+    // Fallback to download
+    handleDownload();
+  }, [exportAsBlob, handleDownload]);
 
   // Share to Twitter
   const handleTwitterShare = useCallback(async () => {
@@ -396,14 +423,14 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
               )}
             </div>
 
-            {/* Download button */}
+            {/* Download/Save button - changes based on mobile */}
             <button
-              onClick={handleDownload}
+              onClick={isMobile ? handleSaveToPhotos : handleDownload}
               disabled={!hasImages}
               className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-coral-500 rounded-lg hover:bg-coral-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <DownloadIcon />
-              Download PNG
+              {isMobile ? 'Save to Photos' : 'Download PNG'}
             </button>
           </div>
         </div>

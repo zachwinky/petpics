@@ -124,6 +124,83 @@ export async function sendTrainingCompleteEmail(
   }
 }
 
+/**
+ * Send training complete email with watermarked sample images.
+ * This shows users the quality of their trained model before they purchase credits.
+ */
+export async function sendTrainingCompleteEmailWithImages(
+  to: string,
+  name: string,
+  modelName: string,
+  triggerWord: string,
+  sampleImages: string[] // Array of 3 watermarked image URLs
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+
+  // Build image grid HTML
+  const imageGridHtml = sampleImages.map((url, index) => `
+    <div style="flex: 1; min-width: 150px; max-width: 180px; margin: 8px;">
+      <img src="${url}" alt="Sample ${index + 1}" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    </div>
+  `).join('');
+
+  try {
+    await resend.emails.send({
+      from: 'Petpics <onboarding@resend.dev>',
+      to,
+      subject: `${triggerWord} is ready! See your sample photos 📸`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">${triggerWord} is Ready! 🐾</h1>
+            </div>
+
+            <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
+              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                Great news! <strong>${triggerWord}</strong> has finished training. Here are some sample photos we generated for you:
+              </p>
+
+              <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 24px 0; padding: 16px; background: white; border-radius: 12px;">
+                ${imageGridHtml}
+              </div>
+
+              <p style="font-size: 14px; color: #666; text-align: center; margin-bottom: 24px;">
+                These are watermarked samples. Purchase credits to generate full-quality photos!
+              </p>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${baseUrl}/generate"
+                   style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Get Credits & Create Photos
+                </a>
+              </div>
+
+              <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                Tip: With credits, you can create ${triggerWord} in any scene - from cozy home settings to beautiful outdoor adventures!
+              </p>
+            </div>
+
+            <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+              <p>&copy; ${new Date().getFullYear()} Petpics. All rights reserved.</p>
+            </div>
+          </body>
+        </html>
+      `,
+    });
+  } catch (error) {
+    console.error('Failed to send training complete email with images:', error);
+    // Don't throw - email is non-critical
+  }
+}
+
 export async function sendTrainingFailedEmail(
   to: string,
   name: string,

@@ -36,6 +36,7 @@ export interface Model {
   preview_image_url?: string;
   product_description?: string;  // Legacy: AI-generated text description (kept for backward compatibility)
   product_features?: ProductFeatures;  // Comprehensive product features for improved generation accuracy
+  pet_type?: 'dog' | 'cat' | 'unknown';  // Detected pet type for prompt selection
   created_at: Date;
 }
 
@@ -91,6 +92,7 @@ export interface PendingTraining {
   images_count: number;
   status: 'training' | 'completed' | 'failed';
   error_message?: string;
+  pet_type?: 'dog' | 'cat' | 'unknown';
   created_at: Date;
   completed_at?: Date;
 }
@@ -143,7 +145,7 @@ export async function createUser(
   googleId?: string
 ): Promise<User> {
   const result = await pool.query(
-    'INSERT INTO users (email, name, password_hash, google_id, credits_balance) VALUES ($1, $2, $3, $4, 0) RETURNING *',
+    'INSERT INTO users (email, name, password_hash, google_id, credits_balance) VALUES ($1, $2, $3, $4, 10) RETURNING *',
     [email, name || null, passwordHash || null, googleId || null]
   );
   return result.rows[0] as User;
@@ -231,14 +233,15 @@ export async function createModel(
   name: string,
   loraUrl: string,
   triggerWord: string,
-  trainingImagesCount: number
+  trainingImagesCount: number,
+  petType?: 'dog' | 'cat' | 'unknown'
 ): Promise<Model> {
   // Get unique name in case of duplicates
   const uniqueName = await getUniqueModelName(userId, name);
 
   const result = await pool.query(
-    'INSERT INTO models (user_id, name, lora_url, trigger_word, training_images_count) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-    [userId, uniqueName, loraUrl, triggerWord, trainingImagesCount]
+    'INSERT INTO models (user_id, name, lora_url, trigger_word, training_images_count, pet_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+    [userId, uniqueName, loraUrl, triggerWord, trainingImagesCount, petType || 'dog']
   );
   return result.rows[0] as Model;
 }
@@ -559,11 +562,12 @@ export async function createPendingTraining(
   falRequestId: string,
   triggerWord: string,
   modelName: string,
-  imagesCount: number
+  imagesCount: number,
+  petType?: 'dog' | 'cat' | 'unknown'
 ): Promise<PendingTraining> {
   const result = await pool.query(
-    'INSERT INTO pending_trainings (user_id, fal_request_id, trigger_word, model_name, images_count, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-    [userId, falRequestId, triggerWord, modelName, imagesCount, 'training']
+    'INSERT INTO pending_trainings (user_id, fal_request_id, trigger_word, model_name, images_count, status, pet_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+    [userId, falRequestId, triggerWord, modelName, imagesCount, 'training', petType || 'dog']
   );
   return result.rows[0] as PendingTraining;
 }
@@ -604,6 +608,17 @@ export async function updatePendingTrainingStatus(
   const result = await pool.query(
     `UPDATE pending_trainings SET status = $1, error_message = $2, completed_at = ${completedAt ? 'CURRENT_TIMESTAMP' : 'NULL'} WHERE fal_request_id = $3 RETURNING *`,
     [status, errorMessage || null, falRequestId]
+  );
+  return result.rows[0] as PendingTraining || null;
+}
+
+export async function updatePendingTrainingPetType(
+  pendingId: number,
+  petType: 'dog' | 'cat' | 'unknown'
+): Promise<PendingTraining | null> {
+  const result = await pool.query(
+    'UPDATE pending_trainings SET pet_type = $1 WHERE id = $2 RETURNING *',
+    [petType, pendingId]
   );
   return result.rows[0] as PendingTraining || null;
 }
@@ -652,4 +667,22 @@ export async function mergeModelProductFeatures(
   };
 
   return updateModelProductFeatures(modelId, userId, merged);
+}
+
+// Admin config operations
+export async function getAdminConfig<T = unknown>(key: string): Promise<T | null> {
+  const result = await pool.query(
+    'SELECT value FROM admin_config WHERE key = $1',
+    [key]
+  );
+  return result.rows[0]?.value as T || null;
+}
+
+export async function setAdminConfig(key: string, value: unknown): Promise<void> {
+  await pool.query(
+    `INSERT INTO admin_config (key, value, updated_at)
+     VALUES ($1, $2, CURRENT_TIMESTAMP)
+     ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
+    [key, JSON.stringify(value)]
+  );
 }

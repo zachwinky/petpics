@@ -3,6 +3,30 @@ export interface PresetPrompt {
   label: string;
   description: string;
   prompt: string;
+  catPrompt?: string; // Cat-specific version of the prompt (if different from dog)
+}
+
+export type PetType = 'dog' | 'cat' | 'unknown';
+
+/**
+ * Get the appropriate prompt for a pet type.
+ * Uses catPrompt if available and pet is a cat, otherwise uses default prompt.
+ */
+export function getPromptForPetType(promptId: string, petType: PetType): string {
+  const preset = PRESET_PROMPTS.find(p => p.id === promptId);
+  if (!preset) return '';
+
+  if (petType === 'cat' && preset.catPrompt) {
+    return preset.catPrompt;
+  }
+  return preset.prompt;
+}
+
+/**
+ * Get a preset prompt by ID.
+ */
+export function getPresetById(promptId: string): PresetPrompt | undefined {
+  return PRESET_PROMPTS.find(p => p.id === promptId);
 }
 
 export const PRESET_PROMPTS: PresetPrompt[] = [
@@ -11,12 +35,14 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     label: 'Park Scene',
     description: 'Happy outdoor park setting',
     prompt: 'joyfully bounding through sunlit meadow, ears flying, pure happiness, golden hour glow, lush green grass',
+    catPrompt: 'gracefully exploring sunlit meadow, alert ears, curious expression, golden hour glow, lush green grass, elegant feline poise',
   },
   {
     id: 'beach-scene',
     label: 'Beach Scene',
     description: 'Coastal beach atmosphere',
     prompt: 'sprinting along pristine shoreline at sunset, water droplets sparkling, wind-swept fur, dramatic orange sky',
+    catPrompt: 'delicately walking along pristine shoreline at sunset, cautious paws near water, wind-swept fur, dramatic orange sky, graceful stance',
   },
   {
     id: 'cozy-home',
@@ -35,6 +61,7 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     label: 'Autumn Leaves',
     description: 'Fall foliage setting',
     prompt: 'frolicking through golden autumn leaves, warm fall colors swirling, magical light filtering through trees, playful joy',
+    catPrompt: 'playfully batting at falling golden autumn leaves, warm fall colors swirling, magical light filtering through trees, curious hunter instincts',
   },
   {
     id: 'flower-field',
@@ -47,6 +74,7 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     label: 'Snowy Winter',
     description: 'Winter wonderland',
     prompt: 'bounding through pristine powder snow, frost-kissed fur, breath visible in cold air, winter wonderland magic, sparkling ice',
+    catPrompt: 'cautiously stepping through pristine powder snow, paws lifting high, frost-kissed fur, breath visible in cold air, winter wonderland magic',
   },
   {
     id: 'urban-street',
@@ -59,6 +87,7 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     label: 'Forest Trail',
     description: 'Nature hiking trail',
     prompt: 'exploring enchanted forest trail, dappled sunlight through canopy, majestic wilderness, adventure spirit, lush greenery',
+    catPrompt: 'stalking through enchanted forest trail, dappled sunlight through canopy, hunter instincts, majestic wilderness, lush greenery',
   },
   {
     id: 'pet-bed',

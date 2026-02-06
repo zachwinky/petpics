@@ -65,7 +65,7 @@ function VerifyEmailContent() {
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Email Verified!</h2>
               <p className="text-gray-600 mb-6">{message}</p>
               <p className="text-sm text-gray-500 mb-6">
-                Your account is now active. You can sign in and start creating stunning AI product photos.
+                Your account is now active. You can sign in and start creating stunning AI pet photos.
               </p>
               <a
                 href="/auth/signin"

@@ -163,7 +163,7 @@ export default function FrameImagePicker({
       </div>
 
       {/* Image grid */}
-      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-64 overflow-y-auto p-1">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 max-h-40 sm:max-h-48 md:max-h-64 overflow-y-auto p-1">
         {filteredImages.map((img, index) => {
           const selected = isSelected(img.url);
           const selectionIndex = selectedImages.indexOf(img.url);

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
             currency: 'usd',
             product_data: {
               name: creditPackage.name,
-              description: `${creditPackage.credits} credits for AI product photography`,
+              description: `${creditPackage.credits} credits for AI pet photography`,
             },
             unit_amount: Math.round(creditPackage.price * 100), // Convert to cents
           },

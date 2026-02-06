@@ -31,7 +31,7 @@ export default function GeneratingModal({ isOpen, imageCount = 4 }: GeneratingMo
           Creating Your Photos...
         </h2>
         <p className="text-gray-600 mb-4">
-          Generating {imageCount} professional product {imageCount === 1 ? 'photo' : 'photos'}
+          Generating {imageCount} professional pet {imageCount === 1 ? 'photo' : 'photos'}
         </p>
         <p className="text-sm text-gray-500">
           Usually takes 30-60 seconds

@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           images: productsWithoutBg, // v2 API expects an array of images
-          description: prompt || 'professional product photoshoot, studio lighting, elegant background',
+          description: prompt || 'professional pet photoshoot, studio lighting, elegant background',
           generate_plus: true, // Use enhanced quality mode
           autoresize: true, // Automatically resize and center to prevent cutoff
         }),
