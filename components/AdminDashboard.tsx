@@ -98,6 +98,7 @@ export default function AdminDashboard() {
   const [samplePromptIds, setSamplePromptIds] = useState<string[]>([]);
   const [availablePresets, setAvailablePresets] = useState<{ id: string; label: string; description: string }[]>([]);
   const [savingSampleConfig, setSavingSampleConfig] = useState(false);
+  const [sampleSectionOpen, setSampleSectionOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -487,48 +488,63 @@ export default function AdminDashboard() {
 
       {/* Sample Prompts Config */}
       <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Training Completion Samples</h2>
-          <p className="text-sm text-gray-500">Select 2 prompts to generate watermarked samples when training completes (shown in email)</p>
-        </div>
-        <div className="px-6 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-            {availablePresets.map(preset => {
-              const isSelected = samplePromptIds.includes(preset.id);
-              const canSelect = isSelected || samplePromptIds.length < 2;
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => toggleSamplePrompt(preset.id)}
-                  disabled={!canSelect}
-                  className={`p-3 rounded-lg border text-left transition-all ${
-                    isSelected
-                      ? 'border-coral-500 bg-coral-50 text-coral-700'
-                      : canSelect
-                        ? 'border-gray-200 hover:border-coral-300 hover:bg-coral-50/50'
-                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="font-medium text-sm">{preset.label}</div>
-                  <div className="text-xs text-gray-500 mt-1">{preset.description}</div>
-                </button>
-              );
-            })}
+        <button
+          onClick={() => setSampleSectionOpen(!sampleSectionOpen)}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Training Completion Samples</h2>
+            <p className="text-sm text-gray-500">Select 2 prompts to generate watermarked samples when training completes (shown in email)</p>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              {samplePromptIds.length}/2 selected
-              {samplePromptIds.length === 2 && <span className="text-green-600 ml-2">Ready to save</span>}
-            </span>
-            <button
-              onClick={saveSampleConfig}
-              disabled={samplePromptIds.length !== 2 || savingSampleConfig}
-              className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {savingSampleConfig ? 'Saving...' : 'Save Config'}
-            </button>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${sampleSectionOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {sampleSectionOpen && (
+          <div className="px-6 py-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+              {availablePresets.map(preset => {
+                const isSelected = samplePromptIds.includes(preset.id);
+                const canSelect = isSelected || samplePromptIds.length < 2;
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => toggleSamplePrompt(preset.id)}
+                    disabled={!canSelect}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      isSelected
+                        ? 'border-coral-500 bg-coral-50 text-coral-700'
+                        : canSelect
+                          ? 'border-gray-200 hover:border-coral-300 hover:bg-coral-50/50'
+                          : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{preset.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{preset.description}</div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">
+                {samplePromptIds.length}/2 selected
+                {samplePromptIds.length === 2 && <span className="text-green-600 ml-2">Ready to save</span>}
+              </span>
+              <button
+                onClick={saveSampleConfig}
+                disabled={samplePromptIds.length !== 2 || savingSampleConfig}
+                className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {savingSampleConfig ? 'Saving...' : 'Save Config'}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Stats Grid */}
