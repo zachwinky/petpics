@@ -74,19 +74,23 @@ async function generateSampleImages(
       return [];
     }
 
-    // Watermark all images for email
-    console.log(`Watermarking ${validImageUrls.length} images...`);
-    const watermarkPromises = validImageUrls.map(async (url) => {
-      try {
-        return await watermarkAndUpload(url);
-      } catch (error) {
-        console.error(`Failed to watermark image ${url}:`, error);
-        return url;
-      }
-    });
-    const watermarkedUrls = await Promise.all(watermarkPromises);
+    // Watermark all images for email - do sequentially to avoid overwhelming the service
+    console.log(`Watermarking ${validImageUrls.length} images sequentially...`);
+    const watermarkedUrls: string[] = [];
 
-    console.log(`Sample images generated and watermarked:`, watermarkedUrls);
+    for (const url of validImageUrls) {
+      console.log(`Processing image: ${url.substring(0, 80)}...`);
+      try {
+        const watermarked = await watermarkAndUpload(url);
+        console.log(`Watermarked successfully: ${watermarked.substring(0, 80)}...`);
+        watermarkedUrls.push(watermarked);
+      } catch (error) {
+        console.error(`Failed to watermark image:`, error);
+        // Don't include failed images - they won't display properly
+      }
+    }
+
+    console.log(`Sample images generated and watermarked (${watermarkedUrls.length}):`, watermarkedUrls);
     return watermarkedUrls;
   } catch (error) {
     console.error('Error generating sample images:', error);
@@ -157,9 +161,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Training complete email sent to ${user.email}`,
-      modelId,
+      modelId: model.id,
       triggerWord: model.trigger_word,
       sampleImagesCount: sampleImages.length,
+      sampleImageUrls: sampleImages,
     });
 
   } catch (error) {
