@@ -38,35 +38,36 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
 
 /**
  * Create SVG watermark with diagonal "PETPICS" text pattern.
+ * Uses stroke for outline effect since Sharp doesn't support text-shadow.
  */
 function createWatermarkSvg(width: number, height: number): string {
   // Calculate diagonal size (need to cover the whole image when rotated)
   const diagonal = Math.sqrt(width * width + height * height);
-  const fontSize = Math.max(24, Math.floor(width / 20)); // Responsive font size
-  const spacing = fontSize * 4; // Space between text repetitions
+  // Bigger font size for more prominent watermark
+  const fontSize = Math.max(48, Math.floor(width / 10));
+  const spacing = fontSize * 2.5; // Tighter spacing for more coverage
 
-  // Build repeated text elements
+  // Build repeated text elements with stroke outline for visibility
   const textElements: string[] = [];
-  const rows = Math.ceil(diagonal / spacing) + 2;
-  const cols = Math.ceil(diagonal / (fontSize * 8)) + 2;
+  const rows = Math.ceil(diagonal / spacing) + 4;
+  const cols = Math.ceil(diagonal / (fontSize * 5)) + 4;
 
-  for (let row = -1; row < rows; row++) {
-    for (let col = -1; col < cols; col++) {
-      const x = col * fontSize * 8;
+  for (let row = -2; row < rows; row++) {
+    for (let col = -2; col < cols; col++) {
+      const x = col * fontSize * 5;
       const y = row * spacing;
+      // Draw stroke first (outline), then fill on top
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="white" fill-opacity="0.35">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="3">PETPICS</text>`
+      );
+      textElements.push(
+        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="rgba(255,255,255,0.5)">PETPICS</text>`
       );
     }
   }
 
   // Create SVG with rotation transform
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <defs>
-      <style>
-        text { text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-      </style>
-    </defs>
     <g transform="rotate(-30, ${width / 2}, ${height / 2})">
       ${textElements.join('\n      ')}
     </g>
