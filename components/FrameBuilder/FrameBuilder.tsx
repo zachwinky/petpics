@@ -228,10 +228,10 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
   const hasImages = images.some(img => img !== null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Frame Builder</h2>
           <button
             onClick={onClose}
@@ -242,7 +242,7 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Preview Section */}
             <div className="space-y-4">
@@ -359,18 +359,26 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
         </div>
 
         {/* Footer Actions */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-          {/* Mobile: Primary action first */}
-          <div className="flex items-center gap-2 sm:order-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50">
+          <button
+            onClick={handleSaveFrame}
+            disabled={!hasImages}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <SaveIcon />
+            <span className="hidden sm:inline">Save</span> Frame
+          </button>
+
+          <div className="flex items-center gap-2">
             {/* Share dropdown */}
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative">
               <button
                 onClick={() => setShareMenuOpen(!shareMenuOpen)}
                 disabled={!hasImages}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ShareIcon />
-                <span className="sm:inline">Share</span>
+                Share
               </button>
 
               {shareMenuOpen && (
@@ -415,26 +423,16 @@ export default function FrameBuilder({ isOpen, onClose, initialImage }: FrameBui
               )}
             </div>
 
-            {/* Download/Save button - changes based on mobile */}
+            {/* Download/Save button */}
             <button
               onClick={isMobile ? handleSaveToPhotos : handleDownload}
               disabled={!hasImages}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm text-white bg-coral-500 rounded-lg hover:bg-coral-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-white bg-coral-500 rounded-lg hover:bg-coral-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <DownloadIcon />
-              {isMobile ? 'Save to Photos' : 'Download PNG'}
+              {isMobile ? 'Save' : 'Download'}
             </button>
           </div>
-
-          {/* Save Frame button */}
-          <button
-            onClick={handleSaveFrame}
-            disabled={!hasImages}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors sm:order-1"
-          >
-            <SaveIcon />
-            Save Frame
-          </button>
         </div>
       </div>
     </div>
