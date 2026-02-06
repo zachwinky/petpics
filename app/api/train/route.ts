@@ -88,9 +88,9 @@ async function generateSingleImage(loraUrl: string, triggerWord: string, promptT
         prompt: fullPrompt,
         loras: [{ path: loraUrl, scale: 1 }],
         num_images: 1,
-        image_size: { width: 512, height: 512 },
-        num_inference_steps: 20,
-        guidance_scale: 3.5,
+        image_size: { width: 1024, height: 1024 },
+        num_inference_steps: 40,
+        guidance_scale: 5.5,
         enable_safety_checker: false,
       }),
     });
