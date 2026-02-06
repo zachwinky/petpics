@@ -43,25 +43,26 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
 function createWatermarkSvg(width: number, height: number): string {
   // Calculate diagonal size (need to cover the whole image when rotated)
   const diagonal = Math.sqrt(width * width + height * height);
-  // Bigger font size for more prominent watermark
-  const fontSize = Math.max(48, Math.floor(width / 10));
-  const spacing = fontSize * 2.5; // Tighter spacing for more coverage
+  // Much larger font - about 1/5 of image width for prominent watermark
+  const fontSize = Math.max(80, Math.floor(width / 5));
+  const spacing = fontSize * 1.8; // Tighter spacing for dense coverage
+  const strokeWidth = Math.max(4, fontSize / 20);
 
   // Build repeated text elements with stroke outline for visibility
   const textElements: string[] = [];
   const rows = Math.ceil(diagonal / spacing) + 4;
-  const cols = Math.ceil(diagonal / (fontSize * 5)) + 4;
+  const cols = Math.ceil(diagonal / (fontSize * 4)) + 4;
 
   for (let row = -2; row < rows; row++) {
     for (let col = -2; col < cols; col++) {
-      const x = col * fontSize * 5;
+      const x = col * fontSize * 4;
       const y = row * spacing;
       // Draw stroke first (outline), then fill on top
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="3">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="${strokeWidth}">PETPICS</text>`
       );
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="rgba(255,255,255,0.5)">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="rgba(255,255,255,0.6)">PETPICS</text>`
       );
     }
   }
