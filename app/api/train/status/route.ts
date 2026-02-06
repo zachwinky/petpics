@@ -81,11 +81,20 @@ async function generateSampleImages(
       console.log(`Preview image saved for model ${modelId}`);
     }
 
-    // Watermark all images for email
-    const watermarkPromises = validImageUrls.map(url => watermarkAndUpload(url));
+    // Watermark all images for email (with individual error handling)
+    console.log(`Watermarking ${validImageUrls.length} images...`);
+    const watermarkPromises = validImageUrls.map(async (url) => {
+      try {
+        return await watermarkAndUpload(url);
+      } catch (error) {
+        console.error(`Failed to watermark image ${url}:`, error);
+        // Return original URL as fallback if watermarking fails
+        return url;
+      }
+    });
     const watermarkedUrls = await Promise.all(watermarkPromises);
 
-    console.log(`Sample images generated and watermarked for model ${modelId}`);
+    console.log(`Sample images generated and watermarked for model ${modelId}:`, watermarkedUrls);
     return watermarkedUrls;
   } catch (error) {
     console.error('Error generating sample images:', error);

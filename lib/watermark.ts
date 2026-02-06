@@ -78,6 +78,14 @@ function createWatermarkSvg(width: number, height: number): string {
  */
 export async function uploadWatermarkedImage(buffer: Buffer): Promise<string> {
   const { fal } = await import('@fal-ai/client');
+
+  // Configure FAL with credentials
+  const apiKey = process.env.FAL_KEY;
+  if (!apiKey) {
+    throw new Error('FAL_KEY not configured');
+  }
+  fal.config({ credentials: apiKey });
+
   // Convert Buffer to Uint8Array for Blob compatibility
   const uint8Array = new Uint8Array(buffer);
   const blob = new Blob([uint8Array], { type: 'image/png' });
