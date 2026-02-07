@@ -162,4 +162,29 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     description: 'Classic Valentine portrait',
     prompt: 'elegant Valentine portrait with red bow tie or pink ribbon collar, soft romantic bokeh hearts in background, studio lighting, greeting card perfect, loving gaze',
   },
+  // Super Bowl
+  {
+    id: 'superbowl-jersey',
+    label: 'Game Day Jersey',
+    description: 'Wearing a football jersey',
+    prompt: 'wearing oversized football jersey, sitting on couch surrounded by game day snacks and chips, big screen TV showing football in background, foam finger nearby, excited fan expression, sports party atmosphere',
+  },
+  {
+    id: 'superbowl-touchdown',
+    label: 'Touchdown',
+    description: 'Scoring a touchdown on the field',
+    prompt: 'running with football in mouth across football field end zone, stadium lights blazing, crowd cheering in background, dramatic sports photography, touchdown celebration, confetti falling',
+  },
+  {
+    id: 'superbowl-halftime',
+    label: 'Halftime Show',
+    description: 'Performing at the halftime show',
+    prompt: 'performing on massive Super Bowl halftime stage, dramatic concert lighting, pyrotechnics and fireworks, wearing sparkly outfit, rockstar pose, packed stadium crowd, epic performance moment',
+  },
+  {
+    id: 'superbowl-champion',
+    label: 'Champion',
+    description: 'Celebrating with the trophy',
+    prompt: 'triumphantly holding Lombardi trophy, showered in confetti and streamers, champion celebration, wearing football helmet tilted to side, victory podium, camera flashes, ultimate champion moment',
+  },
 ];
