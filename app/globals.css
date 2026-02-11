@@ -126,6 +126,16 @@ button:disabled {
   animation: shimmer 2s infinite;
 }
 
+/* Continuous slow-scroll animation for hero gallery */
+@keyframes hero-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 /* Hide scrollbar for hero gallery carousel */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ImageGallery from './ImageGallery';
 
 interface GalleryImage {
@@ -12,9 +12,8 @@ export default function HeroGallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const autoScrollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const userInteracted = useRef(false);
+  const [paused, setPaused] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/api/gallery')
@@ -27,68 +26,41 @@ export default function HeroGallery() {
       .catch(() => {});
   }, []);
 
-  // Auto-scroll on mobile
-  const startAutoScroll = useCallback(() => {
-    if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
-    autoScrollTimer.current = setInterval(() => {
-      const el = scrollRef.current;
-      if (!el || userInteracted.current) return;
-
-      const cardWidth = el.offsetWidth * 0.72 + 12; // 72vw + gap
-      const maxScroll = el.scrollWidth - el.offsetWidth;
-      const nextScroll = el.scrollLeft + cardWidth;
-
-      if (nextScroll >= maxScroll - 10) {
-        // Loop back to start
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        el.scrollTo({ left: nextScroll, behavior: 'smooth' });
-      }
-    }, 3000);
-  }, []);
-
-  useEffect(() => {
-    if (images.length > 1) {
-      startAutoScroll();
-    }
-    return () => {
-      if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
-    };
-  }, [images, startAutoScroll]);
-
-  // Pause auto-scroll on user interaction, resume after 6s
-  const handleUserInteraction = useCallback(() => {
-    userInteracted.current = true;
-    if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
-
-    setTimeout(() => {
-      userInteracted.current = false;
-      startAutoScroll();
-    }, 6000);
-  }, [startAutoScroll]);
-
   if (images.length === 0) return null;
 
   const openGallery = (index: number) => {
-    setSelectedIndex(index);
+    // Map duplicated index back to real index
+    setSelectedIndex(index % images.length);
     setIsGalleryOpen(true);
   };
 
+  // Duplicate images for seamless loop
+  const loopImages = [...images, ...images];
+  // Duration: ~8s per image for a slow drift
+  const duration = images.length * 8;
+
   return (
     <>
-      {/* Mobile: Auto-scrolling carousel */}
-      <div className="md:hidden">
+      {/* Mobile: Continuous slow-scrolling carousel */}
+      <div
+        className="md:hidden overflow-hidden -mx-4"
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setPaused(false)}
+      >
         <div
-          ref={scrollRef}
-          onTouchStart={handleUserInteraction}
-          onScroll={handleUserInteraction}
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 scrollbar-hide"
+          ref={trackRef}
+          className="flex gap-3 px-4"
+          style={{
+            animation: `hero-scroll ${duration}s linear infinite`,
+            animationPlayState: paused ? 'paused' : 'running',
+            width: 'max-content',
+          }}
         >
-          {images.map((image, index) => (
+          {loopImages.map((image, index) => (
             <button
               key={index}
               onClick={() => openGallery(index)}
-              className="flex-shrink-0 snap-center w-[72vw] aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border-2 border-white/80 active:scale-[0.98] transition-transform"
+              className="flex-shrink-0 w-[65vw] aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border-2 border-white/80 active:scale-[0.98] transition-transform"
             >
               <img
                 src={image.url}
