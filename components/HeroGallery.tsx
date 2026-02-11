@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ImageGallery from './ImageGallery';
 
 interface GalleryImage {
@@ -12,6 +12,9 @@ export default function HeroGallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const userInteracted = useRef(false);
 
   useEffect(() => {
     fetch('/api/gallery')
@@ -24,6 +27,46 @@ export default function HeroGallery() {
       .catch(() => {});
   }, []);
 
+  // Auto-scroll on mobile
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
+    autoScrollTimer.current = setInterval(() => {
+      const el = scrollRef.current;
+      if (!el || userInteracted.current) return;
+
+      const cardWidth = el.offsetWidth * 0.72 + 12; // 72vw + gap
+      const maxScroll = el.scrollWidth - el.offsetWidth;
+      const nextScroll = el.scrollLeft + cardWidth;
+
+      if (nextScroll >= maxScroll - 10) {
+        // Loop back to start
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollTo({ left: nextScroll, behavior: 'smooth' });
+      }
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    if (images.length > 1) {
+      startAutoScroll();
+    }
+    return () => {
+      if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
+    };
+  }, [images, startAutoScroll]);
+
+  // Pause auto-scroll on user interaction, resume after 6s
+  const handleUserInteraction = useCallback(() => {
+    userInteracted.current = true;
+    if (autoScrollTimer.current) clearInterval(autoScrollTimer.current);
+
+    setTimeout(() => {
+      userInteracted.current = false;
+      startAutoScroll();
+    }, 6000);
+  }, [startAutoScroll]);
+
   if (images.length === 0) return null;
 
   const openGallery = (index: number) => {
@@ -33,9 +76,14 @@ export default function HeroGallery() {
 
   return (
     <>
-      {/* Mobile: Horizontal scroll carousel */}
+      {/* Mobile: Auto-scrolling carousel */}
       <div className="md:hidden">
-        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 scrollbar-hide">
+        <div
+          ref={scrollRef}
+          onTouchStart={handleUserInteraction}
+          onScroll={handleUserInteraction}
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 scrollbar-hide"
+        >
           {images.map((image, index) => (
             <button
               key={index}
@@ -51,7 +99,6 @@ export default function HeroGallery() {
             </button>
           ))}
         </div>
-        <p className="text-center text-sm text-gray-400 mt-1">Swipe to see more</p>
       </div>
 
       {/* Desktop: Grid layout */}

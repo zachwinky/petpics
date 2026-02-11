@@ -32,6 +32,21 @@ export default function Home() {
           {/* Example Gallery */}
           <HeroGallery />
 
+          {/* Upload CTA - right after gallery on mobile, after everything on desktop */}
+          <div className="md:hidden bg-white rounded-2xl shadow-xl p-6 border border-coral-100">
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                  Ready to Get Started?
+                </h2>
+                <p className="text-gray-600">
+                  Upload 5-20 photos of your pet to train the AI, then create unlimited pictures
+                </p>
+              </div>
+              <ImageUpload />
+            </div>
+          </div>
+
           {/* How It Works */}
           <HowItWorks />
 
@@ -60,18 +75,17 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Upload CTA */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-coral-100">
+          {/* Upload CTA - desktop only (mobile version is above) */}
+          <div className="hidden md:block bg-white rounded-2xl shadow-xl p-8 border border-coral-100">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-2">
+                <h2 className="text-3xl font-semibold text-gray-800 mb-2">
                   Ready to Get Started?
                 </h2>
                 <p className="text-gray-600">
                   Upload 5-20 photos of your pet to train the AI, then create unlimited pictures
                 </p>
               </div>
-
               <ImageUpload />
             </div>
           </div>
