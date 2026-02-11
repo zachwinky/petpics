@@ -6,10 +6,10 @@ import HowItWorks from '@/components/HowItWorks';
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-50 via-white to-coral-50 relative overflow-hidden">
-      {/* Decorative paw prints */}
+      {/* Decorative paw prints - hidden on mobile near top to avoid clipping with headline */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute top-20 left-[5%] text-coral-200 text-4xl opacity-40 rotate-[-15deg]">🐾</div>
-        <div className="absolute top-40 right-[8%] text-peach-300 text-3xl opacity-30 rotate-[20deg]">🐾</div>
+        <div className="absolute top-20 left-[5%] text-coral-200 text-4xl opacity-40 rotate-[-15deg] hidden md:block">🐾</div>
+        <div className="absolute top-40 right-[8%] text-peach-300 text-3xl opacity-30 rotate-[20deg] hidden md:block">🐾</div>
         <div className="absolute top-[60%] left-[3%] text-coral-200 text-5xl opacity-25 rotate-[-25deg]">🐾</div>
         <div className="absolute top-[45%] right-[5%] text-peach-200 text-4xl opacity-35 rotate-[10deg]">🐾</div>
         <div className="absolute bottom-32 left-[12%] text-coral-100 text-3xl opacity-40 rotate-[30deg]">🐾</div>
