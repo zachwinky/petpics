@@ -125,3 +125,12 @@ button:disabled {
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
+/* Hide scrollbar for hero gallery carousel */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

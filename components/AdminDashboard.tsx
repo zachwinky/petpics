@@ -100,6 +100,13 @@ export default function AdminDashboard() {
   const [savingSampleConfig, setSavingSampleConfig] = useState(false);
   const [sampleSectionOpen, setSampleSectionOpen] = useState(false);
 
+  // Hero gallery config state
+  const [gallerySectionOpen, setGallerySectionOpen] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; alt: string }[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newImageAlt, setNewImageAlt] = useState('');
+  const [savingGallery, setSavingGallery] = useState(false);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -134,6 +141,13 @@ export default function AdminDashboard() {
         const sampleConfigData = await sampleConfigRes.json();
         setSamplePromptIds(sampleConfigData.samplePromptIds || []);
         setAvailablePresets(sampleConfigData.availablePresets || []);
+      }
+
+      // Load hero gallery config
+      const galleryRes = await fetch('/api/admin/gallery-config');
+      if (galleryRes.ok) {
+        const galleryData = await galleryRes.json();
+        setGalleryImages(galleryData.images || []);
       }
     } catch (error) {
       console.error('Failed to load admin data:', error);
@@ -270,6 +284,49 @@ export default function AdminDashboard() {
       alert('Network error');
     } finally {
       setSavingSampleConfig(false);
+    }
+  };
+
+  // Gallery management functions
+  const addGalleryImage = () => {
+    if (!newImageUrl.trim() || !newImageAlt.trim()) return;
+    setGalleryImages(prev => [...prev, { url: newImageUrl.trim(), alt: newImageAlt.trim() }]);
+    setNewImageUrl('');
+    setNewImageAlt('');
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveGalleryImage = (index: number, direction: 'up' | 'down') => {
+    setGalleryImages(prev => {
+      const newArr = [...prev];
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= newArr.length) return prev;
+      [newArr[index], newArr[newIndex]] = [newArr[newIndex], newArr[index]];
+      return newArr;
+    });
+  };
+
+  const saveGalleryConfig = async () => {
+    setSavingGallery(true);
+    try {
+      const res = await fetch('/api/admin/gallery-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: galleryImages }),
+      });
+      if (res.ok) {
+        alert('Gallery saved!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save gallery');
+      }
+    } catch {
+      alert('Network error');
+    } finally {
+      setSavingGallery(false);
     }
   };
 
@@ -541,6 +598,114 @@ export default function AdminDashboard() {
                 className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {savingSampleConfig ? 'Saving...' : 'Save Config'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Hero Gallery Config */}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={() => setGallerySectionOpen(!gallerySectionOpen)}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Landing Page Gallery</h2>
+            <p className="text-sm text-gray-500">Manage the example images shown on the landing page ({galleryImages.length} images)</p>
+          </div>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${gallerySectionOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {gallerySectionOpen && (
+          <div className="px-6 py-4 space-y-4">
+            {/* Add new image */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="Image URL"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                value={newImageAlt}
+                onChange={(e) => setNewImageAlt(e.target.value)}
+                placeholder="Description (e.g. Golden retriever in park)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <button
+                onClick={addGalleryImage}
+                disabled={!newImageUrl.trim() || !newImageAlt.trim()}
+                className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm whitespace-nowrap"
+              >
+                Add Image
+              </button>
+            </div>
+
+            {/* Image list */}
+            {galleryImages.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No gallery images yet. Add some above.</p>
+            ) : (
+              <div className="space-y-2">
+                {galleryImages.map((img, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <img src={img.url} alt={img.alt} className="w-16 h-20 object-cover rounded" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{img.alt}</p>
+                      <p className="text-xs text-gray-500 truncate">{img.url}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => moveGalleryImage(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-gray-500 hover:text-gray-700 disabled:text-gray-300"
+                        title="Move up"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => moveGalleryImage(index, 'down')}
+                        disabled={index === galleryImages.length - 1}
+                        className="p-1 text-gray-500 hover:text-gray-700 disabled:text-gray-300"
+                        title="Move down"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => removeGalleryImage(index)}
+                        className="p-1 text-red-500 hover:text-red-700"
+                        title="Remove"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Save button */}
+            <div className="flex justify-end">
+              <button
+                onClick={saveGalleryConfig}
+                disabled={savingGallery}
+                className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {savingGallery ? 'Saving...' : 'Save Gallery'}
               </button>
             </div>
           </div>
