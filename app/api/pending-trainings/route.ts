@@ -217,6 +217,43 @@ async function checkAndCompleteTraining(
 
   } catch (error) {
     console.error(`Error checking training ${training.id}:`, error);
+
+    // If training has been pending for more than 2 hours and we can't reach FAL,
+    // mark it as failed and refund credits so the user isn't stuck forever
+    const trainingAge = Date.now() - new Date(training.created_at).getTime();
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
+
+    if (trainingAge > TWO_HOURS) {
+      console.error(`Training ${training.id} is over 2 hours old and FAL status check failed. Marking as failed.`);
+      try {
+        await updatePendingTrainingStatus(
+          training.fal_request_id,
+          'failed',
+          `Training timed out after ${Math.round(trainingAge / 60000)} minutes. FAL status check error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+
+        // Refund credits
+        await updateUserCredits(
+          userId,
+          TRAINING_COST_CREDITS,
+          'purchase',
+          `Refund: Training timed out for ${training.trigger_word}`
+        );
+
+        // Send failure email
+        sendTrainingFailedEmail(
+          userEmail,
+          userName,
+          training.model_name,
+          'Training timed out. Your credits have been refunded. Please try again.'
+        );
+
+        return { completed: false, failed: true };
+      } catch (refundError) {
+        console.error(`Error refunding timed-out training ${training.id}:`, refundError);
+      }
+    }
+
     return { completed: false, failed: false };
   }
 }
