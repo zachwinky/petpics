@@ -30,6 +30,10 @@ export default function SignUpPage() {
       if (!response.ok) {
         setError(data.error || 'Failed to create account');
       } else {
+        // Fire Meta Pixel CompleteRegistration event
+        if (typeof window !== 'undefined' && window.fbq) {
+          window.fbq('track', 'CompleteRegistration');
+        }
         setSuccess(true);
       }
     } catch (err) {

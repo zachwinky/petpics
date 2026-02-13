@@ -94,6 +94,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
         setError('Account created! Please sign in.');
         setMode('signin');
       } else {
+        // Fire Meta Pixel CompleteRegistration event
+        if (typeof window !== 'undefined' && window.fbq) {
+          window.fbq('track', 'CompleteRegistration');
+        }
         // Success - close and trigger callback
         onClose();
         if (onSuccess) {
