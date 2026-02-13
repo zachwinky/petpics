@@ -6,7 +6,7 @@ import "./globals.css";
 import { AuthModalProvider } from "@/lib/auth-context";
 import MetaPixelEvents from "@/components/MetaPixelEvents";
 
-const META_PIXEL_ID = "2579323844030265";
+const META_PIXEL_ID = "25793238440302657";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
