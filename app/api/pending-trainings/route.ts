@@ -7,6 +7,9 @@ import { PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
 import { watermarkAndUpload } from '@/lib/watermark';
 
+// Allow up to 300s for this endpoint - it may need to generate sample images + watermark + send email
+export const maxDuration = 300;
+
 const TRAINING_COST_CREDITS = 10;
 
 // Generate a single image using flux-lora
@@ -177,19 +180,24 @@ async function checkAndCompleteTraining(
       }
 
       // Generate sample images with watermarks, then send email
-      console.log('Generating sample images for email...');
-      const sampleImages = await generateSampleImages(model.id, loraUrl, training.trigger_word, petType);
+      // Wrapped in try/catch so model creation is never lost even if samples fail
+      try {
+        console.log('Generating sample images for email...');
+        const sampleImages = await generateSampleImages(model.id, loraUrl, training.trigger_word, petType);
 
-      // Send success email with sample images
-      if (sampleImages.length > 0) {
-        await sendTrainingCompleteEmailWithImages(
-          userEmail,
-          userName,
-          training.model_name,
-          training.trigger_word,
-          sampleImages
-        );
-        console.log('Training complete email sent with sample images');
+        // Send success email with sample images
+        if (sampleImages.length > 0) {
+          await sendTrainingCompleteEmailWithImages(
+            userEmail,
+            userName,
+            training.model_name,
+            training.trigger_word,
+            sampleImages
+          );
+          console.log('Training complete email sent with sample images');
+        }
+      } catch (sampleError) {
+        console.error('Sample generation/email failed (model still created):', sampleError);
       }
 
       return { completed: true, failed: false };

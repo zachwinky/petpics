@@ -187,4 +187,30 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     description: 'Celebrating with the trophy',
     prompt: 'triumphantly holding Lombardi trophy, showered in confetti and streamers, champion celebration, wearing football helmet tilted to side, victory podium, camera flashes, ultimate champion moment',
   },
+
+  // Presidents' Day
+  {
+    id: 'presidents-oval-office',
+    label: 'Oval Office',
+    description: 'Commander in chief at the desk',
+    prompt: 'sitting behind the Resolute Desk in the Oval Office, wearing a tiny presidential suit and tie, American flags on either side, looking dignified and important, presidential portrait lighting, leader of the free world',
+  },
+  {
+    id: 'presidents-mount-rushmore',
+    label: 'Mount Rushmore',
+    description: 'Carved into the monument',
+    prompt: 'face carved into Mount Rushmore alongside the presidents, majestic granite sculpture, dramatic mountain landscape, blue sky, iconic American monument, heroic stone carving',
+  },
+  {
+    id: 'presidents-washington',
+    label: 'Crossing the Delaware',
+    description: 'Leading the troops across the river',
+    prompt: 'standing heroically in wooden boat crossing icy Delaware River, wearing Revolutionary War uniform and tricorn hat, dramatic stormy sky, soldiers rowing behind, iconic patriotic painting style, George Washington pose',
+  },
+  {
+    id: 'presidents-lincoln',
+    label: 'Lincoln Memorial',
+    description: 'Seated at the memorial',
+    prompt: 'seated majestically in giant marble chair of the Lincoln Memorial, wearing top hat and bow tie, monumental marble columns, dramatic upward lighting, dignified contemplative expression, iconic memorial pose',
+  },
 ];
