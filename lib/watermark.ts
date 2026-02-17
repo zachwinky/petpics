@@ -17,6 +17,8 @@ const TILE_HEIGHT = 95;
  * Uses a pre-rendered PNG tile to avoid any font-rendering issues on serverless.
  */
 export async function addWatermark(imageUrl: string): Promise<Buffer> {
+  console.log(`[watermark] Starting watermark for image: ${imageUrl.substring(0, 80)}...`);
+
   const response = await fetch(imageUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.status}`);
@@ -26,73 +28,70 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
   const metadata = await sharp(imageBuffer).metadata();
   const width = metadata.width || 1024;
   const height = metadata.height || 1024;
+  console.log(`[watermark] Image dimensions: ${width}x${height}`);
 
   const watermarkOverlay = await createWatermarkOverlay(width, height);
+  console.log(`[watermark] Overlay created, compositing...`);
 
-  return sharp(imageBuffer)
+  const result = await sharp(imageBuffer)
     .composite([{ input: watermarkOverlay, top: 0, left: 0 }])
     .png()
     .toBuffer();
+
+  console.log(`[watermark] Done, output size: ${result.length} bytes`);
+  return result;
 }
 
 /**
- * Create watermark overlay by scaling, tiling, and rotating the embedded tile.
- * No fonts or text rendering needed — works identically on any environment.
+ * Create watermark overlay by scaling and tiling the embedded tile.
+ * No fonts, no rotation — minimal memory, works on any serverless environment.
  *
- * Uses a minimal canvas size to stay within serverless memory limits.
- * For a 30° rotation, the canvas needs ~1.37x padding to ensure full coverage
- * after cropping back to the original image dimensions.
+ * Tiles the "PETPICS" text in a staggered brick pattern (every other row offset)
+ * directly at the target image dimensions. No intermediate large canvases needed.
  */
 async function createWatermarkOverlay(width: number, height: number): Promise<Buffer> {
   const tileBuf = Buffer.from(WATERMARK_TILE_BASE64, 'base64');
 
-  // Scale tile so it's ~45% of image width
-  const targetWidth = Math.max(200, Math.floor(width * 0.45));
+  // Scale tile so it's ~40% of image width
+  const targetWidth = Math.max(200, Math.floor(width * 0.4));
   const scale = targetWidth / TILE_WIDTH;
   const scaledW = Math.floor(TILE_WIDTH * scale);
   const scaledH = Math.floor(TILE_HEIGHT * scale);
 
-  // Scale and make semi-transparent (60% opacity)
+  // Scale and make semi-transparent (55% opacity)
   const scaledTile = await sharp(tileBuf)
     .resize(scaledW, scaledH)
     .ensureAlpha()
-    .linear([1, 1, 1, 0.6], [0, 0, 0, 0])
+    .linear([1, 1, 1, 0.55], [0, 0, 0, 0])
     .png()
     .toBuffer();
 
-  // Use a canvas ~1.4x the image size (enough margin for 30° rotation cropping)
-  const gapX = Math.floor(scaledW * 0.3);
-  const gapY = Math.floor(scaledH * 1.0);
-  const patternW = Math.ceil(Math.max(width, height) * 1.4);
-  const patternH = patternW;
+  // Tile directly at the target dimensions — no rotation, no large intermediate buffers
+  const gapX = Math.floor(scaledW * 0.25);
+  const gapY = Math.floor(scaledH * 0.8);
+  const stepX = scaledW + gapX;
+  const stepY = scaledH + gapY;
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
-  for (let y = 0; y < patternH; y += scaledH + gapY) {
-    const row = Math.floor(y / (scaledH + gapY));
-    const offsetX = row % 2 === 1 ? Math.floor((scaledW + gapX) / 2) : 0;
-    for (let x = 0; x < patternW; x += scaledW + gapX) {
-      const left = x + offsetX;
-      if (left + scaledW <= patternW && y + scaledH <= patternH) {
-        composites.push({ input: scaledTile, top: y, left });
+  let row = 0;
+  for (let y = -scaledH; y < height + scaledH; y += stepY) {
+    // Stagger every other row by half a step for brick pattern
+    const offsetX = row % 2 === 1 ? Math.floor(stepX / 2) : 0;
+    for (let x = -scaledW + offsetX; x < width + scaledW; x += stepX) {
+      // Clamp to valid canvas bounds
+      const left = Math.max(0, x);
+      const top = Math.max(0, y);
+      if (left + scaledW <= width && top + scaledH <= height) {
+        composites.push({ input: scaledTile, top, left });
       }
     }
+    row++;
   }
 
-  // Create pattern canvas, rotate -30°, crop to image dimensions
-  const rotated = await sharp({
-    create: { width: patternW, height: patternH, channels: 4 as const, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  return sharp({
+    create: { width, height, channels: 4 as const, background: { r: 0, g: 0, b: 0, alpha: 0 } },
   })
     .composite(composites)
-    .rotate(-30, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png()
-    .toBuffer();
-
-  const rotMeta = await sharp(rotated).metadata();
-  const extractLeft = Math.floor((rotMeta.width! - width) / 2);
-  const extractTop = Math.floor((rotMeta.height! - height) / 2);
-
-  return sharp(rotated)
-    .extract({ left: extractLeft, top: extractTop, width, height })
     .png()
     .toBuffer();
 }
