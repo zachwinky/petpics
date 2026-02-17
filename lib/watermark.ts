@@ -42,26 +42,26 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
  * Kept simple to avoid SVG rendering failures in librsvg.
  */
 function createWatermarkSvg(width: number, height: number): string {
-  // Font size ~1/5 of width — big and readable
-  const fontSize = Math.max(80, Math.floor(width / 5));
-  const strokeWidth = Math.max(3, Math.floor(fontSize / 25));
+  // Big font — 1/3 of image width so text dominates the image
+  const fontSize = Math.max(100, Math.floor(width / 3));
+  const strokeWidth = Math.max(4, Math.floor(fontSize / 20));
 
-  // Place text in a simple grid that covers the image
-  // Using fixed positions rather than computing from diagonal to keep SVG small
   const textElements: string[] = [];
-  const stepY = fontSize * 1.5;
-  const stepX = fontSize * 5;
+  // Tight row spacing — rows overlap slightly
+  const stepY = Math.floor(fontSize * 0.9);
+  // Columns overlap — "PETPICS" at this size is ~4x fontSize wide
+  const stepX = Math.floor(fontSize * 4.5);
 
-  // Generous coverage: go from well outside the image bounds
+  // Cover well beyond bounds for rotation
   for (let y = -height; y < height * 2; y += stepY) {
     for (let x = -width; x < width * 2; x += stepX) {
-      // Black outline
+      // Black outline for contrast on light backgrounds
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="#000" stroke-opacity="0.6" stroke-width="${strokeWidth}">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="#000" stroke-opacity="0.7" stroke-width="${strokeWidth}">PETPICS</text>`
       );
-      // White fill
+      // White fill for contrast on dark backgrounds
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff" fill-opacity="0.8">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff" fill-opacity="0.85">PETPICS</text>`
       );
     }
   }
