@@ -36,9 +36,11 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
  * Renders "PETPICS" in a staggered grid pattern with white fill + dark stroke.
  */
 async function createWatermarkOverlay(width: number, height: number): Promise<Buffer> {
-  const fontSize = Math.max(40, Math.floor(width / 6));
-  const rowHeight = Math.floor(fontSize * 1.8);
-  const colWidth = Math.floor(fontSize * 4.5);
+  // Large font: 1/3 of image width for strong visibility
+  const fontSize = Math.max(60, Math.floor(width / 3));
+  const strokeWidth = Math.max(2, Math.floor(fontSize / 25));
+  const rowHeight = Math.floor(fontSize * 1.4);
+  const colWidth = Math.floor(fontSize * 3.8);
 
   // Build SVG text elements in a staggered grid
   const texts: string[] = [];
@@ -47,7 +49,7 @@ async function createWatermarkOverlay(width: number, height: number): Promise<Bu
     const offset = row % 2 === 1 ? Math.floor(colWidth / 2) : 0;
     for (let x = -colWidth + offset; x < width + colWidth; x += colWidth) {
       texts.push(
-        `<text x="${x}" y="${y}" font-size="${fontSize}" font-family="sans-serif" font-weight="bold" fill="white" fill-opacity="0.6" stroke="#333" stroke-width="${Math.max(1, Math.floor(fontSize / 40))}" stroke-opacity="0.4">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-size="${fontSize}" font-family="sans-serif" font-weight="bold" fill="white" fill-opacity="0.55" stroke="#222" stroke-width="${strokeWidth}" stroke-opacity="0.45">PETPICS</text>`
       );
     }
     row++;
