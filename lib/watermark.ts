@@ -2,7 +2,7 @@ import sharp from 'sharp';
 
 /**
  * Add a diagonal watermark pattern to an image.
- * The watermark consists of "PETPICS" text repeated diagonally across the image.
+ * Uses Sharp's native Pango text rendering (not SVG/librsvg) for reliable output.
  */
 export async function addWatermark(imageUrl: string): Promise<Buffer> {
   // Fetch the original image
@@ -18,14 +18,14 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
   const width = metadata.width || 1024;
   const height = metadata.height || 1024;
 
-  // Create SVG watermark overlay with diagonal repeating pattern
-  const watermarkSvg = createWatermarkSvg(width, height);
+  // Create watermark overlay using native Pango text rendering
+  const watermarkOverlay = await createWatermarkOverlay(width, height);
 
   // Composite the watermark onto the image
   const watermarkedImage = await sharp(imageBuffer)
     .composite([
       {
-        input: Buffer.from(watermarkSvg),
+        input: watermarkOverlay,
         top: 0,
         left: 0,
       },
@@ -37,40 +37,103 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
 }
 
 /**
- * Create SVG watermark with diagonal "PETPICS" text pattern.
- * Uses stroke for outline effect since Sharp/librsvg doesn't support text-shadow.
- * Kept simple to avoid SVG rendering failures in librsvg.
+ * Create watermark overlay using Sharp's native Pango text rendering.
+ * This bypasses SVG/librsvg entirely, which has proven unreliable for text.
+ *
+ * Strategy:
+ * 1. Render "PETPICS" text via Pango (black outline + white fill)
+ * 2. Combine into a single semi-transparent tile
+ * 3. Tile across a large canvas, rotate -30°, crop to image size
  */
-function createWatermarkSvg(width: number, height: number): string {
-  // Big font — 1/3 of image width so text dominates the image
-  const fontSize = Math.max(100, Math.floor(width / 3));
-  const strokeWidth = Math.max(4, Math.floor(fontSize / 20));
+async function createWatermarkOverlay(width: number, height: number): Promise<Buffer> {
+  const fontSize = Math.max(80, Math.floor(width / 5));
 
-  const textElements: string[] = [];
-  // Tight row spacing — rows overlap slightly
-  const stepY = Math.floor(fontSize * 0.9);
-  // Columns overlap — "PETPICS" at this size is ~4x fontSize wide
-  const stepX = Math.floor(fontSize * 4.5);
+  // Render white and black text via Sharp's native Pango text engine
+  const [whiteBuf, blackBuf] = await Promise.all([
+    sharp({
+      text: {
+        text: `<span foreground="white" font="bold ${fontSize}">PETPICS</span>`,
+        rgba: true,
+        dpi: 72,
+      },
+    }).png().toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#333333" font="bold ${fontSize}">PETPICS</span>`,
+        rgba: true,
+        dpi: 72,
+      },
+    }).png().toBuffer(),
+  ]);
 
-  // Cover well beyond bounds for rotation
-  for (let y = -height; y < height * 2; y += stepY) {
-    for (let x = -width; x < width * 2; x += stepX) {
-      // Black outline for contrast on light backgrounds
-      textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="#000" stroke-opacity="0.7" stroke-width="${strokeWidth}">PETPICS</text>`
-      );
-      // White fill for contrast on dark backgrounds
-      textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff" fill-opacity="0.85">PETPICS</text>`
-      );
+  const textMeta = await sharp(whiteBuf).metadata();
+  const tw = textMeta.width!;
+  const th = textMeta.height!;
+
+  // Build a single tile with outline: place black text at 8 offsets, white on top
+  const pad = Math.max(3, Math.floor(fontSize / 50));
+  const tileW = tw + pad * 2;
+  const tileH = th + pad * 2;
+
+  const outlineOffsets = [
+    [0, pad], [pad * 2, pad],       // left, right
+    [pad, 0], [pad, pad * 2],       // top, bottom
+    [0, 0], [pad * 2, 0],           // top-left, top-right
+    [0, pad * 2], [pad * 2, pad * 2], // bottom-left, bottom-right
+  ];
+
+  const tileComposites = [
+    ...outlineOffsets.map(([l, t]) => ({ input: blackBuf, left: l, top: t })),
+    { input: whiteBuf, left: pad, top: pad }, // white fill centered
+  ];
+
+  // Create tile with semi-transparency (0.65 alpha multiplier)
+  const tile = await sharp({
+    create: { width: tileW, height: tileH, channels: 4 as const, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  })
+    .composite(tileComposites)
+    .ensureAlpha()
+    .linear([1, 1, 1, 0.65], [0, 0, 0, 0])
+    .png()
+    .toBuffer();
+
+  // Tile across a canvas large enough to cover the image after rotation
+  const gapX = Math.floor(tw * 0.3);
+  const gapY = Math.floor(th * 0.8);
+
+  const diagSize = Math.ceil(Math.sqrt(width * width + height * height));
+  const patternW = diagSize * 2;
+  const patternH = diagSize * 2;
+
+  const composites: { input: Buffer; top: number; left: number }[] = [];
+  for (let y = 0; y < patternH; y += tileH + gapY) {
+    const row = Math.floor(y / (tileH + gapY));
+    const offsetX = row % 2 === 1 ? Math.floor((tileW + gapX) / 2) : 0;
+    for (let x = 0; x < patternW; x += tileW + gapX) {
+      const left = x + offsetX;
+      if (left + tileW <= patternW && y + tileH <= patternH) {
+        composites.push({ input: tile, top: y, left });
+      }
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <g transform="rotate(-30, ${width / 2}, ${height / 2})">
-      ${textElements.join('')}
-    </g>
-  </svg>`;
+  // Create pattern, rotate, and crop to image dimensions
+  const rotated = await sharp({
+    create: { width: patternW, height: patternH, channels: 4 as const, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  })
+    .composite(composites)
+    .rotate(-30, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+
+  const rotMeta = await sharp(rotated).metadata();
+  const extractLeft = Math.floor((rotMeta.width! - width) / 2);
+  const extractTop = Math.floor((rotMeta.height! - height) / 2);
+
+  return sharp(rotated)
+    .extract({ left: extractLeft, top: extractTop, width, height })
+    .png()
+    .toBuffer();
 }
 
 /**
