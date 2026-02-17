@@ -53,7 +53,8 @@ async function generateSampleImages(
   loraUrl: string,
   triggerWord: string,
   petType: PetType
-): Promise<string[]> {
+): Promise<{ urls: string[]; errors: string[] }> {
+  const errors: string[] = [];
   try {
     console.log(`Generating sample images for resend email...`);
 
@@ -73,12 +74,13 @@ async function generateSampleImages(
     const validImageUrls = imageUrls.filter((url): url is string => url !== null);
 
     if (validImageUrls.length === 0) {
-      console.error('No sample images generated successfully');
-      return [];
+      errors.push('All FAL image generations returned null');
+      return { urls: [], errors };
     }
 
+    console.log(`Generated ${validImageUrls.length} images, now watermarking...`);
+
     // Watermark all images for email - do sequentially to avoid overwhelming the service
-    console.log(`Watermarking ${validImageUrls.length} images sequentially...`);
     const watermarkedUrls: string[] = [];
 
     for (const url of validImageUrls) {
@@ -88,16 +90,18 @@ async function generateSampleImages(
         console.log(`Watermarked successfully: ${watermarked.substring(0, 80)}...`);
         watermarkedUrls.push(watermarked);
       } catch (error) {
-        console.error(`Failed to watermark image:`, error);
-        // Don't include failed images - they won't display properly
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`Failed to watermark image:`, msg);
+        errors.push(`Watermark failed: ${msg}`);
       }
     }
 
-    console.log(`Sample images generated and watermarked (${watermarkedUrls.length}):`, watermarkedUrls);
-    return watermarkedUrls;
+    console.log(`Sample images watermarked (${watermarkedUrls.length}/${validImageUrls.length})`);
+    return { urls: watermarkedUrls, errors };
   } catch (error) {
-    console.error('Error generating sample images:', error);
-    return [];
+    const msg = error instanceof Error ? error.message : String(error);
+    errors.push(`Top-level error: ${msg}`);
+    return { urls: [], errors };
   }
 }
 
@@ -146,10 +150,10 @@ export async function POST(request: NextRequest) {
 
     // Generate fresh sample images with watermarks
     const petType: PetType = (model.pet_type as PetType) || 'dog';
-    const sampleImages = await generateSampleImages(model.lora_url, model.trigger_word, petType);
+    const { urls: sampleImages, errors: sampleErrors } = await generateSampleImages(model.lora_url, model.trigger_word, petType);
 
     if (sampleImages.length === 0) {
-      return NextResponse.json({ error: 'Failed to generate sample images' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to generate sample images', details: sampleErrors }, { status: 500 });
     }
 
     // Send the email
@@ -168,6 +172,7 @@ export async function POST(request: NextRequest) {
       triggerWord: model.trigger_word,
       sampleImagesCount: sampleImages.length,
       sampleImageUrls: sampleImages,
+      warnings: sampleErrors.length > 0 ? sampleErrors : undefined,
     });
 
   } catch (error) {
