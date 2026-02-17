@@ -7,6 +7,9 @@ import { PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
 import { watermarkAndUpload } from '@/lib/watermark';
 
+// Allow up to 5 minutes for image generation + watermarking
+export const maxDuration = 300;
+
 // Generate a single image using flux-lora
 async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string): Promise<string | null> {
   const FAL_KEY = process.env.FAL_KEY;

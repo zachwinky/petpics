@@ -38,6 +38,10 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
 /**
  * Create watermark overlay by scaling, tiling, and rotating the embedded tile.
  * No fonts or text rendering needed — works identically on any environment.
+ *
+ * Uses a minimal canvas size to stay within serverless memory limits.
+ * For a 30° rotation, the canvas needs ~1.37x padding to ensure full coverage
+ * after cropping back to the original image dimensions.
  */
 async function createWatermarkOverlay(width: number, height: number): Promise<Buffer> {
   const tileBuf = Buffer.from(WATERMARK_TILE_BASE64, 'base64');
@@ -56,12 +60,11 @@ async function createWatermarkOverlay(width: number, height: number): Promise<Bu
     .png()
     .toBuffer();
 
-  // Tile across a canvas large enough to survive rotation
+  // Use a canvas ~1.4x the image size (enough margin for 30° rotation cropping)
   const gapX = Math.floor(scaledW * 0.3);
   const gapY = Math.floor(scaledH * 1.0);
-  const diagSize = Math.ceil(Math.sqrt(width * width + height * height));
-  const patternW = diagSize * 2;
-  const patternH = diagSize * 2;
+  const patternW = Math.ceil(Math.max(width, height) * 1.4);
+  const patternH = patternW;
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
   for (let y = 0; y < patternH; y += scaledH + gapY) {
