@@ -39,37 +39,39 @@ export async function addWatermark(imageUrl: string): Promise<Buffer> {
 /**
  * Create SVG watermark with diagonal "PETPICS" text pattern.
  * Uses stroke for outline effect since Sharp doesn't support text-shadow.
+ * Designed to be clearly visible and unremovable on any image.
  */
 function createWatermarkSvg(width: number, height: number): string {
-  // Calculate diagonal size (need to cover the whole image when rotated)
   const diagonal = Math.sqrt(width * width + height * height);
-  // Much larger font - about 1/5 of image width for prominent watermark
-  const fontSize = Math.max(80, Math.floor(width / 5));
-  const spacing = fontSize * 1.8; // Tighter spacing for dense coverage
-  const strokeWidth = Math.max(4, fontSize / 20);
+  // Large font — roughly 1/4 of image width
+  const fontSize = Math.max(100, Math.floor(width / 4));
+  // Tight row spacing so text overlaps the image densely
+  const rowSpacing = fontSize * 1.2;
+  // Horizontal gap between repeated words
+  const colSpacing = fontSize * 3.5;
+  const strokeWidth = Math.max(6, fontSize / 12);
 
-  // Build repeated text elements with stroke outline for visibility
   const textElements: string[] = [];
-  const rows = Math.ceil(diagonal / spacing) + 4;
-  const cols = Math.ceil(diagonal / (fontSize * 4)) + 4;
+  const rows = Math.ceil(diagonal / rowSpacing) + 6;
+  const cols = Math.ceil(diagonal / colSpacing) + 6;
 
-  for (let row = -2; row < rows; row++) {
-    for (let col = -2; col < cols; col++) {
-      const x = col * fontSize * 4;
-      const y = row * spacing;
-      // Draw stroke first (outline), then fill on top
+  for (let row = -3; row < rows; row++) {
+    for (let col = -3; col < cols; col++) {
+      const x = col * colSpacing;
+      const y = row * rowSpacing;
+      // Black stroke outline for readability on light areas
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="${strokeWidth}">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="900" fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="${strokeWidth}" letter-spacing="8">PETPICS</text>`
       );
+      // White fill for readability on dark areas
       textElements.push(
-        `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="rgba(255,255,255,0.6)">PETPICS</text>`
+        `<text x="${x}" y="${y}" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="900" fill="rgba(255,255,255,0.85)" letter-spacing="8">PETPICS</text>`
       );
     }
   }
 
-  // Create SVG with rotation transform
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <g transform="rotate(-30, ${width / 2}, ${height / 2})">
+    <g transform="rotate(-35, ${width / 2}, ${height / 2})">
       ${textElements.join('\n      ')}
     </g>
   </svg>`;
