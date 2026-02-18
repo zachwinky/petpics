@@ -58,6 +58,16 @@ interface FailureCounts {
   pendingVideos: number;
 }
 
+interface ReengagementUser {
+  id: number;
+  email: string;
+  name: string | null;
+  pet_names: string[];
+  training_date: string;
+  last_activity: string | null;
+  reengagement_sent_at: string | null;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<UserSummary[]>([]);
@@ -106,6 +116,15 @@ export default function AdminDashboard() {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newImageAlt, setNewImageAlt] = useState('');
   const [savingGallery, setSavingGallery] = useState(false);
+
+  // Re-engagement state
+  const [reengagementSectionOpen, setReengagementSectionOpen] = useState(false);
+  const [reengagementUsers, setReengagementUsers] = useState<ReengagementUser[]>([]);
+  const [reengagementLoading, setReengagementLoading] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
+  const [sendingReengagement, setSendingReengagement] = useState(false);
+  const [reengagementBatchSize, setReengagementBatchSize] = useState(10);
+  const [reengagementResult, setReengagementResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -327,6 +346,84 @@ export default function AdminDashboard() {
       alert('Network error');
     } finally {
       setSavingGallery(false);
+    }
+  };
+
+  // Re-engagement functions
+  const loadReengagementUsers = useCallback(async () => {
+    setReengagementLoading(true);
+    try {
+      const res = await fetch('/api/admin/reengagement');
+      const data = await res.json();
+      setReengagementUsers(data.users || []);
+      const unsent = (data.users || [])
+        .filter((u: ReengagementUser) => !u.reengagement_sent_at)
+        .map((u: ReengagementUser) => u.id);
+      setSelectedUserIds(new Set(unsent));
+    } catch (error) {
+      console.error('Failed to load reengagement users:', error);
+    } finally {
+      setReengagementLoading(false);
+    }
+  }, []);
+
+  const toggleReengagementSection = useCallback(() => {
+    const willOpen = !reengagementSectionOpen;
+    setReengagementSectionOpen(willOpen);
+    if (willOpen && reengagementUsers.length === 0) {
+      loadReengagementUsers();
+    }
+  }, [reengagementSectionOpen, reengagementUsers.length, loadReengagementUsers]);
+
+  const toggleUserSelection = (userId: number) => {
+    setSelectedUserIds(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUserIds.size === reengagementUsers.length) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(reengagementUsers.map(u => u.id)));
+    }
+  };
+
+  const handleSendReengagement = async () => {
+    if (selectedUserIds.size === 0) return;
+    const userIds = Array.from(selectedUserIds).slice(0, reengagementBatchSize);
+    if (!confirm(`Send re-engagement emails to ${userIds.length} users? This will generate fresh sample images for each user (~30s each).`)) return;
+
+    setSendingReengagement(true);
+    setReengagementResult(null);
+
+    try {
+      const res = await fetch('/api/admin/reengagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setReengagementResult({
+          type: 'success',
+          text: `${data.successCount} sent, ${data.errorCount} failed`,
+        });
+        await loadReengagementUsers();
+      } else {
+        setReengagementResult({
+          type: 'error',
+          text: data.error || 'Failed to send emails',
+        });
+      }
+    } catch {
+      setReengagementResult({ type: 'error', text: 'Network error' });
+    } finally {
+      setSendingReengagement(false);
     }
   };
 
@@ -708,6 +805,109 @@ export default function AdminDashboard() {
                 {savingGallery ? 'Saving...' : 'Save Gallery'}
               </button>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Re-engagement Emails */}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={toggleReengagementSection}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Re-engagement Emails</h2>
+            <p className="text-sm text-gray-500">Send emails with sample images to users who trained a model but never purchased</p>
+          </div>
+          <svg className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${reengagementSectionOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {reengagementSectionOpen && (
+          <div className="px-6 py-4">
+            {reengagementLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              </div>
+            ) : reengagementUsers.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No eligible users found (all users with trained models have purchased credits).</p>
+            ) : (
+              <>
+                {/* Controls */}
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">{selectedUserIds.size} of {reengagementUsers.length} selected</span>
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                      Batch:
+                      <select value={reengagementBatchSize} onChange={(e) => setReengagementBatchSize(Number(e.target.value))} className="px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                      </select>
+                    </label>
+                  </div>
+                  <button
+                    onClick={handleSendReengagement}
+                    disabled={sendingReengagement || selectedUserIds.size === 0}
+                    className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                  >
+                    {sendingReengagement ? 'Sending... (this takes a while)' : `Send to ${Math.min(selectedUserIds.size, reengagementBatchSize)} users`}
+                  </button>
+                </div>
+
+                {reengagementResult && (
+                  <div className={`p-3 rounded-lg mb-4 ${reengagementResult.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    {reengagementResult.text}
+                  </div>
+                )}
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left">
+                          <input type="checkbox" checked={selectedUserIds.size === reengagementUsers.length && reengagementUsers.length > 0} onChange={toggleSelectAll} className="rounded border-gray-300" />
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pet Name(s)</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trained</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Active</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {reengagementUsers.map((user) => {
+                        const wasSent = !!user.reengagement_sent_at;
+                        return (
+                          <tr key={user.id} className={`hover:bg-gray-50 ${wasSent ? 'bg-gray-50 opacity-60' : ''}`}>
+                            <td className="px-4 py-3">
+                              <input type="checkbox" checked={selectedUserIds.has(user.id)} onChange={() => toggleUserSelection(user.id)} className="rounded border-gray-300" />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                              {user.name && <div className="text-sm text-gray-500">{user.name}</div>}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900">{user.pet_names.join(', ')}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(user.training_date)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(user.last_activity)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm">
+                              {wasSent ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Sent {formatDate(user.reengagement_sent_at)}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                  Not sent
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { getAdminConfig } from '@/lib/db';
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
@@ -272,6 +273,66 @@ export async function searchUsers(
     generations_count: parseInt(row.generations_count) || 0,
     created_at: row.created_at,
     last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
+  }));
+}
+
+// Re-engagement: find users with models but no purchases
+export interface ReengagementUser {
+  id: number;
+  email: string;
+  name: string | null;
+  pet_names: string[];
+  model_ids: number[];
+  lora_urls: string[];
+  pet_types: string[];
+  training_date: string;
+  last_activity: string | null;
+  reengagement_sent_at: string | null;
+}
+
+export async function getReengagementEligibleUsers(): Promise<ReengagementUser[]> {
+  const result = await pool.query(`
+    SELECT
+      u.id,
+      u.email,
+      u.name,
+      ARRAY_AGG(m.trigger_word ORDER BY m.created_at DESC) as pet_names,
+      ARRAY_AGG(m.id ORDER BY m.created_at DESC) as model_ids,
+      ARRAY_AGG(m.lora_url ORDER BY m.created_at DESC) as lora_urls,
+      ARRAY_AGG(COALESCE(m.pet_type, 'dog') ORDER BY m.created_at DESC) as pet_types,
+      MIN(m.created_at) as training_date,
+      GREATEST(
+        u.created_at,
+        COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
+        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+      ) as last_activity
+    FROM users u
+    INNER JOIN models m ON m.user_id = u.id
+    WHERE NOT EXISTS (
+      SELECT 1 FROM transactions t
+      WHERE t.user_id = u.id
+        AND t.type = 'purchase'
+        AND t.amount_usd IS NOT NULL
+        AND t.amount_usd > 0
+    )
+    GROUP BY u.id, u.email, u.name, u.created_at
+    ORDER BY MIN(m.created_at) DESC
+  `);
+
+  const sentMap = await getAdminConfig<Record<string, { sentAt: string; sentBy: string }>>('reengagement_sent_users') || {};
+
+  return result.rows.map(row => ({
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    pet_names: row.pet_names || [],
+    model_ids: row.model_ids || [],
+    lora_urls: row.lora_urls || [],
+    pet_types: row.pet_types || [],
+    training_date: row.training_date,
+    last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
+    reengagement_sent_at: sentMap[String(row.id)]?.sentAt || null,
   }));
 }
 
