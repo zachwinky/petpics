@@ -157,13 +157,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Send the email
-    await sendTrainingCompleteEmailWithImages(
-      user.email,
-      user.name || '',
-      model.name,
-      model.trigger_word,
-      sampleImages
-    );
+    try {
+      await sendTrainingCompleteEmailWithImages(
+        user.email,
+        user.name || '',
+        model.name,
+        model.trigger_word,
+        sampleImages
+      );
+    } catch (emailError) {
+      const emailMsg = emailError instanceof Error ? emailError.message : String(emailError);
+      return NextResponse.json({
+        error: 'Email send failed',
+        details: emailMsg,
+        sampleImageUrls: sampleImages,
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
