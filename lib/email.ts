@@ -9,7 +9,7 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   try {
     await resend.emails.send({
-      from: 'Petpics <noreply@petpics-mail.com>',
+      from: 'Petpics <hello@petpics-mail.com>',
       to,
       subject: 'Verify your email address',
       html: `
@@ -73,7 +73,7 @@ export async function sendTrainingCompleteEmail(
 
   try {
     await resend.emails.send({
-      from: 'Petpics <noreply@petpics-mail.com>',
+      from: 'Petpics <hello@petpics-mail.com>',
       to,
       subject: `${triggerWord} is ready! 📸`,
       html: `
@@ -145,7 +145,7 @@ export async function sendTrainingCompleteEmailWithImages(
   `).join('');
 
   const result = await resend.emails.send({
-    from: 'Petpics <noreply@petpics-mail.com>',
+    from: 'Petpics <hello@petpics-mail.com>',
     to,
     subject: `${triggerWord} is ready! See your sample photos 📸`,
     html: `
@@ -212,7 +212,7 @@ export async function sendTrainingFailedEmail(
 
   try {
     await resend.emails.send({
-      from: 'Petpics <noreply@petpics-mail.com>',
+      from: 'Petpics <hello@petpics-mail.com>',
       to,
       subject: 'Training didn\'t complete - credits refunded',
       html: `
