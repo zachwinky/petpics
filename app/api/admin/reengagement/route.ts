@@ -17,7 +17,7 @@ async function generateSingleImage(loraUrl: string, triggerWord: string, promptT
 
   try {
     const petLabel = petType === 'cat' ? 'cat' : 'pet';
-    const fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
+    const fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${promptText}, natural pose, sharp focus, professional DSLR quality`;
 
     const response = await fetch('https://fal.run/fal-ai/flux-lora', {
       method: 'POST',

@@ -148,9 +148,9 @@ export async function POST(request: Request) {
       const generatePromises = prompts.map(async (prompt) => {
         // Build prompt with enhanced photography keywords for engagement
         const petLabel = petType === 'cat' ? 'cat' : 'pet';
-        let fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${prompt}, looking at camera with expressive eyes, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
+        let fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${prompt}, natural pose, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
         if (productDescription && productDescription !== 'NO_TEXT_VISIBLE') {
-          fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord} with text ${productDescription}, ${prompt}, looking at camera with expressive eyes, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
+          fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord} with text ${productDescription}, ${prompt}, natural pose, sharp focus, shallow depth of field, professional DSLR quality, 8k detail`;
         }
 
         const falResponse = await fetch('https://fal.run/fal-ai/flux-lora', {
