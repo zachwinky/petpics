@@ -13,12 +13,13 @@ export const maxDuration = 300;
 const TRAINING_COST_CREDITS = 10;
 
 // Generate a single image using flux-lora
-async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string): Promise<string | null> {
+async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string, petType?: string): Promise<string | null> {
   const FAL_KEY = process.env.FAL_KEY;
   if (!FAL_KEY) return null;
 
   try {
-    const fullPrompt = `Award-winning pet portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
+    const petLabel = petType === 'cat' ? 'cat' : 'pet';
+    const fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
 
     const response = await fetch('https://fal.run/fal-ai/flux-lora', {
       method: 'POST',
@@ -70,7 +71,7 @@ async function generateSampleImages(
     const allPrompts = [previewPrompt, ...samplePrompts];
 
     // Generate all 3 images in parallel
-    const imagePromises = allPrompts.map(prompt => generateSingleImage(loraUrl, triggerWord, prompt));
+    const imagePromises = allPrompts.map(prompt => generateSingleImage(loraUrl, triggerWord, prompt, petType));
     const imageUrls = await Promise.all(imagePromises);
 
     const validImageUrls = imageUrls.filter((url): url is string => url !== null);

@@ -9,12 +9,13 @@ import { getPromptForPetType } from '@/lib/presetPrompts';
 import { watermarkAndUpload } from '@/lib/watermark';
 
 // Generate a single image using flux-lora
-async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string): Promise<string | null> {
+async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string, petType?: string): Promise<string | null> {
   const FAL_KEY = process.env.FAL_KEY;
   if (!FAL_KEY) return null;
 
   try {
-    const fullPrompt = `Award-winning pet portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
+    const petLabel = petType === 'cat' ? 'cat' : 'pet';
+    const fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${promptText}, looking at camera with expressive eyes, sharp focus, professional DSLR quality`;
 
     const response = await fetch('https://fal.run/fal-ai/flux-lora', {
       method: 'POST',
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
 
         // Generate images sequentially to be safe
         for (const prompt of allPrompts) {
-          const imageUrl = await generateSingleImage(loraUrl, triggerWord, prompt);
+          const imageUrl = await generateSingleImage(loraUrl, triggerWord, prompt, petType);
           if (imageUrl) {
             sampleImages.push(imageUrl);
           }
