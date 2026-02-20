@@ -373,6 +373,30 @@ export async function getPendingTrainings(): Promise<PendingTraining[]> {
   return result.rows;
 }
 
+// Get trainings stuck for more than N minutes
+export async function getStuckTrainings(minutesOld: number): Promise<PendingTraining[]> {
+  const result = await pool.query(`
+    SELECT
+      pt.id,
+      pt.user_id,
+      u.email as user_email,
+      pt.trigger_word,
+      pt.model_name,
+      pt.status,
+      pt.error_message,
+      pt.images_count,
+      pt.created_at,
+      pt.completed_at
+    FROM pending_trainings pt
+    JOIN users u ON pt.user_id = u.id
+    WHERE pt.status = 'training'
+      AND pt.created_at < NOW() - INTERVAL '1 minute' * $1
+    ORDER BY pt.created_at ASC
+  `, [minutesOld]);
+
+  return result.rows;
+}
+
 // Get failed trainings (last 7 days)
 export async function getFailedTrainings(): Promise<PendingTraining[]> {
   const result = await pool.query(`

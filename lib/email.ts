@@ -355,3 +355,67 @@ export async function sendReengagementEmail(
 
   console.log(`Re-engagement email sent to ${to}, id: ${result.data?.id}`);
 }
+
+export async function sendStuckTrainingAlertEmail(
+  to: string,
+  stuckTrainings: { id: number; userEmail: string; triggerWord: string; minutesElapsed: number }[]
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const count = stuckTrainings.length;
+
+  const trainingRows = stuckTrainings.map(t => `
+    <tr>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px;">${t.userEmail}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; font-weight: 600;">${t.triggerWord}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #dc2626;">${t.minutesElapsed} min</td>
+    </tr>
+  `).join('');
+
+  const result = await resend.emails.send({
+    from: 'Petpics <hello@petpics.akoolai.com>',
+    replyTo: 'zach@akoolai.com',
+    to,
+    subject: `${count} stuck training${count !== 1 ? 's' : ''} detected`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px;">
+          <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #dc2626, #ef4444); padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 18px;">Stuck Training Alert</h1>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
+                ${count} training${count !== 1 ? 's have' : ' has'} been running for over 20 minutes:
+              </p>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                  <tr style="background: #f9fafb;">
+                    <th style="padding: 8px 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase;">User</th>
+                    <th style="padding: 8px 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase;">Pet</th>
+                    <th style="padding: 8px 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase;">Elapsed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${trainingRows}
+                </tbody>
+              </table>
+              <div style="text-align: center;">
+                <a href="${baseUrl}/admin" style="display: inline-block; background: #4f46e5; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                  Open Admin Dashboard
+                </a>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+  });
+
+  if (result.error) {
+    throw new Error(`Resend API error: ${result.error.message}`);
+  }
+
+  console.log(`Stuck training alert sent to ${to}, id: ${result.data?.id}`);
+}
