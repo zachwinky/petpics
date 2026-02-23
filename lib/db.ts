@@ -686,3 +686,303 @@ export async function setAdminConfig(key: string, value: unknown): Promise<void>
     [key, JSON.stringify(value)]
   );
 }
+
+// ========================================
+// Print Shop types and operations
+// ========================================
+
+export type PrintOrderStatus = 'payment_confirmed' | 'submitted_to_printful' | 'in_production' | 'shipped' | 'delivered' | 'failed' | 'refunded';
+
+export interface PrintProduct {
+  id: number;
+  product_type: string;
+  display_name: string;
+  size_label: string;
+  printful_variant_id: number;
+  price_cents: number;
+  min_image_width_px: number;
+  min_image_height_px: number;
+  orientation?: string;
+  options: Record<string, unknown>;
+  sort_order: number;
+  active: boolean;
+  created_at: Date;
+}
+
+export interface PrintOrder {
+  id: number;
+  user_id: number;
+  model_id?: number;
+  stripe_payment_intent_id: string;
+  printful_order_id?: string;
+  status: PrintOrderStatus;
+  shipping_name: string;
+  shipping_address_1: string;
+  shipping_address_2?: string;
+  shipping_city: string;
+  shipping_state?: string;
+  shipping_zip: string;
+  shipping_country: string;
+  shipping_method?: string;
+  subtotal_cents: number;
+  shipping_cents: number;
+  tax_cents: number;
+  total_cents: number;
+  tracking_number?: string;
+  tracking_url?: string;
+  estimated_delivery_min?: Date;
+  estimated_delivery_max?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface PrintOrderItem {
+  id: number;
+  order_id: number;
+  generation_id?: number;
+  image_index: number;
+  printful_variant_id: number;
+  printful_file_id?: number;
+  product_type: string;
+  product_size: string;
+  product_options: Record<string, unknown>;
+  quantity: number;
+  unit_price_cents: number;
+  image_url: string;
+  created_at: Date;
+}
+
+export interface StudioPortrait {
+  id: number;
+  user_id: number;
+  model_id: number;
+  generation_id?: number;
+  image_index: number;
+  image_url: string;
+  scene_id?: string;
+  created_at: Date;
+}
+
+// Print product operations
+export async function getActiveProducts(): Promise<PrintProduct[]> {
+  const result = await pool.query(
+    'SELECT * FROM print_products WHERE active = TRUE ORDER BY sort_order, product_type, price_cents'
+  );
+  return result.rows as PrintProduct[];
+}
+
+export async function getProductsByType(productType: string): Promise<PrintProduct[]> {
+  const result = await pool.query(
+    'SELECT * FROM print_products WHERE product_type = $1 AND active = TRUE ORDER BY sort_order, price_cents',
+    [productType]
+  );
+  return result.rows as PrintProduct[];
+}
+
+export async function getProductById(productId: number): Promise<PrintProduct | null> {
+  const result = await pool.query(
+    'SELECT * FROM print_products WHERE id = $1',
+    [productId]
+  );
+  return result.rows[0] as PrintProduct || null;
+}
+
+// Print order operations
+export async function createPrintOrder(
+  userId: number,
+  modelId: number | null,
+  stripePaymentIntentId: string,
+  shippingAddress: {
+    name: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    state?: string;
+    zip: string;
+    country: string;
+  },
+  shippingMethod: string | null,
+  subtotalCents: number,
+  shippingCents: number,
+  taxCents: number,
+  totalCents: number
+): Promise<PrintOrder> {
+  const result = await pool.query(
+    `INSERT INTO print_orders (
+      user_id, model_id, stripe_payment_intent_id, shipping_name, shipping_address_1,
+      shipping_address_2, shipping_city, shipping_state, shipping_zip, shipping_country,
+      shipping_method, subtotal_cents, shipping_cents, tax_cents, total_cents
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+    [
+      userId, modelId, stripePaymentIntentId,
+      shippingAddress.name, shippingAddress.address1, shippingAddress.address2 || null,
+      shippingAddress.city, shippingAddress.state || null, shippingAddress.zip, shippingAddress.country,
+      shippingMethod, subtotalCents, shippingCents, taxCents, totalCents
+    ]
+  );
+  return result.rows[0] as PrintOrder;
+}
+
+export async function getPrintOrderById(orderId: number, userId?: number): Promise<PrintOrder | null> {
+  const query = userId
+    ? 'SELECT * FROM print_orders WHERE id = $1 AND user_id = $2'
+    : 'SELECT * FROM print_orders WHERE id = $1';
+  const params = userId ? [orderId, userId] : [orderId];
+  const result = await pool.query(query, params);
+  return result.rows[0] as PrintOrder || null;
+}
+
+export async function getPrintOrderByStripePaymentIntent(paymentIntentId: string): Promise<PrintOrder | null> {
+  const result = await pool.query(
+    'SELECT * FROM print_orders WHERE stripe_payment_intent_id = $1',
+    [paymentIntentId]
+  );
+  return result.rows[0] as PrintOrder || null;
+}
+
+export async function getPrintOrderByPrintfulId(printfulOrderId: string): Promise<PrintOrder | null> {
+  const result = await pool.query(
+    'SELECT * FROM print_orders WHERE printful_order_id = $1',
+    [printfulOrderId]
+  );
+  return result.rows[0] as PrintOrder || null;
+}
+
+export async function getUserPrintOrders(userId: number, limit: number = 50): Promise<PrintOrder[]> {
+  const result = await pool.query(
+    'SELECT * FROM print_orders WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+    [userId, limit]
+  );
+  return result.rows as PrintOrder[];
+}
+
+export async function updatePrintOrderStatus(
+  orderId: number,
+  status: PrintOrderStatus,
+  trackingNumber?: string,
+  trackingUrl?: string,
+  estimatedDeliveryMin?: Date,
+  estimatedDeliveryMax?: Date
+): Promise<PrintOrder | null> {
+  const result = await pool.query(
+    `UPDATE print_orders SET status = $1, tracking_number = COALESCE($2, tracking_number),
+     tracking_url = COALESCE($3, tracking_url),
+     estimated_delivery_min = COALESCE($4, estimated_delivery_min),
+     estimated_delivery_max = COALESCE($5, estimated_delivery_max),
+     updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *`,
+    [status, trackingNumber || null, trackingUrl || null, estimatedDeliveryMin || null, estimatedDeliveryMax || null, orderId]
+  );
+  return result.rows[0] as PrintOrder || null;
+}
+
+export async function updatePrintOrderPrintfulId(orderId: number, printfulOrderId: string): Promise<PrintOrder | null> {
+  const result = await pool.query(
+    'UPDATE print_orders SET printful_order_id = $1, status = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+    [printfulOrderId, 'submitted_to_printful', orderId]
+  );
+  return result.rows[0] as PrintOrder || null;
+}
+
+// Print order item operations
+export async function createPrintOrderItem(
+  orderId: number,
+  generationId: number | null,
+  imageIndex: number,
+  printfulVariantId: number,
+  productType: string,
+  productSize: string,
+  unitPriceCents: number,
+  imageUrl: string,
+  productOptions?: Record<string, unknown>,
+  quantity?: number
+): Promise<PrintOrderItem> {
+  const result = await pool.query(
+    `INSERT INTO print_order_items (
+      order_id, generation_id, image_index, printful_variant_id, product_type,
+      product_size, unit_price_cents, image_url, product_options, quantity
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+    [orderId, generationId, imageIndex, printfulVariantId, productType, productSize, unitPriceCents, imageUrl, JSON.stringify(productOptions || {}), quantity || 1]
+  );
+  return result.rows[0] as PrintOrderItem;
+}
+
+export async function getOrderItems(orderId: number): Promise<PrintOrderItem[]> {
+  const result = await pool.query(
+    'SELECT * FROM print_order_items WHERE order_id = $1 ORDER BY id',
+    [orderId]
+  );
+  return result.rows as PrintOrderItem[];
+}
+
+export async function updateOrderItemPrintfulFileId(itemId: number, printfulFileId: number): Promise<PrintOrderItem | null> {
+  const result = await pool.query(
+    'UPDATE print_order_items SET printful_file_id = $1 WHERE id = $2 RETURNING *',
+    [printfulFileId, itemId]
+  );
+  return result.rows[0] as PrintOrderItem || null;
+}
+
+export async function getAllPrintOrders(limit: number = 100): Promise<(PrintOrder & { user_email: string; item_count: number })[]> {
+  const result = await pool.query(
+    `SELECT po.*, u.email as user_email,
+     (SELECT COUNT(*) FROM print_order_items WHERE order_id = po.id)::int as item_count
+     FROM print_orders po
+     JOIN users u ON u.id = po.user_id
+     ORDER BY po.created_at DESC LIMIT $1`,
+    [limit]
+  );
+  return result.rows as (PrintOrder & { user_email: string; item_count: number })[];
+}
+
+export async function getShippedOrdersForFollowup(): Promise<(PrintOrder & { user_email: string; user_name: string })[]> {
+  const result = await pool.query(
+    `SELECT po.*, u.email as user_email, u.name as user_name
+     FROM print_orders po
+     JOIN users u ON u.id = po.user_id
+     WHERE po.status = 'shipped'
+       AND po.updated_at < NOW() - INTERVAL '7 days'
+     ORDER BY po.updated_at ASC
+     LIMIT 20`
+  );
+  return result.rows as (PrintOrder & { user_email: string; user_name: string })[];
+}
+
+// Studio portrait operations
+export async function createStudioPortrait(
+  userId: number,
+  modelId: number,
+  generationId: number | null,
+  imageIndex: number,
+  imageUrl: string,
+  sceneId?: string
+): Promise<StudioPortrait> {
+  const result = await pool.query(
+    'INSERT INTO studio_portraits (user_id, model_id, generation_id, image_index, image_url, scene_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+    [userId, modelId, generationId, imageIndex, imageUrl, sceneId || null]
+  );
+  return result.rows[0] as StudioPortrait;
+}
+
+export async function getModelStudioPortraits(modelId: number, userId: number): Promise<StudioPortrait[]> {
+  const result = await pool.query(
+    'SELECT * FROM studio_portraits WHERE model_id = $1 AND user_id = $2 ORDER BY created_at DESC',
+    [modelId, userId]
+  );
+  return result.rows as StudioPortrait[];
+}
+
+export async function getUserStudioPortraits(userId: number, limit: number = 50): Promise<StudioPortrait[]> {
+  const result = await pool.query(
+    'SELECT * FROM studio_portraits WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+    [userId, limit]
+  );
+  return result.rows as StudioPortrait[];
+}
+
+export async function getStudioPortraitById(portraitId: number, userId: number): Promise<StudioPortrait | null> {
+  const result = await pool.query(
+    'SELECT * FROM studio_portraits WHERE id = $1 AND user_id = $2',
+    [portraitId, userId]
+  );
+  return result.rows[0] as StudioPortrait || null;
+}

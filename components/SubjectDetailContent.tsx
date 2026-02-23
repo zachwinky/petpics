@@ -102,7 +102,7 @@ export default function SubjectDetailContent({
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
           }`}
         >
-          Product Images ({imageCount})
+          Portraits ({imageCount})
         </button>
         <button
           onClick={() => setActiveTab('videos')}

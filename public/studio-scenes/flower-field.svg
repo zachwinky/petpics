@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8bbd0"/>
+      <stop offset="40%" stop-color="#f48fb1"/>
+      <stop offset="70%" stop-color="#a5d6a7"/>
+      <stop offset="100%" stop-color="#66bb6a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Ground -->
+  <path d="M0 250 Q100 235 200 245 Q300 255 400 240 L400 400 L0 400 Z" fill="#4caf50" opacity="0.3"/>
+  <!-- Flower stems -->
+  <line x1="80" y1="300" x2="80" y2="200" stroke="#388e3c" stroke-width="3" opacity="0.6"/>
+  <line x1="160" y1="310" x2="160" y2="180" stroke="#388e3c" stroke-width="3" opacity="0.6"/>
+  <line x1="240" y1="305" x2="240" y2="190" stroke="#388e3c" stroke-width="3" opacity="0.6"/>
+  <line x1="320" y1="300" x2="320" y2="210" stroke="#388e3c" stroke-width="3" opacity="0.6"/>
+  <line x1="120" y1="315" x2="120" y2="220" stroke="#388e3c" stroke-width="2.5" opacity="0.5"/>
+  <line x1="200" y1="320" x2="200" y2="170" stroke="#388e3c" stroke-width="3" opacity="0.6"/>
+  <line x1="280" y1="308" x2="280" y2="200" stroke="#388e3c" stroke-width="2.5" opacity="0.5"/>
+  <!-- Flowers (5-petal design) -->
+  <g transform="translate(80,195)" opacity="0.85">
+    <circle cx="0" cy="-10" r="8" fill="#e91e63"/>
+    <circle cx="9.5" cy="-3" r="8" fill="#e91e63"/>
+    <circle cx="5.9" cy="8" r="8" fill="#e91e63"/>
+    <circle cx="-5.9" cy="8" r="8" fill="#e91e63"/>
+    <circle cx="-9.5" cy="-3" r="8" fill="#e91e63"/>
+    <circle cx="0" cy="0" r="5" fill="#fff176"/>
+  </g>
+  <g transform="translate(160,175)" opacity="0.9">
+    <circle cx="0" cy="-12" r="10" fill="#f06292"/>
+    <circle cx="11.4" cy="-3.7" r="10" fill="#f06292"/>
+    <circle cx="7" cy="9.7" r="10" fill="#f06292"/>
+    <circle cx="-7" cy="9.7" r="10" fill="#f06292"/>
+    <circle cx="-11.4" cy="-3.7" r="10" fill="#f06292"/>
+    <circle cx="0" cy="0" r="6" fill="#fff9c4"/>
+  </g>
+  <g transform="translate(240,185)" opacity="0.85">
+    <circle cx="0" cy="-10" r="8" fill="#ec407a"/>
+    <circle cx="9.5" cy="-3" r="8" fill="#ec407a"/>
+    <circle cx="5.9" cy="8" r="8" fill="#ec407a"/>
+    <circle cx="-5.9" cy="8" r="8" fill="#ec407a"/>
+    <circle cx="-9.5" cy="-3" r="8" fill="#ec407a"/>
+    <circle cx="0" cy="0" r="5" fill="#fff176"/>
+  </g>
+  <g transform="translate(320,205)" opacity="0.8">
+    <circle cx="0" cy="-10" r="8" fill="#e91e63"/>
+    <circle cx="9.5" cy="-3" r="8" fill="#e91e63"/>
+    <circle cx="5.9" cy="8" r="8" fill="#e91e63"/>
+    <circle cx="-5.9" cy="8" r="8" fill="#e91e63"/>
+    <circle cx="-9.5" cy="-3" r="8" fill="#e91e63"/>
+    <circle cx="0" cy="0" r="5" fill="#fff176"/>
+  </g>
+  <g transform="translate(200,165)" opacity="0.9">
+    <circle cx="0" cy="-12" r="10" fill="#ad1457"/>
+    <circle cx="11.4" cy="-3.7" r="10" fill="#ad1457"/>
+    <circle cx="7" cy="9.7" r="10" fill="#ad1457"/>
+    <circle cx="-7" cy="9.7" r="10" fill="#ad1457"/>
+    <circle cx="-11.4" cy="-3.7" r="10" fill="#ad1457"/>
+    <circle cx="0" cy="0" r="6" fill="#ffe082"/>
+  </g>
+  <g transform="translate(120,215)" opacity="0.75">
+    <circle cx="0" cy="-8" r="7" fill="#f48fb1"/>
+    <circle cx="7.6" cy="-2.5" r="7" fill="#f48fb1"/>
+    <circle cx="4.7" cy="6.5" r="7" fill="#f48fb1"/>
+    <circle cx="-4.7" cy="6.5" r="7" fill="#f48fb1"/>
+    <circle cx="-7.6" cy="-2.5" r="7" fill="#f48fb1"/>
+    <circle cx="0" cy="0" r="4" fill="#fff9c4"/>
+  </g>
+  <g transform="translate(280,195)" opacity="0.75">
+    <circle cx="0" cy="-8" r="7" fill="#f48fb1"/>
+    <circle cx="7.6" cy="-2.5" r="7" fill="#f48fb1"/>
+    <circle cx="4.7" cy="6.5" r="7" fill="#f48fb1"/>
+    <circle cx="-4.7" cy="6.5" r="7" fill="#f48fb1"/>
+    <circle cx="-7.6" cy="-2.5" r="7" fill="#f48fb1"/>
+    <circle cx="0" cy="0" r="4" fill="#fff9c4"/>
+  </g>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#4a1942" opacity="0.7">Flower Field</text>
+</svg>

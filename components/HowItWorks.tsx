@@ -2,7 +2,8 @@ export default function HowItWorks() {
   const steps = [
     { emoji: '📸', number: 1, title: 'Upload Photos', description: 'Take 5-20 photos of your pet from different angles' },
     { emoji: '🤖', number: 2, title: 'AI Training', description: 'We train the AI to recognize your pet (~10 min)' },
-    { emoji: '✨', number: 3, title: 'Create Photos', description: 'Generate photos in any setting you can imagine' },
+    { emoji: '✨', number: 3, title: 'Pick Your Portrait', description: 'Choose from beautiful scenes — golden hour, cozy home, and more' },
+    { emoji: '🖼️', number: 4, title: 'Get It Printed', description: 'Canvas, poster, or mug — printed and shipped to your door' },
   ];
 
   return (
@@ -10,7 +11,7 @@ export default function HowItWorks() {
       <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
         How It Works
       </h2>
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {steps.map((step) => (
           <div key={step.number} className="flex flex-col items-center text-center">
             <div className="w-14 h-14 bg-gradient-to-br from-coral-400 to-peach-500 rounded-2xl flex items-center justify-center mb-3 shadow-md">

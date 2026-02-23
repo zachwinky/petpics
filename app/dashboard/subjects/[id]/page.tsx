@@ -134,13 +134,21 @@ export default async function PhotoSubjectDetailPage({
                 </div>
               )}
 
-              {/* Action Button */}
-              <Link
-                href={`/generate?modelId=${model.id}`}
-                className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors text-center"
-              >
-                Generate More Photos
-              </Link>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/dashboard"
+                  className="px-6 py-3 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors text-center"
+                >
+                  Open Portrait Studio
+                </Link>
+                <Link
+                  href={`/generate?modelId=${model.id}`}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors text-center"
+                >
+                  Create Portraits
+                </Link>
+              </div>
             </div>
           </div>
 

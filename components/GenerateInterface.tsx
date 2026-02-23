@@ -51,7 +51,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
 
   const handleGenerate = async () => {
     if (!selectedModel) {
-      setError('Please select a photo subject first');
+      setError('Please select a pet first');
       return;
     }
 
@@ -311,7 +311,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
             onClick={handleGenerate}
             disabled={isGenerating || (selectedScenes.length === 0 && !customPrompt)}
           >
-            {isGenerating ? 'Creating photos...' : `Create ${batchSize} Photos (${batchCost} credits)`}
+            {isGenerating ? 'Creating portraits...' : `Create ${batchSize} Portraits (${batchCost} credits)`}
           </button>
         </div>
       )}

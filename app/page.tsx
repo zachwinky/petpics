@@ -25,7 +25,7 @@ export default function Home() {
               Turn Your Pet Into a Work of Art
             </h1>
             <p className="text-lg md:text-2xl text-gray-600 max-w-3xl mx-auto">
-              Stunning portraits of your pet in any style, any setting — no studio needed
+              AI-generated portraits of your pet, printed on canvas, poster, or mug and shipped to your door
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export default function Home() {
                   Ready to Get Started?
                 </h2>
                 <p className="text-gray-600">
-                  Upload 5-20 photos of your pet to train the AI, then create unlimited pictures
+                  Upload 5-20 photos of your pet, pick your favorite portrait, and we'll print it for you
                 </p>
               </div>
               <ImageUpload />
@@ -56,21 +56,21 @@ export default function Home() {
               <div className="text-3xl mb-3">🐾</div>
               <h3 className="font-semibold text-gray-900 mb-2">Your Actual Pet</h3>
               <p className="text-sm text-gray-600">
-                The AI learns your specific pet - same markings, colors, and unique features
+                The AI learns your specific pet — same markings, colors, and personality captured perfectly
               </p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-coral-50">
               <div className="text-3xl mb-3">✨</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Any Setting</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Beautiful Scenes</h3>
               <p className="text-sm text-gray-600">
-                Place your pet anywhere - parks, beaches, studios, or custom scenes
+                Golden hour, cozy home, flower fields — choose from 12 curated portrait scenes
               </p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-coral-50">
-              <div className="text-3xl mb-3">⚡</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Quick Setup</h3>
+              <div className="text-3xl mb-3">🖼️</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Gallery-Quality Prints</h3>
               <p className="text-sm text-gray-600">
-                Training takes about 10 minutes, then create as many photos as you want
+                Canvas, framed poster, matte print, or mug — shipped to your door in days
               </p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function Home() {
                   Ready to Get Started?
                 </h2>
                 <p className="text-gray-600">
-                  Upload 5-20 photos of your pet to train the AI, then create unlimited pictures
+                  Upload 5-20 photos of your pet, pick your favorite portrait, and we'll print it for you
                 </p>
               </div>
               <ImageUpload />

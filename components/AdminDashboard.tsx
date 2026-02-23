@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface AdminStats {
@@ -51,6 +51,47 @@ interface VideoGeneration {
   completed_at: string | null;
 }
 
+interface PrintOrderSummary {
+  id: number;
+  user_email: string;
+  status: string;
+  total_cents: number;
+  item_count: number;
+  printful_order_id: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  created_at: string;
+}
+
+interface PrintOrderDetail {
+  order: PrintOrderSummary & {
+    shipping_name: string;
+    shipping_address_1: string;
+    shipping_address_2?: string;
+    shipping_city: string;
+    shipping_state?: string;
+    shipping_zip: string;
+    shipping_country: string;
+    stripe_payment_intent_id: string;
+    subtotal_cents: number;
+    shipping_cents: number;
+    tax_cents: number;
+  };
+  items: {
+    id: number;
+    image_url: string;
+    product_type: string;
+    product_size: string;
+    printful_variant_id: number;
+    unit_price_cents: number;
+    quantity: number;
+    generation_id?: number;
+    image_index: number;
+    product_options: Record<string, unknown>;
+  }[];
+  user: { id: number; email: string; name: string | null } | null;
+}
+
 interface FailureCounts {
   failedTrainings: number;
   failedVideos: number;
@@ -86,6 +127,15 @@ export default function AdminDashboard() {
   // Videos state
   const [videos, setVideos] = useState<VideoGeneration[]>([]);
   const [videoFilter, setVideoFilter] = useState<'all' | 'pending' | 'processing' | 'failed'>('all');
+
+  // Print orders state
+  const [printOrders, setPrintOrders] = useState<PrintOrderSummary[]>([]);
+  const [printOrdersSectionOpen, setPrintOrdersSectionOpen] = useState(false);
+  const [printOrdersLoading, setPrintOrdersLoading] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [expandedOrderDetail, setExpandedOrderDetail] = useState<PrintOrderDetail | null>(null);
+  const [expandedOrderLoading, setExpandedOrderLoading] = useState(false);
+  const [orderActionLoading, setOrderActionLoading] = useState<string | null>(null);
 
   // Failure counts
   const [failureCounts, setFailureCounts] = useState<FailureCounts | null>(null);
@@ -366,6 +416,117 @@ export default function AdminDashboard() {
       setReengagementLoading(false);
     }
   }, []);
+
+  const loadPrintOrders = useCallback(async () => {
+    setPrintOrdersLoading(true);
+    try {
+      const res = await fetch('/api/admin/orders');
+      const data = await res.json();
+      setPrintOrders(data.orders || []);
+    } catch (error) {
+      console.error('Failed to load print orders:', error);
+    } finally {
+      setPrintOrdersLoading(false);
+    }
+  }, []);
+
+  const togglePrintOrdersSection = useCallback(() => {
+    const willOpen = !printOrdersSectionOpen;
+    setPrintOrdersSectionOpen(willOpen);
+    if (willOpen && printOrders.length === 0) {
+      loadPrintOrders();
+    }
+  }, [printOrdersSectionOpen, printOrders.length, loadPrintOrders]);
+
+  const handleUpdateOrderStatus = async (orderId: number, newStatus: string) => {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        loadPrintOrders();
+      } else {
+        alert(data.error || 'Failed to update order');
+      }
+    } catch {
+      alert('Network error');
+    }
+  };
+
+  const toggleOrderExpansion = async (orderId: number) => {
+    if (expandedOrderId === orderId) {
+      setExpandedOrderId(null);
+      setExpandedOrderDetail(null);
+      return;
+    }
+    setExpandedOrderId(orderId);
+    setExpandedOrderLoading(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setExpandedOrderDetail(data);
+      } else {
+        alert(data.error || 'Failed to load order detail');
+        setExpandedOrderId(null);
+      }
+    } catch {
+      alert('Network error loading order detail');
+      setExpandedOrderId(null);
+    } finally {
+      setExpandedOrderLoading(false);
+    }
+  };
+
+  const handleRetryPrintful = async (orderId: number) => {
+    if (!confirm(`Retry Printful submission for order #${orderId}? This will re-upscale images and create a new Printful order.`)) return;
+    setOrderActionLoading(`retry-${orderId}`);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/retry-printful`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Printful order created: ${data.printfulOrderId}`);
+        loadPrintOrders();
+        toggleOrderExpansion(orderId); // Refresh detail
+      } else {
+        alert(data.error || 'Retry failed');
+      }
+    } catch {
+      alert('Network error');
+    } finally {
+      setOrderActionLoading(null);
+    }
+  };
+
+  const handleReorder = async (orderId: number) => {
+    if (!confirm(`Create a NEW Printful order for #${orderId}? This resubmits with the same images and address.`)) return;
+    setOrderActionLoading(`reorder-${orderId}`);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/reorder`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`New Printful order created: ${data.printfulOrderId}`);
+        loadPrintOrders();
+        toggleOrderExpansion(orderId);
+      } else {
+        alert(data.error || 'Reorder failed');
+      }
+    } catch {
+      alert('Network error');
+    } finally {
+      setOrderActionLoading(null);
+    }
+  };
+
+  const copyImageUrls = (items: PrintOrderDetail['items']) => {
+    const urls = items.map(item => item.image_url).join('\n');
+    navigator.clipboard.writeText(urls);
+    alert(`Copied ${items.length} image URL(s) to clipboard`);
+  };
 
   const toggleReengagementSection = useCallback(() => {
     const willOpen = !reengagementSectionOpen;
@@ -907,6 +1068,233 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Print Orders */}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={togglePrintOrdersSection}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Print Orders</h2>
+            <p className="text-sm text-gray-500">Manage physical print orders and fulfillment status</p>
+          </div>
+          <svg className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${printOrdersSectionOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {printOrdersSectionOpen && (
+          <div className="px-6 py-4">
+            {printOrdersLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              </div>
+            ) : printOrders.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No print orders yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Printful</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {printOrders.map((order) => (
+                      <React.Fragment key={order.id}>
+                        <tr
+                          className={`hover:bg-gray-50 cursor-pointer ${expandedOrderId === order.id ? 'bg-indigo-50' : ''}`}
+                          onClick={() => toggleOrderExpansion(order.id)}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <span className="inline-flex items-center gap-1">
+                              <svg className={`w-3 h-3 transition-transform ${expandedOrderId === order.id ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                              </svg>
+                              #{order.id}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{order.user_email}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{order.item_count}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(order.total_cents / 100)}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'in_production' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'submitted_to_printful' ? 'bg-indigo-100 text-indigo-800' :
+                              order.status === 'failed' || order.status === 'refunded' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {order.status.replace(/_/g, ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {order.printful_order_id || '-'}
+                            {order.tracking_number && (
+                              <div className="text-xs text-blue-600">
+                                {order.tracking_url ? (
+                                  <a href={order.tracking_url} target="_blank" rel="noopener noreferrer" className="hover:underline" onClick={e => e.stopPropagation()}>
+                                    {order.tracking_number}
+                                  </a>
+                                ) : order.tracking_number}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(order.created_at)}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm" onClick={e => e.stopPropagation()}>
+                            <div className="flex gap-1 flex-wrap">
+                              {order.status === 'payment_confirmed' && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'failed')}
+                                  className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                                >
+                                  Fail
+                                </button>
+                              )}
+                              {order.status === 'shipped' && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
+                                  className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                >
+                                  Delivered
+                                </button>
+                              )}
+                              {(order.status === 'failed' || order.status === 'payment_confirmed') && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'refunded')}
+                                  className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                                >
+                                  Refund
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Expanded order detail */}
+                        {expandedOrderId === order.id && (
+                          <tr>
+                            <td colSpan={8} className="px-4 py-4 bg-gray-50 border-t border-b border-gray-200">
+                              {expandedOrderLoading ? (
+                                <div className="flex justify-center py-4">
+                                  <div className="w-6 h-6 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                                </div>
+                              ) : expandedOrderDetail ? (
+                                <div className="space-y-4">
+                                  {/* Items with thumbnails */}
+                                  <div>
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Items</h4>
+                                    <div className="grid gap-3">
+                                      {expandedOrderDetail.items.map(item => (
+                                        <div key={item.id} className="flex items-start gap-3 bg-white p-3 rounded-lg border border-gray-100">
+                                          <a href={item.image_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                                            <img src={item.image_url} alt="" className="w-16 h-16 rounded object-cover border border-gray-200" />
+                                          </a>
+                                          <div className="flex-1 min-w-0 text-xs">
+                                            <div className="font-medium text-gray-900">{item.product_type} — {item.product_size}</div>
+                                            <div className="text-gray-500">Variant: {item.printful_variant_id} | Qty: {item.quantity}</div>
+                                            <div className="text-gray-500">Price: ${(item.unit_price_cents / 100).toFixed(2)}</div>
+                                            {item.generation_id && (
+                                              <div className="text-gray-500">Gen: #{item.generation_id} img[{item.image_index}]</div>
+                                            )}
+                                            {(item.product_options as Record<string, string>)?.frameColor && (
+                                              <div className="text-gray-500">Frame: {(item.product_options as Record<string, string>).frameColor}</div>
+                                            )}
+                                            <button
+                                              onClick={() => { navigator.clipboard.writeText(item.image_url); alert('Image URL copied'); }}
+                                              className="mt-1 text-indigo-600 hover:text-indigo-800 underline"
+                                            >
+                                              Copy image URL
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Shipping address */}
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">Shipping Address</h4>
+                                      <div className="text-xs text-gray-700 space-y-0.5">
+                                        <div>{expandedOrderDetail.order.shipping_name}</div>
+                                        <div>{expandedOrderDetail.order.shipping_address_1}</div>
+                                        {expandedOrderDetail.order.shipping_address_2 && <div>{expandedOrderDetail.order.shipping_address_2}</div>}
+                                        <div>
+                                          {expandedOrderDetail.order.shipping_city}
+                                          {expandedOrderDetail.order.shipping_state && `, ${expandedOrderDetail.order.shipping_state}`}
+                                          {' '}{expandedOrderDetail.order.shipping_zip}
+                                        </div>
+                                        <div>{expandedOrderDetail.order.shipping_country}</div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">Payment</h4>
+                                      <div className="text-xs text-gray-700 space-y-0.5">
+                                        <div>Subtotal: ${(expandedOrderDetail.order.subtotal_cents / 100).toFixed(2)}</div>
+                                        <div>Shipping: ${(expandedOrderDetail.order.shipping_cents / 100).toFixed(2)}</div>
+                                        <div>Tax: ${(expandedOrderDetail.order.tax_cents / 100).toFixed(2)}</div>
+                                        <div className="font-medium">Total: ${(expandedOrderDetail.order.total_cents / 100).toFixed(2)}</div>
+                                        <button
+                                          onClick={() => { navigator.clipboard.writeText(expandedOrderDetail.order.stripe_payment_intent_id); alert('Stripe PI copied'); }}
+                                          className="text-indigo-600 hover:text-indigo-800 underline mt-1 block"
+                                        >
+                                          Copy Stripe PI
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Action buttons */}
+                                  <div className="flex gap-2 pt-2 border-t border-gray-200">
+                                    <button
+                                      onClick={() => copyImageUrls(expandedOrderDetail.items)}
+                                      className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                                    >
+                                      Copy All Image URLs
+                                    </button>
+                                    {order.status === 'payment_confirmed' && (
+                                      <button
+                                        onClick={() => handleRetryPrintful(order.id)}
+                                        disabled={orderActionLoading === `retry-${order.id}`}
+                                        className="px-3 py-1.5 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 disabled:opacity-50"
+                                      >
+                                        {orderActionLoading === `retry-${order.id}` ? 'Retrying...' : 'Retry Printful'}
+                                      </button>
+                                    )}
+                                    {(order.status === 'failed' || order.status === 'refunded' || order.status === 'payment_confirmed') && (
+                                      <button
+                                        onClick={() => handleReorder(order.id)}
+                                        disabled={orderActionLoading === `reorder-${order.id}`}
+                                        className="px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                                      >
+                                        {orderActionLoading === `reorder-${order.id}` ? 'Reordering...' : 'Reorder'}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500 text-center">Failed to load order detail</p>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}

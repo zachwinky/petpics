@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import "./globals.css";
 import { AuthModalProvider } from "@/lib/auth-context";
+import { CartProvider } from "@/lib/cart-context";
 import MetaPixelEvents from "@/components/MetaPixelEvents";
 
 const META_PIXEL_ID = "25793238440302657";
@@ -20,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Petpics",
-  description: "AI-powered pet photography - create stunning photos of your pets in any setting",
+  description: "Turn your pet into stunning wall art — AI-generated portraits printed on canvas, poster, or mug",
 };
 
 export default function RootLayout({
@@ -59,7 +60,9 @@ export default function RootLayout({
           `}
         </Script>
         <AuthModalProvider>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </AuthModalProvider>
         <MetaPixelEvents />
         <Analytics />

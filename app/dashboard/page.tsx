@@ -1,10 +1,10 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getUserById, getUserModels, getModelGenerationCount, getUserPendingTrainings } from '@/lib/db';
-import CreditPurchase from '@/components/CreditPurchase';
 import NavbarWrapper from '@/components/NavbarWrapper';
 import ModelsGrid from '@/components/ModelsGrid';
 import DashboardActions from '@/components/DashboardActions';
+import DashboardStudioWrapper from '@/components/Studio/DashboardStudioWrapper';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -31,10 +31,21 @@ export default async function DashboardPage() {
 
   const totalGenerations = modelsWithCounts.reduce((sum, model) => sum + model.generationCount, 0);
 
+  // Prepare models data for Studio wrapper (only completed models, not pending)
+  const studioModels = models.map(m => ({
+    id: m.id,
+    name: m.name,
+    lora_url: m.lora_url,
+    trigger_word: m.trigger_word,
+    pet_type: m.pet_type || 'dog',
+    preview_image_url: m.preview_image_url || undefined,
+  }));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-50 via-white to-coral-50">
       <NavbarWrapper />
       <main className="container mx-auto px-4 py-8 md:py-16">
+        <DashboardStudioWrapper models={studioModels}>
         <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
           {/* Header - Simplified for mobile */}
           <div className="text-center md:text-left">
@@ -80,20 +91,16 @@ export default async function DashboardPage() {
             <div className="bg-white p-4 md:p-6 rounded-xl shadow-md border border-coral-100">
               <div className="text-2xl md:text-3xl mb-1 md:mb-2">📸</div>
               <div className="text-xl md:text-2xl font-bold text-gray-900">{totalGenerations}</div>
-              <div className="text-xs md:text-sm text-gray-600">Photos</div>
+              <div className="text-xs md:text-sm text-gray-600">Portraits</div>
             </div>
             <div className="bg-white p-4 md:p-6 rounded-xl shadow-md border border-coral-100">
-              <div className="text-2xl md:text-3xl mb-1 md:mb-2">🐾</div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900">{user.credits_balance}</div>
-              <div className="text-xs md:text-sm text-gray-600">Credits</div>
+              <div className="text-2xl md:text-3xl mb-1 md:mb-2">🖼️</div>
+              <div className="text-xl md:text-2xl font-bold text-gray-900">—</div>
+              <div className="text-xs md:text-sm text-gray-600">Prints</div>
             </div>
           </div>
-
-          {/* Credit Purchase - Bottom */}
-          <div id="buy-credits">
-            <CreditPurchase />
-          </div>
         </div>
+        </DashboardStudioWrapper>
       </main>
     </div>
   );

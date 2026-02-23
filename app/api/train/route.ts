@@ -3,7 +3,7 @@ import { fal } from '@fal-ai/client';
 import JSZip from 'jszip';
 import { rateLimit } from '@/lib/rateLimit';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createModel, updateModelPreviewImage, updateModelProductDescription, createPendingTraining, updatePendingTrainingRequestId, deletePendingTraining, updatePendingTrainingStatus, updatePendingTrainingPetType, getAdminConfig } from '@/lib/db';
+import { getUserById, createModel, updateModelPreviewImage, updateModelProductDescription, createPendingTraining, updatePendingTrainingRequestId, deletePendingTraining, updatePendingTrainingStatus, updatePendingTrainingPetType, getAdminConfig } from '@/lib/db';
 import { sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { detectPetType, PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
@@ -167,7 +167,7 @@ async function generateSampleImages(
     return [];
   }
 }
-const TRAINING_COST_CREDITS = 10; // Cost to train a model
+const TRAINING_COST_CREDITS = 0; // Training is free — prints are the revenue
 
 // Max duration for Vercel serverless (Pro plan allows up to 300s)
 // Training itself takes longer but we use polling to check status
@@ -191,18 +191,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
-      );
-    }
-
-    // Check if user has enough credits
-    if (user.credits_balance < TRAINING_COST_CREDITS) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          required: TRAINING_COST_CREDITS,
-          current: user.credits_balance
-        },
-        { status: 402 }
       );
     }
 
@@ -298,23 +286,7 @@ export async function POST(request: NextRequest) {
     // Detect pet type (cat vs dog) in parallel - this runs async while we continue
     const petTypePromise = detectPetType(firstImageUrl);
 
-    // Deduct credits BEFORE starting training (prevents double-spend if user retries)
     const modelName = formData.get('modelName') as string || `Photo Subject ${triggerWord}`;
-
-    try {
-      await updateUserCredits(
-        userId,
-        -TRAINING_COST_CREDITS,
-        'training',
-        `Training model: ${triggerWord} with ${images.length} images`
-      );
-    } catch (error) {
-      console.error('Error deducting credits:', error);
-      return NextResponse.json(
-        { error: 'Failed to deduct credits. Please try again.' },
-        { status: 500 }
-      );
-    }
 
     // Step 3: Create pending training record (will update with request_id after submission)
     const pendingTraining = await createPendingTraining(
@@ -389,19 +361,11 @@ export async function POST(request: NextRequest) {
         // Update pending training status to failed
         await updatePendingTrainingStatus(request_id, 'failed', 'Training failed on FAL servers');
 
-        // Refund credits on failure
-        await updateUserCredits(
-          userId,
-          TRAINING_COST_CREDITS,
-          'purchase', // Use 'purchase' type for refunds
-          `Refund: Training failed for ${triggerWord}`
-        );
-
         // Send failure email notification
         sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training failed on FAL servers');
 
         return NextResponse.json(
-          { error: 'Training failed on FAL servers. Credits have been refunded.' },
+          { error: 'Training failed on FAL servers.' },
           { status: 500 }
         );
       }
@@ -431,19 +395,11 @@ export async function POST(request: NextRequest) {
       // Update pending training status to failed
       await updatePendingTrainingStatus(request_id, 'failed', 'No model file returned');
 
-      // Refund credits if no LoRA file returned
-      await updateUserCredits(
-        userId,
-        TRAINING_COST_CREDITS,
-        'purchase',
-        `Refund: Training completed but no model file for ${triggerWord}`
-      );
-
       // Send failure email notification
       sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training completed but no model file was generated');
 
       return NextResponse.json(
-        { error: 'Training completed but no LoRA file returned. Credits have been refunded.' },
+        { error: 'Training completed but no LoRA file returned.' },
         { status: 500 }
       );
     }

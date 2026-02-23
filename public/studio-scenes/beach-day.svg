@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00bcd4"/>
+      <stop offset="35%" stop-color="#4dd0e1"/>
+      <stop offset="60%" stop-color="#80deea"/>
+      <stop offset="100%" stop-color="#f5e6ca"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0097a7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00bcd4" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Sun -->
+  <circle cx="320" cy="80" r="35" fill="#fff9c4" opacity="0.8"/>
+  <circle cx="320" cy="80" r="45" fill="#fff9c4" opacity="0.2"/>
+  <!-- Water / Ocean -->
+  <path d="M0 220 Q50 215 100 220 Q150 225 200 218 Q250 211 300 220 Q350 229 400 222 L400 280 L0 280 Z" fill="url(#water)"/>
+  <!-- Waves -->
+  <path d="M0 235 Q25 230 50 235 Q75 240 100 235 Q125 230 150 235 Q175 240 200 235 Q225 230 250 235 Q275 240 300 235 Q325 230 350 235 Q375 240 400 235" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.4"/>
+  <path d="M0 250 Q30 245 60 250 Q90 255 120 250 Q150 245 180 250 Q210 255 240 250 Q270 245 300 250 Q330 255 360 250 Q390 245 400 250" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.3"/>
+  <!-- Sand -->
+  <path d="M0 275 Q100 268 200 272 Q300 276 400 270 L400 400 L0 400 Z" fill="#f5e6ca" opacity="0.6"/>
+  <path d="M0 290 Q100 285 200 288 Q300 291 400 286 L400 400 L0 400 Z" fill="#e8d5b7" opacity="0.4"/>
+  <!-- Sand texture dots -->
+  <circle cx="100" cy="310" r="1" fill="#d4a574" opacity="0.3"/>
+  <circle cx="150" cy="320" r="1.5" fill="#d4a574" opacity="0.25"/>
+  <circle cx="250" cy="305" r="1" fill="#d4a574" opacity="0.3"/>
+  <circle cx="300" cy="325" r="1.5" fill="#d4a574" opacity="0.2"/>
+  <!-- Seashell -->
+  <path d="M170 310 Q175 305 180 310 Q175 308 170 310" fill="#e8d5b7" opacity="0.5" stroke="#d4a574" stroke-width="0.5"/>
+  <!-- Palm tree -->
+  <path d="M85 290 Q82 240 80 180" fill="none" stroke="#8d6e63" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <!-- Palm fronds -->
+  <path d="M80 180 Q50 160 30 175" fill="none" stroke="#4caf50" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M80 180 Q60 150 45 155" fill="none" stroke="#66bb6a" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+  <path d="M80 180 Q100 150 120 155" fill="none" stroke="#4caf50" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M80 180 Q110 160 130 175" fill="none" stroke="#66bb6a" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+  <path d="M80 180 Q80 145 75 135" fill="none" stroke="#43a047" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#006064" opacity="0.6">Beach Day</text>
+</svg>

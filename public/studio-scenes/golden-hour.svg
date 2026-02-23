@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff8c00"/>
+      <stop offset="40%" stop-color="#ffb347"/>
+      <stop offset="70%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#fff4cc"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="60%" r="30%">
+      <stop offset="0%" stop-color="#fff9e6" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#ffd700" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="400" fill="url(#sun)"/>
+  <!-- Horizon line -->
+  <ellipse cx="200" cy="260" rx="250" ry="8" fill="#e8a020" opacity="0.3"/>
+  <!-- Sun -->
+  <circle cx="200" cy="200" r="45" fill="#fff4cc" opacity="0.9"/>
+  <circle cx="200" cy="200" r="55" fill="#ffd700" opacity="0.2"/>
+  <circle cx="200" cy="200" r="70" fill="#ffb347" opacity="0.1"/>
+  <!-- Sun rays -->
+  <line x1="200" y1="130" x2="200" y2="105" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="200" y1="270" x2="200" y2="295" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="130" y1="200" x2="105" y2="200" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="270" y1="200" x2="295" y2="200" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="150" y1="150" x2="132" y2="132" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <line x1="250" y1="150" x2="268" y2="132" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <line x1="150" y1="250" x2="132" y2="268" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <line x1="250" y1="250" x2="268" y2="268" stroke="#fff4cc" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <!-- Ground -->
+  <path d="M0 300 Q100 280 200 290 Q300 300 400 285 L400 400 L0 400 Z" fill="#cc7a00" opacity="0.2"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#8b5e00" opacity="0.7">Golden Hour</text>
+</svg>

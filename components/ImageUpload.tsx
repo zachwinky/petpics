@@ -389,8 +389,7 @@ export default function ImageUpload() {
       console.error('Failed to cache to localStorage:', err);
     }
 
-    // PRE-FLIGHT CHECK: Credits (also checks auth via 401)
-    // This allows us to show credit modal before attempting upload
+    // PRE-FLIGHT CHECK: Auth only (training is free)
     try {
       const creditsRes = await fetch('/api/user/credits');
       if (creditsRes.status === 401) {
@@ -401,18 +400,8 @@ export default function ImageUpload() {
         });
         return;
       }
-      if (creditsRes.ok) {
-        const { credits } = await creditsRes.json();
-        if (credits < 10) {
-          showCreditModal({
-            required: 10,
-            current: credits,
-          });
-          return;
-        }
-      }
     } catch (e) {
-      console.error('Failed to check credits:', e);
+      console.error('Failed to check auth:', e);
       // Continue anyway - API will catch it
     }
 
@@ -441,7 +430,7 @@ export default function ImageUpload() {
 
       // If we get a response back, the request was sent successfully
       // Update stage to show training has started on FAL servers
-      if (response.status !== 413 && response.status !== 401 && response.status !== 402 && response.status !== 400) {
+      if (response.status !== 413 && response.status !== 401 && response.status !== 400) {
         setTrainingStage('training');
         showToast('Training started! This takes about 10 minutes...', 'info');
       }
@@ -455,21 +444,6 @@ export default function ImageUpload() {
             reason: 'Sign in to train your AI model',
             onSuccess: () => handleTrainRef.current(),
           });
-          return;
-        }
-
-        if (response.status === 402) {
-          setIsTraining(false);
-          setTrainingStage('idle');
-          try {
-            const data = await response.json();
-            showCreditModal({
-              required: data.required || 10,
-              current: data.current || 0,
-            });
-          } catch {
-            showCreditModal({ required: 10, current: 0 });
-          }
           return;
         }
 
@@ -754,7 +728,7 @@ export default function ImageUpload() {
             >
               <div className="font-semibold text-gray-900 mb-1">🎯 Custom AI Model</div>
               <div className="text-sm text-gray-600">
-                Train once (~10 min, $10), then $2 for 5 photos. Perfect accuracy guaranteed.
+                Train once (~10 min, free), then pick your favorite portrait and get it printed.
               </div>
             </button>
           </div>
@@ -938,7 +912,7 @@ export default function ImageUpload() {
                     </svg>
                     Training (about 10 minutes)...
                   </span>
-                ) : 'Train Pet Model (10 credits)'}
+                ) : 'Train Pet Model \u2014 Free'}
               </button>
               {selectedFiles.length < 5 && (
                 <p className="text-sm text-red-600">Upload at least 5 photos to train the AI</p>

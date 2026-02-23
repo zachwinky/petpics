@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8d6e63"/>
+      <stop offset="50%" stop-color="#d7a86e"/>
+      <stop offset="100%" stop-color="#ffcc80"/>
+    </linearGradient>
+    <radialGradient id="warmth" cx="50%" cy="55%" r="40%">
+      <stop offset="0%" stop-color="#ffcc80" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffcc80" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="400" fill="url(#warmth)"/>
+  <!-- House shape -->
+  <path d="M120 230 L200 155 L280 230 Z" fill="#6d4c41" opacity="0.6"/>
+  <rect x="140" y="230" width="120" height="80" fill="#5d4037" opacity="0.5"/>
+  <!-- Door -->
+  <rect x="180" y="260" width="40" height="50" rx="3" fill="#4e342e" opacity="0.6"/>
+  <circle cx="212" cy="287" r="3" fill="#ffcc80" opacity="0.7"/>
+  <!-- Windows -->
+  <rect x="150" y="242" width="22" height="22" rx="2" fill="#fff9c4" opacity="0.5"/>
+  <rect x="228" y="242" width="22" height="22" rx="2" fill="#fff9c4" opacity="0.5"/>
+  <line x1="161" y1="242" x2="161" y2="264" stroke="#5d4037" stroke-width="1.5" opacity="0.4"/>
+  <line x1="150" y1="253" x2="172" y2="253" stroke="#5d4037" stroke-width="1.5" opacity="0.4"/>
+  <line x1="239" y1="242" x2="239" y2="264" stroke="#5d4037" stroke-width="1.5" opacity="0.4"/>
+  <line x1="228" y1="253" x2="250" y2="253" stroke="#5d4037" stroke-width="1.5" opacity="0.4"/>
+  <!-- Chimney -->
+  <rect x="240" y="170" width="20" height="50" fill="#6d4c41" opacity="0.5"/>
+  <!-- Heart above house -->
+  <path d="M200 130 C200 120, 185 110, 178 120 C170 130, 200 150, 200 150 C200 150, 230 130, 222 120 C215 110, 200 120, 200 130 Z" fill="#e57373" opacity="0.6"/>
+  <!-- Warm glow from windows -->
+  <circle cx="161" cy="253" r="15" fill="#fff9c4" opacity="0.15"/>
+  <circle cx="239" cy="253" r="15" fill="#fff9c4" opacity="0.15"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#4e342e" opacity="0.7">Cozy Home</text>
+</svg>

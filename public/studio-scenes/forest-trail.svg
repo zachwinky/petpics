@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1b5e20"/>
+      <stop offset="40%" stop-color="#2e7d32"/>
+      <stop offset="70%" stop-color="#4caf50"/>
+      <stop offset="100%" stop-color="#81c784"/>
+    </linearGradient>
+    <linearGradient id="light" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#c8e6c9" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#c8e6c9" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="200" fill="url(#light)"/>
+  <!-- Forest floor -->
+  <path d="M0 300 Q100 295 200 300 Q300 305 400 298 L400 400 L0 400 Z" fill="#33691e" opacity="0.35"/>
+  <!-- Trail/path through forest -->
+  <path d="M180 400 Q185 360 188 330 Q192 300 195 280 Q198 260 200 245 Q202 230 203 220" fill="none" stroke="#8d6e63" stroke-width="18" stroke-linecap="round" opacity="0.2"/>
+  <path d="M185 400 Q188 360 190 330 Q194 300 196 280 Q199 260 200 245 Q202 232 203 222" fill="none" stroke="#a1887f" stroke-width="10" stroke-linecap="round" opacity="0.15"/>
+  <!-- Tree silhouettes (dark background trees) -->
+  <!-- Far left tree -->
+  <rect x="25" y="140" width="10" height="170" fill="#1b5e20" opacity="0.6"/>
+  <polygon points="30,80 -10,200 70,200" fill="#1b5e20" opacity="0.5"/>
+  <polygon points="30,110 0,190 60,190" fill="#2e7d32" opacity="0.4"/>
+  <!-- Far right tree -->
+  <rect x="365" y="150" width="10" height="160" fill="#1b5e20" opacity="0.6"/>
+  <polygon points="370,90 330,210 410,210" fill="#1b5e20" opacity="0.5"/>
+  <polygon points="370,120 340,200 400,200" fill="#2e7d32" opacity="0.4"/>
+  <!-- Mid left tree -->
+  <rect x="85" y="120" width="12" height="190" fill="#2e7d32" opacity="0.55"/>
+  <polygon points="91,70 50,190 132,190" fill="#2e7d32" opacity="0.5"/>
+  <polygon points="91,100 58,180 124,180" fill="#388e3c" opacity="0.4"/>
+  <!-- Mid right tree -->
+  <rect x="295" y="130" width="12" height="180" fill="#2e7d32" opacity="0.55"/>
+  <polygon points="301,75 260,195 342,195" fill="#2e7d32" opacity="0.5"/>
+  <polygon points="301,105 268,185 334,185" fill="#388e3c" opacity="0.4"/>
+  <!-- Front left tree -->
+  <rect x="140" y="150" width="14" height="160" fill="#388e3c" opacity="0.5"/>
+  <polygon points="147,95 105,215 189,215" fill="#388e3c" opacity="0.45"/>
+  <polygon points="147,125 112,200 182,200" fill="#43a047" opacity="0.35"/>
+  <!-- Front right tree -->
+  <rect x="245" y="145" width="14" height="165" fill="#388e3c" opacity="0.5"/>
+  <polygon points="252,90 210,210 294,210" fill="#388e3c" opacity="0.45"/>
+  <polygon points="252,120 218,198 286,198" fill="#43a047" opacity="0.35"/>
+  <!-- Light rays through canopy -->
+  <line x1="200" y1="0" x2="180" y2="250" stroke="#c8e6c9" stroke-width="8" opacity="0.08"/>
+  <line x1="220" y1="0" x2="210" y2="250" stroke="#c8e6c9" stroke-width="6" opacity="0.06"/>
+  <line x1="170" y1="0" x2="160" y2="250" stroke="#c8e6c9" stroke-width="5" opacity="0.05"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#e8f5e9" opacity="0.7">Forest Trail</text>
+</svg>

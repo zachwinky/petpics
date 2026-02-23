@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c62828"/>
+      <stop offset="35%" stop-color="#e65100"/>
+      <stop offset="70%" stop-color="#ff8f00"/>
+      <stop offset="100%" stop-color="#ffd54f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Leaf shapes scattered -->
+  <!-- Maple-style leaf 1 -->
+  <g transform="translate(100,120) rotate(-20)" opacity="0.6">
+    <path d="M0 0 L-8 -15 L-5 -12 L-15 -20 L-8 -15 L-10 -28 L0 -18 L10 -28 L8 -15 L15 -20 L5 -12 L8 -15 Z" fill="#d84315" stroke="#bf360c" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="10" stroke="#6d4c41" stroke-width="1.5"/>
+  </g>
+  <!-- Leaf 2 -->
+  <g transform="translate(280,90) rotate(15)" opacity="0.7">
+    <path d="M0 0 L-8 -15 L-5 -12 L-15 -20 L-8 -15 L-10 -28 L0 -18 L10 -28 L8 -15 L15 -20 L5 -12 L8 -15 Z" fill="#e65100" stroke="#bf360c" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="10" stroke="#6d4c41" stroke-width="1.5"/>
+  </g>
+  <!-- Leaf 3 (large center) -->
+  <g transform="translate(200,180) rotate(5)" opacity="0.7">
+    <path d="M0 0 L-12 -22 L-8 -18 L-22 -30 L-12 -22 L-15 -42 L0 -27 L15 -42 L12 -22 L22 -30 L8 -18 L12 -22 Z" fill="#ff6f00" stroke="#e65100" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="15" stroke="#6d4c41" stroke-width="2"/>
+  </g>
+  <!-- Leaf 4 -->
+  <g transform="translate(320,220) rotate(-10)" opacity="0.55">
+    <path d="M0 0 L-8 -15 L-5 -12 L-15 -20 L-8 -15 L-10 -28 L0 -18 L10 -28 L8 -15 L15 -20 L5 -12 L8 -15 Z" fill="#ffa000" stroke="#ff8f00" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="10" stroke="#6d4c41" stroke-width="1.5"/>
+  </g>
+  <!-- Leaf 5 -->
+  <g transform="translate(70,260) rotate(25)" opacity="0.6">
+    <path d="M0 0 L-10 -18 L-6 -14 L-18 -24 L-10 -18 L-12 -35 L0 -22 L12 -35 L10 -18 L18 -24 L6 -14 L10 -18 Z" fill="#d84315" stroke="#bf360c" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="12" stroke="#6d4c41" stroke-width="1.5"/>
+  </g>
+  <!-- Leaf 6 -->
+  <g transform="translate(180,280) rotate(-30)" opacity="0.5">
+    <path d="M0 0 L-8 -15 L-5 -12 L-15 -20 L-8 -15 L-10 -28 L0 -18 L10 -28 L8 -15 L15 -20 L5 -12 L8 -15 Z" fill="#ffb300" stroke="#ffa000" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="10" stroke="#6d4c41" stroke-width="1.5"/>
+  </g>
+  <!-- Leaf 7 -->
+  <g transform="translate(330,310) rotate(10)" opacity="0.5">
+    <path d="M0 0 L-6 -12 L-4 -9 L-12 -16 L-6 -12 L-8 -22 L0 -14 L8 -22 L6 -12 L12 -16 L4 -9 L6 -12 Z" fill="#c62828" stroke="#b71c1c" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#6d4c41" stroke-width="1"/>
+  </g>
+  <!-- Floating small leaves -->
+  <ellipse cx="150" cy="160" rx="6" ry="3" fill="#ff8f00" opacity="0.4" transform="rotate(45 150 160)"/>
+  <ellipse cx="260" cy="150" rx="5" ry="2.5" fill="#d84315" opacity="0.35" transform="rotate(-30 260 150)"/>
+  <ellipse cx="340" cy="170" rx="4" ry="2" fill="#ffa000" opacity="0.3" transform="rotate(60 340 170)"/>
+  <ellipse cx="60" cy="180" rx="5" ry="2.5" fill="#e65100" opacity="0.35" transform="rotate(-15 60 180)"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#4e342e" opacity="0.7">Autumn Leaves</text>
+</svg>

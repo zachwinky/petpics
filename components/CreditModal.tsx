@@ -108,7 +108,7 @@ export default function CreditModal({ isOpen, onClose, required, current }: Cred
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Need More Credits</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Need Credits for Generation</h2>
           <p className="text-gray-600">
             This action requires <strong className="text-indigo-600">{required} credits</strong>.
             {current > 0 ? (
@@ -116,6 +116,9 @@ export default function CreditModal({ isOpen, onClose, required, current }: Cred
             ) : (
               <> You currently have <strong className="text-gray-900">0 credits</strong>.</>
             )}
+          </p>
+          <p className="text-sm text-green-700 mt-2">
+            Credits are only needed for custom generation. Portrait Studio and printing are free to try!
           </p>
         </div>
 
@@ -201,7 +204,6 @@ export default function CreditModal({ isOpen, onClose, required, current }: Cred
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="font-semibold text-blue-900 mb-2 text-sm">Credit Usage:</h4>
           <ul className="text-xs text-blue-800 space-y-1">
-            <li>Photo subject training: 10 credits</li>
             <li>Generate 4 images: 1 credit</li>
             <li>Generate 12 images: 3 credits</li>
             <li>Generate 20 images: 4 credits</li>

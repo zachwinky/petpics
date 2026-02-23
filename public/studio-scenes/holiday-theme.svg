@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a365d"/>
+      <stop offset="60%" stop-color="#2a4365"/>
+      <stop offset="100%" stop-color="#2c5282"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="60" cy="50" r="3" fill="white" opacity="0.5"/>
+  <circle cx="150" cy="80" r="2" fill="white" opacity="0.4"/>
+  <circle cx="250" cy="40" r="2.5" fill="white" opacity="0.45"/>
+  <circle cx="340" cy="70" r="2" fill="white" opacity="0.4"/>
+  <circle cx="100" cy="130" r="2" fill="white" opacity="0.35"/>
+  <circle cx="200" cy="110" r="3" fill="white" opacity="0.4"/>
+  <circle cx="310" cy="140" r="2.5" fill="white" opacity="0.45"/>
+  <circle cx="50" cy="180" r="2" fill="white" opacity="0.3"/>
+  <circle cx="180" cy="170" r="2" fill="white" opacity="0.35"/>
+  <circle cx="350" cy="190" r="2.5" fill="white" opacity="0.4"/>
+  <polygon points="200,120 150,220 250,220" fill="#276749" opacity="0.8"/>
+  <polygon points="200,150 140,260 260,260" fill="#22543d" opacity="0.8"/>
+  <polygon points="200,180 130,300 270,300" fill="#1a4731" opacity="0.8"/>
+  <rect x="188" y="300" width="24" height="30" fill="#7b341e" opacity="0.7"/>
+  <polygon points="200,112 204,122 214,122 206,128 209,138 200,132 191,138 194,128 186,122 196,122" fill="#fbd38d" opacity="0.9"/>
+  <circle cx="180" cy="195" r="5" fill="#e53e3e" opacity="0.8"/>
+  <circle cx="220" cy="205" r="5" fill="#fbd38d" opacity="0.8"/>
+  <circle cx="170" cy="240" r="5" fill="#4299e1" opacity="0.8"/>
+  <circle cx="230" cy="250" r="5" fill="#e53e3e" opacity="0.8"/>
+  <circle cx="190" cy="270" r="5" fill="#fbd38d" opacity="0.8"/>
+  <circle cx="210" cy="230" r="5" fill="#48bb78" opacity="0.8"/>
+  <path d="M0 340 Q50 330 100 335 Q150 340 200 332 Q250 325 300 335 Q350 345 400 330 L400 400 L0 400 Z" fill="white" opacity="0.8"/>
+  <text x="200" y="385" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#2a4365" opacity="0.8">Holiday Theme</text>
+</svg>

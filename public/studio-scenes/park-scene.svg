@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#64b5f6"/>
+      <stop offset="40%" stop-color="#81c784"/>
+      <stop offset="100%" stop-color="#4caf50"/>
+    </linearGradient>
+    <radialGradient id="treeCrown1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#66bb6a"/>
+      <stop offset="100%" stop-color="#388e3c"/>
+    </radialGradient>
+    <radialGradient id="treeCrown2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#81c784"/>
+      <stop offset="100%" stop-color="#43a047"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Sky area -->
+  <rect width="400" height="200" fill="#64b5f6" opacity="0.4"/>
+  <!-- Grass ground -->
+  <path d="M0 260 Q100 250 200 255 Q300 260 400 252 L400 400 L0 400 Z" fill="#4caf50" opacity="0.4"/>
+  <path d="M0 280 Q100 275 200 278 Q300 281 400 275 L400 400 L0 400 Z" fill="#388e3c" opacity="0.25"/>
+  <!-- Tree 1 (left) -->
+  <rect x="95" y="200" width="12" height="70" fill="#6d4c41" opacity="0.6"/>
+  <circle cx="100" cy="170" r="40" fill="url(#treeCrown1)" opacity="0.7"/>
+  <circle cx="80" cy="185" r="28" fill="#43a047" opacity="0.5"/>
+  <circle cx="120" cy="185" r="28" fill="#2e7d32" opacity="0.5"/>
+  <!-- Tree 2 (center-right) -->
+  <rect x="275" y="190" width="14" height="80" fill="#6d4c41" opacity="0.6"/>
+  <circle cx="282" cy="155" r="48" fill="url(#treeCrown2)" opacity="0.65"/>
+  <circle cx="258" cy="172" r="32" fill="#388e3c" opacity="0.5"/>
+  <circle cx="305" cy="172" r="32" fill="#2e7d32" opacity="0.5"/>
+  <!-- Small tree (far back) -->
+  <rect x="195" y="210" width="8" height="50" fill="#6d4c41" opacity="0.4"/>
+  <circle cx="199" cy="190" r="25" fill="#66bb6a" opacity="0.45"/>
+  <!-- Path/walkway -->
+  <path d="M160 400 Q170 350 185 300 Q195 270 200 260 Q205 270 215 300 Q230 350 240 400 Z" fill="#bcaaa4" opacity="0.3"/>
+  <!-- Bench -->
+  <rect x="130" y="275" width="40" height="4" rx="1" fill="#6d4c41" opacity="0.5"/>
+  <rect x="135" y="279" width="3" height="12" fill="#6d4c41" opacity="0.5"/>
+  <rect x="162" y="279" width="3" height="12" fill="#6d4c41" opacity="0.5"/>
+  <!-- Small clouds -->
+  <ellipse cx="80" cy="60" rx="30" ry="15" fill="#ffffff" opacity="0.4"/>
+  <ellipse cx="100" cy="55" rx="25" ry="12" fill="#ffffff" opacity="0.35"/>
+  <ellipse cx="300" cy="45" rx="35" ry="14" fill="#ffffff" opacity="0.35"/>
+  <ellipse cx="325" cy="40" rx="25" ry="12" fill="#ffffff" opacity="0.3"/>
+  <!-- Label -->
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#1b5e20" opacity="0.7">Park Scene</text>
+</svg>

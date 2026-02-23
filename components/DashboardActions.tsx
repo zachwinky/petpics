@@ -29,7 +29,7 @@ export default function DashboardActions({ hasModels, totalGenerations }: Dashbo
             href="/generate"
             className="block w-full px-6 py-4 bg-peach-500 text-white font-semibold rounded-xl hover:bg-peach-600 transition-colors shadow-lg text-center text-lg"
           >
-            Create Photos
+            Create Portraits
           </a>
         )}
 

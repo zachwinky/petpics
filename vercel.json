@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/check-stuck-trainings",
       "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/delivery-followup",
+      "schedule": "0 10 * * *"
     }
   ]
 }

@@ -71,7 +71,7 @@ export default function CreditPurchase() {
     <div className="bg-white rounded-lg shadow-sm border border-coral-100 p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Buy Credits</h2>
       <p className="text-gray-600 mb-6">
-        Purchase credits to train pets and create photos
+        Purchase credits for the custom generation tool
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -157,10 +157,9 @@ export default function CreditPurchase() {
       <div className="mt-6 p-4 bg-coral-50 border border-coral-200 rounded-lg">
         <h4 className="font-semibold text-coral-900 mb-2">Credit Usage:</h4>
         <ul className="text-sm text-coral-800 space-y-1">
-          <li>🐾 Train a new pet: 10 credits</li>
-          <li>📸 Create 4 photos: 1 credit</li>
-          <li>📸 Create 12 photos: 3 credits</li>
-          <li>📸 Create 20 photos: 4 credits</li>
+          <li>📸 Create 4 portraits: 1 credit</li>
+          <li>📸 Create 12 portraits: 3 credits</li>
+          <li>📸 Create 20 portraits: 4 credits</li>
           <li>🎬 Create a video: 5 credits</li>
         </ul>
       </div>

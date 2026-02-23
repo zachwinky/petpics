@@ -2,6 +2,7 @@
 
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { useCart } from '@/lib/cart-context';
 
 interface NavbarProps {
   user?: {
@@ -13,6 +14,8 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user }: NavbarProps) {
+  const { itemCount } = useCart();
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });
   };
@@ -27,32 +30,36 @@ export default function Navbar({ user }: NavbarProps) {
             <span className="text-base md:text-2xl font-bold text-coral-600">Petpics</span>
           </Link>
 
-          {/* Right side - Auth & Credits */}
+          {/* Right side - Auth & Navigation */}
           <div className="flex items-center space-x-2 md:space-x-4">
             {user ? (
               <>
-                {/* Credits Display */}
+                {/* Dashboard link */}
                 <Link
                   href="/dashboard"
-                  className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1.5 md:py-2 bg-coral-50 rounded-lg hover:bg-coral-100 transition-colors"
+                  className="text-xs md:text-sm font-medium text-gray-700 hover:text-coral-600 transition-colors"
                 >
-                  <div className="text-lg md:text-2xl">🐾</div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-xs text-gray-600 hidden md:block">Credits</span>
-                    <span className="text-sm md:text-base font-bold text-coral-600">
-                      {user.creditsBalance ?? 0}
+                  Dashboard
+                </Link>
+
+                {/* Cart icon */}
+                <Link
+                  href="/print/cart"
+                  className="relative p-1.5 md:p-2 text-gray-600 hover:text-coral-600 transition-colors"
+                  title="Cart"
+                >
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                  </svg>
+                  {itemCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-coral-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none px-1">
+                      {itemCount}
                     </span>
-                  </div>
+                  )}
                 </Link>
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-2 md:space-x-3">
-                  <Link
-                    href="/dashboard"
-                    className="text-xs md:text-sm font-medium text-gray-700 hover:text-coral-600 transition-colors"
-                  >
-                    Dashboard
-                  </Link>
                   {user?.isAdmin && (
                     <Link
                       href="/admin"

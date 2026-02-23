@@ -39,9 +39,9 @@ export default async function GeneratePage({
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
-            <h1 className="text-2xl md:text-4xl font-bold text-gray-900">Create Photos</h1>
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900">Create Portraits</h1>
             <p className="text-sm md:text-base text-gray-600 mt-2">
-              Create beautiful photos with your trained pet
+              Create beautiful portraits with your trained pet
             </p>
           </div>
 

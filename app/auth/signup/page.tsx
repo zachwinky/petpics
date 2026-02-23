@@ -88,7 +88,7 @@ export default function SignUpPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-sm md:text-base text-gray-600">Get started with Akoolai</p>
+          <p className="text-sm md:text-base text-gray-600">Get started with Petpics</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">

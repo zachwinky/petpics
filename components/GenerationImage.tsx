@@ -31,7 +31,7 @@ export default function GenerationImage({ url, alt, downloadFilename, qualitySco
 
   // Share text with pet name
   const formattedName = petName ? formatPetName(petName) : 'my pet';
-  const shareText = `🐾 Check out this AI photo of ${formattedName}! Made with Petpics ✨\n\n#petphotography #aipets #dogsofinstagram`;
+  const shareText = `🐾 Check out this portrait of ${formattedName}! Made with Petpics ✨\n\n#petphotography #aipets #dogsofinstagram`;
   const shareUrl = url;
 
   const handleTwitterShare = () => {
@@ -214,6 +214,18 @@ export default function GenerationImage({ url, alt, downloadFilename, qualitySco
             <span className="hidden md:inline">Frame</span>
           </button>
         )}
+
+        {/* Print button */}
+        <a
+          href={`/print/configure?image=${encodeURIComponent(url)}`}
+          className="px-3 py-2 bg-coral-500 text-white text-sm font-medium rounded-lg hover:bg-coral-600 transition-colors inline-flex items-center justify-center gap-1 whitespace-nowrap"
+          title="Print this portrait"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span className="hidden md:inline">Print</span>
+        </a>
       </div>
     </div>
   );
