@@ -54,9 +54,9 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
         {/* Portrait Studio — top of dashboard */}
         {models.length > 0 && (
           <div className="max-w-6xl mx-auto mb-6 md:mb-8 bg-white rounded-xl shadow-md border border-coral-100 p-4 md:p-6">
-            <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-4">Portrait Studio</h2>
+            <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-2">Order Prints</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Create stunning portraits and order prints delivered to your door.
+              Turn your favorite portraits into gallery-quality prints, canvases, and posters.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {models.map(model => (
@@ -74,7 +74,7 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-gray-900 truncate">{model.name}</div>
-                    <div className="text-sm text-coral-600">Create New Portraits →</div>
+                    <div className="text-sm text-coral-600">Print portraits of {model.name} →</div>
                   </div>
                 </button>
               ))}
