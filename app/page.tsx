@@ -34,8 +34,8 @@ export default function Home() {
           {/* Example Gallery */}
           <HeroGallery />
 
-          {/* Social Proof — sample prints with captions */}
-          <SocialProof />
+          {/* Social Proof — hidden for now, re-enable when we have real customer examples */}
+          {/* <SocialProof /> */}
 
           {/* Upload CTA - right after gallery on mobile, after everything on desktop */}
           <div className="md:hidden bg-white rounded-2xl shadow-xl p-6 border border-coral-100">
