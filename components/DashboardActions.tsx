@@ -23,13 +23,13 @@ export default function DashboardActions({ hasModels, totalGenerations }: Dashbo
           Add a Pet
         </a>
 
-        {/* Generate from Existing Models */}
+        {/* Generate from Existing Models - secondary action (prints are primary via Studio above) */}
         {hasModels && (
           <a
             href="/generate"
-            className="block w-full px-6 py-4 bg-peach-500 text-white font-semibold rounded-xl hover:bg-peach-600 transition-colors shadow-lg text-center text-lg"
+            className="block w-full px-6 py-3 bg-white text-gray-600 font-medium rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 text-center"
           >
-            Create Portraits
+            Create More Portraits
           </a>
         )}
 

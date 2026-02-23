@@ -679,7 +679,7 @@ export default function ImageUpload() {
               <div className="text-6xl mb-4">🎉</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Training Started!</h2>
               <p className="text-gray-600">
-                Thanks! We are now training your AI model. Check your dashboard in about <strong>10 minutes</strong> to see the result.
+                We&apos;re training your AI model now. In about <strong>10 minutes</strong> you&apos;ll be able to pick your favorite portrait and order a print.
               </p>
             </div>
             <div className="bg-coral-50 border border-coral-200 rounded-lg p-4">
@@ -687,7 +687,7 @@ export default function ImageUpload() {
                 <strong>Pet Name:</strong> <code className="bg-coral-100 px-2 py-0.5 rounded">{triggerWord}</code>
               </p>
               <p className="text-sm text-coral-700 mt-1">
-                Your model will appear in your dashboard once training is complete.
+                We&apos;ll email you when it&apos;s ready &mdash; you can close this page.
               </p>
             </div>
             <a
@@ -1012,20 +1012,20 @@ export default function ImageUpload() {
                 <div>
                   <h4 className="font-semibold text-green-900 text-lg">Training Complete!</h4>
                   <p className="text-sm text-green-700 mt-1">
-                    Your pet model has been successfully trained and saved to your account.
+                    Your AI model is ready. Pick your favorite portrait and we&apos;ll print it for you.
                   </p>
                 </div>
               </div>
               <div className="bg-white border border-green-300 rounded-lg p-4">
-                <p className="text-gray-900 font-medium mb-2">What's next?</p>
+                <p className="text-gray-900 font-medium mb-2">What&apos;s next?</p>
                 <p className="text-sm text-gray-700 mb-3">
-                  Your pet <code className="bg-gray-100 px-2 py-0.5 rounded text-indigo-600 font-mono">{triggerWord}</code> is now ready to generate professional pet photos!
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-coral-600 font-mono">{triggerWord}</code> is ready for portraits &mdash; choose a scene, pick your favorite, and order a print.
                 </p>
                 <a
                   href="/dashboard"
-                  className="inline-block w-full text-center px-4 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="inline-block w-full text-center px-4 py-3 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors"
                 >
-                  Go to Dashboard to Generate Photos
+                  Pick a Portrait
                 </a>
               </div>
             </div>

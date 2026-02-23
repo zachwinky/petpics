@@ -76,13 +76,13 @@ export default function GenerationsPanel({ generations: initialGenerations, mode
         <div className="text-6xl mb-4">📸</div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No portraits yet</h3>
         <p className="text-gray-600 mb-6">
-          Create your first portraits for this pet
+          Head to the Portrait Studio to pick a scene and order your first print.
         </p>
         <Link
-          href={`/generate?modelId=${model.id}`}
-          className="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          href="/dashboard"
+          className="inline-block px-6 py-3 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors"
         >
-          Create Portraits
+          Order a Print
         </Link>
       </div>
     );

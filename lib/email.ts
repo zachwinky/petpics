@@ -94,22 +94,18 @@ export async function sendTrainingCompleteEmail(
               <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Great news! <strong>${triggerWord}</strong> has finished training and is ready for photos.
-              </p>
-
-              <p style="font-size: 16px; margin-bottom: 20px;">
-                You can now create photos of ${triggerWord} in any setting you can imagine.
+                Great news! <strong>${triggerWord}</strong> has finished training. Pick your favorite portrait and order a print &mdash; canvas, poster, or mug, shipped to your door.
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${baseUrl}/generate"
+                <a href="${baseUrl}/dashboard"
                    style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                  Create Photos Now
+                  Order a Print
                 </a>
               </div>
 
               <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                Tip: Try different scenes and settings to find your favorites!
+                Tip: Choose from 12+ scenes &mdash; golden hour, cozy home, flower fields, and more.
               </p>
             </div>
 
@@ -167,7 +163,7 @@ export async function sendTrainingCompleteEmailWithImages(
             <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
 
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Great news! <strong>${triggerWord}</strong> has finished training. Here are some sample photos we generated for you:
+              Great news! Here's a preview of what <strong>${triggerWord}</strong> looks like. Pick your favorite scene and order a print &mdash; canvas, poster, or mug, shipped to your door.
             </p>
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 24px 0; padding: 16px; background: white; border-radius: 12px;">
@@ -175,18 +171,18 @@ export async function sendTrainingCompleteEmailWithImages(
             </div>
 
             <p style="font-size: 14px; color: #666; text-align: center; margin-bottom: 24px;">
-              These are watermarked samples. Visit the Portrait Studio to create full-quality portraits!
+              These are watermarked previews. The full-quality version is printed and shipped to you.
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
               <a href="${baseUrl}/dashboard"
                  style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Create Portraits Now
+                Order a Print
               </a>
             </div>
 
             <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              Tip: You can create ${triggerWord} in any scene - from cozy home settings to beautiful outdoor adventures!
+              Tip: Choose from 12+ scenes &mdash; golden hour, cozy home, flower fields, and more.
             </p>
           </div>
 
@@ -318,7 +314,7 @@ export async function sendReengagementEmail(
             <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
 
             <p style="font-size: 16px; margin-bottom: 20px;">
-              We generated some sample portraits of <strong>${petName}</strong> &mdash; come check them out and create more!
+              We generated some sample portraits of <strong>${petName}</strong> &mdash; pick your favorite and get it printed!
             </p>
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 24px 0; padding: 16px; background: white; border-radius: 12px;">
@@ -326,13 +322,13 @@ export async function sendReengagementEmail(
             </div>
 
             <p style="font-size: 14px; color: #666; text-align: center; margin-bottom: 24px;">
-              These are watermarked previews. Visit the Portrait Studio to create full-quality portraits!
+              These are watermarked previews. The full-quality version is printed and shipped to you.
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
               <a href="${baseUrl}/dashboard"
                  style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Create Portraits Now
+                Order a Print
               </a>
             </div>
 

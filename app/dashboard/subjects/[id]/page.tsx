@@ -140,13 +140,13 @@ export default async function PhotoSubjectDetailPage({
                   href="/dashboard"
                   className="px-6 py-3 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors text-center"
                 >
-                  Open Portrait Studio
+                  Order a Print
                 </Link>
                 <Link
                   href={`/generate?modelId=${model.id}`}
                   className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors text-center"
                 >
-                  Create Portraits
+                  Create More Portraits
                 </Link>
               </div>
             </div>
