@@ -50,13 +50,10 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
 
   return (
     <>
-      {/* Pass openStudio function to children via data attribute on a hidden element */}
       <div data-studio-wrapper>
-        {children}
-
-        {/* Studio launch buttons rendered for each model */}
+        {/* Portrait Studio — top of dashboard */}
         {models.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md border border-coral-100 p-4 md:p-6">
+          <div className="max-w-6xl mx-auto mb-6 md:mb-8 bg-white rounded-xl shadow-md border border-coral-100 p-4 md:p-6">
             <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-4">Portrait Studio</h2>
             <p className="text-sm text-gray-600 mb-4">
               Create stunning portraits and order prints delivered to your door.
@@ -84,6 +81,8 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
             </div>
           </div>
         )}
+
+        {children}
       </div>
 
       {/* Studio overlay */}

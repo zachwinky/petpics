@@ -45,14 +45,14 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-peach-50 via-white to-coral-50">
       <NavbarWrapper />
       <main className="container mx-auto px-4 py-8 md:py-16">
+        {/* Header - above studio */}
+        <div className="max-w-6xl mx-auto mb-6 md:mb-8 text-center md:text-left">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Welcome back, {user.name || user.email}</p>
+        </div>
+
         <DashboardStudioWrapper models={studioModels}>
         <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
-          {/* Header - Simplified for mobile */}
-          <div className="text-center md:text-left">
-            <h1 className="text-2xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Welcome back, {user.name || user.email}</p>
-          </div>
-
           {/* Primary Actions - Top Priority on Mobile */}
           <DashboardActions hasModels={models.length > 0} totalGenerations={totalGenerations} />
 
