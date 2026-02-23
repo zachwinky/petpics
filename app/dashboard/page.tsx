@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getUserById, getUserModels, getModelGenerationCount, getUserPendingTrainings } from '@/lib/db';
+import { getUserById, getUserModels, getModelGenerationCount, getModelGenerations, getUserPendingTrainings } from '@/lib/db';
 import NavbarWrapper from '@/components/NavbarWrapper';
 import ModelsGrid from '@/components/ModelsGrid';
 import DashboardActions from '@/components/DashboardActions';
@@ -21,12 +21,24 @@ export default async function DashboardPage() {
   const models = await getUserModels(user.id);
   const pendingTrainings = await getUserPendingTrainings(user.id);
 
-  // Get generation counts for each model
+  // Get generation counts and recent images for each model
   const modelsWithCounts = await Promise.all(
-    models.map(async (model) => ({
-      ...model,
-      generationCount: await getModelGenerationCount(model.id, user.id),
-    }))
+    models.map(async (model) => {
+      const [generationCount, generations] = await Promise.all([
+        getModelGenerationCount(model.id, user.id),
+        getModelGenerations(model.id, user.id),
+      ]);
+      // Extract first 4 image URLs from most recent generations
+      const recentImages: string[] = [];
+      for (const gen of generations) {
+        for (const url of gen.image_urls) {
+          if (recentImages.length >= 4) break;
+          recentImages.push(url);
+        }
+        if (recentImages.length >= 4) break;
+      }
+      return { ...model, generationCount, recentImages };
+    })
   );
 
   const totalGenerations = modelsWithCounts.reduce((sum, model) => sum + model.generationCount, 0);

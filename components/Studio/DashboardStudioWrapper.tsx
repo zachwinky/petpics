@@ -67,14 +67,14 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
                 >
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-coral-100 flex-shrink-0">
                     {model.preview_image_url ? (
-                      <img src={model.preview_image_url} alt={model.name} className="w-full h-full object-cover" />
+                      <img src={model.preview_image_url} alt={model.trigger_word} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xl">🐾</div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">{model.name}</div>
-                    <div className="text-sm text-coral-600">Print portraits of {model.name} →</div>
+                    <div className="font-semibold text-gray-900 truncate">{model.trigger_word}</div>
+                    <div className="text-sm text-coral-600">Pick a scene for {model.trigger_word} →</div>
                   </div>
                 </button>
               ))}

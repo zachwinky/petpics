@@ -8,9 +8,10 @@ interface ModelCardProps {
   onDelete: (modelId: number) => void;
   onUpdate: (modelId: number, notes: string) => void;
   generationCount?: number;
+  recentImages?: string[];
 }
 
-export default function ModelCard({ model, onDelete, onUpdate, generationCount = 0 }: ModelCardProps) {
+export default function ModelCard({ model, onDelete, onUpdate, generationCount = 0, recentImages = [] }: ModelCardProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState(model.notes || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -113,6 +114,28 @@ export default function ModelCard({ model, onDelete, onUpdate, generationCount =
           <div>Created: {new Date(model.created_at).toLocaleDateString()}</div>
         </div>
       </a>
+
+      {/* Recent portraits — clickable to order prints */}
+      {recentImages.length > 0 && (
+        <div className="mb-3">
+          <p className="text-xs font-medium text-gray-500 mb-2">Recent portraits — tap to order a print</p>
+          <div className="grid grid-cols-4 gap-1.5">
+            {recentImages.slice(0, 4).map((url, i) => (
+              <a
+                key={i}
+                href={`/print/configure?image=${encodeURIComponent(url)}`}
+                className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-coral-400 transition-colors group/thumb"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img src={url} alt={`Portrait ${i + 1}`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="text-white text-xs font-medium opacity-0 group-hover/thumb:opacity-100 transition-opacity">Print</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Notes Section */}
       <div className="mb-3">

@@ -7,6 +7,7 @@ import PendingTrainingCard from './PendingTrainingCard';
 
 interface ModelWithCount extends Model {
   generationCount?: number;
+  recentImages?: string[];
 }
 
 interface ModelsGridProps {
@@ -73,6 +74,7 @@ export default function ModelsGrid({ initialModels, initialPendingTrainings = []
           onDelete={handleDelete}
           onUpdate={handleUpdate}
           generationCount={model.generationCount}
+          recentImages={model.recentImages}
         />
       ))}
     </div>
