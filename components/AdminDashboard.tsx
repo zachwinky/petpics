@@ -109,6 +109,15 @@ interface ReengagementUser {
   reengagement_sent_at: string | null;
 }
 
+interface PrintAnnouncementUser {
+  id: number;
+  email: string;
+  name: string | null;
+  pet_names: string[];
+  training_date: string;
+  announcement_sent_at: string | null;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<UserSummary[]>([]);
@@ -175,6 +184,14 @@ export default function AdminDashboard() {
   const [sendingReengagement, setSendingReengagement] = useState(false);
   const [reengagementBatchSize, setReengagementBatchSize] = useState(10);
   const [reengagementResult, setReengagementResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Print announcement state
+  const [printAnnouncementOpen, setPrintAnnouncementOpen] = useState(false);
+  const [printAnnouncementUsers, setPrintAnnouncementUsers] = useState<PrintAnnouncementUser[]>([]);
+  const [printAnnouncementLoading, setPrintAnnouncementLoading] = useState(false);
+  const [printAnnouncementSelected, setPrintAnnouncementSelected] = useState<Set<number>>(new Set());
+  const [sendingPrintAnnouncement, setSendingPrintAnnouncement] = useState(false);
+  const [printAnnouncementResult, setPrintAnnouncementResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -588,6 +605,84 @@ export default function AdminDashboard() {
     }
   };
 
+  // Print announcement functions
+  const loadPrintAnnouncementUsers = useCallback(async () => {
+    setPrintAnnouncementLoading(true);
+    try {
+      const res = await fetch('/api/admin/print-announcement');
+      const data = await res.json();
+      setPrintAnnouncementUsers(data.users || []);
+      const unsent = (data.users || [])
+        .filter((u: PrintAnnouncementUser) => !u.announcement_sent_at)
+        .map((u: PrintAnnouncementUser) => u.id);
+      setPrintAnnouncementSelected(new Set(unsent));
+    } catch (error) {
+      console.error('Failed to load print announcement users:', error);
+    } finally {
+      setPrintAnnouncementLoading(false);
+    }
+  }, []);
+
+  const togglePrintAnnouncementSection = useCallback(() => {
+    const willOpen = !printAnnouncementOpen;
+    setPrintAnnouncementOpen(willOpen);
+    if (willOpen && printAnnouncementUsers.length === 0) {
+      loadPrintAnnouncementUsers();
+    }
+  }, [printAnnouncementOpen, printAnnouncementUsers.length, loadPrintAnnouncementUsers]);
+
+  const togglePrintAnnouncementUser = (userId: number) => {
+    setPrintAnnouncementSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const togglePrintAnnouncementAll = () => {
+    if (printAnnouncementSelected.size === printAnnouncementUsers.length) {
+      setPrintAnnouncementSelected(new Set());
+    } else {
+      setPrintAnnouncementSelected(new Set(printAnnouncementUsers.map(u => u.id)));
+    }
+  };
+
+  const handleSendPrintAnnouncement = async () => {
+    if (printAnnouncementSelected.size === 0) return;
+    const userIds = Array.from(printAnnouncementSelected);
+    if (!confirm(`Send print shop announcement to ${userIds.length} users?`)) return;
+
+    setSendingPrintAnnouncement(true);
+    setPrintAnnouncementResult(null);
+
+    try {
+      const res = await fetch('/api/admin/print-announcement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setPrintAnnouncementResult({
+          type: 'success',
+          text: `${data.successCount} sent, ${data.errorCount} failed`,
+        });
+        await loadPrintAnnouncementUsers();
+      } else {
+        setPrintAnnouncementResult({
+          type: 'error',
+          text: data.error || 'Failed to send emails',
+        });
+      }
+    } catch {
+      setPrintAnnouncementResult({ type: 'error', text: 'Network error' });
+    } finally {
+      setSendingPrintAnnouncement(false);
+    }
+  };
+
   // Handle video status update
   const handleVideoStatusUpdate = async (videoId: number, newStatus: string) => {
     const errorMessage = newStatus === 'failed' ? prompt('Error message (optional):') : undefined;
@@ -993,6 +1088,98 @@ export default function AdminDashboard() {
                 {savingGallery ? 'Saving...' : 'Save Gallery'}
               </button>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Print Shop Announcement */}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={togglePrintAnnouncementSection}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Print Shop Announcement</h2>
+            <p className="text-sm text-gray-500">Announce the print shop to all users with trained models</p>
+          </div>
+          <svg className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${printAnnouncementOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {printAnnouncementOpen && (
+          <div className="px-6 py-4">
+            {printAnnouncementLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              </div>
+            ) : printAnnouncementUsers.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No users with trained models found.</p>
+            ) : (
+              <>
+                {/* Controls */}
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <span className="text-sm text-gray-600">{printAnnouncementSelected.size} of {printAnnouncementUsers.length} selected</span>
+                  <button
+                    onClick={handleSendPrintAnnouncement}
+                    disabled={sendingPrintAnnouncement || printAnnouncementSelected.size === 0}
+                    className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                  >
+                    {sendingPrintAnnouncement ? 'Sending...' : `Send to ${printAnnouncementSelected.size} users`}
+                  </button>
+                </div>
+
+                {printAnnouncementResult && (
+                  <div className={`p-3 rounded-lg mb-4 ${printAnnouncementResult.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    {printAnnouncementResult.text}
+                  </div>
+                )}
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left">
+                          <input type="checkbox" checked={printAnnouncementSelected.size === printAnnouncementUsers.length && printAnnouncementUsers.length > 0} onChange={togglePrintAnnouncementAll} className="rounded border-gray-300" />
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pet Name(s)</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trained</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {printAnnouncementUsers.map((user) => {
+                        const wasSent = !!user.announcement_sent_at;
+                        return (
+                          <tr key={user.id} className={`hover:bg-gray-50 ${wasSent ? 'bg-gray-50 opacity-60' : ''}`}>
+                            <td className="px-4 py-3">
+                              <input type="checkbox" checked={printAnnouncementSelected.has(user.id)} onChange={() => togglePrintAnnouncementUser(user.id)} className="rounded border-gray-300" />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                              {user.name && <div className="text-sm text-gray-500">{user.name}</div>}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900">{user.pet_names.join(', ')}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(user.training_date)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm">
+                              {wasSent ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Sent {formatDate(user.announcement_sent_at)}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                  Not sent
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

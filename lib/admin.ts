@@ -336,6 +336,42 @@ export async function getReengagementEligibleUsers(): Promise<ReengagementUser[]
   }));
 }
 
+// Get all users with trained models for print shop announcement
+export interface PrintAnnouncementUser {
+  id: number;
+  email: string;
+  name: string | null;
+  pet_names: string[];
+  training_date: string;
+  announcement_sent_at: string | null;
+}
+
+export async function getPrintAnnouncementEligibleUsers(): Promise<PrintAnnouncementUser[]> {
+  const result = await pool.query(`
+    SELECT
+      u.id,
+      u.email,
+      u.name,
+      ARRAY_AGG(m.trigger_word ORDER BY m.created_at DESC) as pet_names,
+      MIN(m.created_at) as training_date
+    FROM users u
+    INNER JOIN models m ON m.user_id = u.id
+    GROUP BY u.id, u.email, u.name
+    ORDER BY MIN(m.created_at) DESC
+  `);
+
+  const sentMap = await getAdminConfig<Record<string, { sentAt: string; sentBy: string }>>('print_announcement_sent_users') || {};
+
+  return result.rows.map(row => ({
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    pet_names: row.pet_names || [],
+    training_date: row.training_date,
+    announcement_sent_at: sentMap[String(row.id)]?.sentAt || null,
+  }));
+}
+
 // Get pending trainings (non-completed)
 export interface PendingTraining {
   id: number;

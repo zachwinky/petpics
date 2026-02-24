@@ -680,3 +680,78 @@ export async function sendAdminAlert(
     console.log(`Admin alert sent: "${subject}", id: ${result.data?.id}`);
   }
 }
+
+// ========================================
+// Print Shop Announcement Email
+// ========================================
+
+/**
+ * Sends a print shop feature announcement email.
+ * Text-only (no image generation needed), personalized with user name and pet name.
+ */
+export async function sendPrintAnnouncementEmail(
+  to: string,
+  name: string,
+  petName: string
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+
+  const result = await resend.emails.send({
+    from: 'Petpics <hello@petpics.akoolai.com>',
+    replyTo: 'zach@akoolai.com',
+    to,
+    subject: "New: Get your pet's portrait on canvas, poster, or mug",
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Now available: Pet Portrait Prints</h1>
+          </div>
+
+          <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              We've added something new to Petpics &mdash; you can now print your favorite AI portrait of <strong>${petName}</strong> on canvas, poster, or mug and have it shipped to your door.
+            </p>
+
+            <p style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">
+              Canvas prints from $24.99 + shipping.
+            </p>
+
+            <p style="font-size: 16px; margin-bottom: 24px;">
+              If you've already generated portraits, pick your favorite and order a print. If you haven't yet, it only takes 60 seconds to create one.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${baseUrl}/dashboard"
+                 style="display: inline-block; background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                Print My Pet's Portrait &rarr;
+              </a>
+            </div>
+
+            <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              Museum-quality prints &middot; Ships in 5&ndash;7 days &middot; Satisfaction guaranteed
+            </p>
+          </div>
+
+          <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+            <p>&mdash; Petpics</p>
+            <p>&copy; ${new Date().getFullYear()} Petpics. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `,
+  });
+
+  if (result.error) {
+    throw new Error(`Resend API error: ${result.error.message}`);
+  }
+
+  console.log(`Print announcement email sent to ${to}, id: ${result.data?.id}`);
+}
