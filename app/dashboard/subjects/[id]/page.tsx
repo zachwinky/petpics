@@ -6,6 +6,7 @@ import Link from 'next/link';
 import PreviewButton from '@/components/PreviewButton';
 import AnalyzeCollarButton from '@/components/AnalyzeCollarButton';
 import SubjectDetailContent from '@/components/SubjectDetailContent';
+import SubjectActions from '@/components/SubjectActions';
 
 export default async function PhotoSubjectDetailPage({
   params,
@@ -135,20 +136,17 @@ export default async function PhotoSubjectDetailPage({
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/dashboard"
-                  className="px-6 py-3 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 transition-colors text-center"
-                >
-                  Order a Print
-                </Link>
-                <Link
-                  href={`/generate?modelId=${model.id}`}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors text-center"
-                >
-                  Create More Portraits
-                </Link>
-              </div>
+              <SubjectActions
+                model={{
+                  id: model.id,
+                  name: model.name,
+                  lora_url: model.lora_url,
+                  trigger_word: model.trigger_word,
+                  pet_type: model.pet_type || 'dog',
+                  preview_image_url: model.preview_image_url,
+                }}
+                hasExistingPortraits={generations.length > 0}
+              />
             </div>
           </div>
 

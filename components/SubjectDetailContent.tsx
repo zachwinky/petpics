@@ -91,7 +91,7 @@ export default function SubjectDetailContent({
   const imageCount = generations.reduce((acc, gen) => acc + gen.image_urls.length, 0);
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+    <div id="portraits-section" className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 mb-6">
         <button

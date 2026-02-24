@@ -234,7 +234,6 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
   const [selectedType, setSelectedType] = useState<string | null>(initialProductType || null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [frameColor, setFrameColor] = useState('black');
-  const [addedToCart, setAddedToCart] = useState(false);
 
   const { mockupUrl, loading: mockupLoading } = usePrintfulMockup(imageUrl, selectedType, selectedProduct);
 
@@ -278,14 +277,12 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
     if (typeProducts?.length > 0) {
       setSelectedProduct(typeProducts[0]);
     }
-    setAddedToCart(false);
     const startPrice = startingPrices[type];
     if (startPrice) trackSelectProduct(type, startPrice);
   }, [productsByType, startingPrices]);
 
   const handleSelectSize = useCallback((product: Product) => {
     setSelectedProduct(product);
-    setAddedToCart(false);
   }, []);
 
   const handleAddToCart = useCallback(() => {
@@ -316,8 +313,8 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
       options,
     });
 
-    setAddedToCart(true);
     trackAddToCart(selectedProduct.product_type, selectedProduct.price_cents);
+    window.location.href = '/print/checkout';
   }, [selectedProduct, frameColor, imageUrl, generationId, imageIndex, addItem]);
 
   if (loading) {
@@ -378,7 +375,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
           <div className="flex items-center gap-3">
             {selectedType && (
               <button
-                onClick={() => { setSelectedType(null); setSelectedProduct(null); setAddedToCart(false); }}
+                onClick={() => { setSelectedType(null); setSelectedProduct(null); }}
                 className="text-white/40 hover:text-white/70 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,8 +387,8 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
               {selectedType ? `${PRODUCT_TYPE_INFO[selectedType]?.label}` : 'Choose Your Product'}
             </h1>
           </div>
-          <a href="/print/cart" className="text-sm text-white/60 hover:text-white transition-colors">
-            Cart →
+          <a href="/print/checkout" className="text-sm text-white/60 hover:text-white transition-colors">
+            Checkout →
           </a>
         </div>
 
@@ -480,7 +477,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
                       {(['black', 'white', 'natural'] as const).map(color => (
                         <button
                           key={color}
-                          onClick={() => { setFrameColor(color); setAddedToCart(false); }}
+                          onClick={() => setFrameColor(color)}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                             frameColor === color
                               ? 'border-white bg-white/10'
@@ -499,7 +496,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
                   </div>
                 )}
 
-                {/* Price + Add to Cart — desktop only (mobile uses sticky bar) */}
+                {/* Price + Checkout — desktop only (mobile uses sticky bar) */}
                 {selectedProduct && (
                   <div className="hidden md:block mt-8">
                     <div className="flex items-baseline justify-between mb-4">
@@ -510,26 +507,12 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
                       </div>
                     </div>
 
-                    {addedToCart ? (
-                      <div className="space-y-2">
-                        <div className="w-full py-3 rounded-xl bg-green-600 text-white font-semibold text-center">
-                          Added to Cart
-                        </div>
-                        <a
-                          href="/print/cart"
-                          className="block w-full py-3 rounded-xl bg-white text-black font-semibold text-center hover:bg-white/90 transition-colors"
-                        >
-                          View Cart →
-                        </a>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleAddToCart}
-                        className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base hover:bg-white/90 active:scale-[0.98] transition-all cursor-pointer"
-                      >
-                        Add to Cart — ${(selectedProduct.price_cents / 100).toFixed(2)}
-                      </button>
-                    )}
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base hover:bg-white/90 active:scale-[0.98] transition-all cursor-pointer"
+                    >
+                      Checkout — ${(selectedProduct.price_cents / 100).toFixed(2)}
+                    </button>
                   </div>
                 )}
               </div>
@@ -544,32 +527,18 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
         </div>
       </div>
 
-      {/* Mobile sticky add-to-cart bar */}
+      {/* Mobile sticky checkout bar */}
       {selectedType && selectedProduct && (
         <div
           className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-950/95 backdrop-blur-lg border-t border-white/10 p-4 z-50"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
         >
-          {addedToCart ? (
-            <div className="space-y-2">
-              <div className="w-full py-3 rounded-xl bg-green-600 text-white font-semibold text-center text-sm">
-                Added to Cart
-              </div>
-              <a
-                href="/print/cart"
-                className="block w-full py-3 rounded-xl bg-white text-black font-semibold text-center text-sm hover:bg-white/90 transition-colors"
-              >
-                View Cart →
-              </a>
-            </div>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base active:scale-[0.98] transition-all cursor-pointer"
-            >
-              Add to Cart — ${(selectedProduct.price_cents / 100).toFixed(2)}
-            </button>
-          )}
+          <button
+            onClick={handleAddToCart}
+            className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base active:scale-[0.98] transition-all cursor-pointer"
+          >
+            Checkout — ${(selectedProduct.price_cents / 100).toFixed(2)}
+          </button>
         </div>
       )}
     </div>
