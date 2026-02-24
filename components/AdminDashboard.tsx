@@ -5,22 +5,20 @@ import Link from 'next/link';
 
 interface AdminStats {
   totalUsers: number;
-  totalCreditsIssued: number;
-  totalCreditsSpent: number;
-  totalRevenue: number;
+  totalPrintOrders: number;
+  totalPrintRevenue: number; // cents
   totalModels: number;
   totalGenerations: number;
   recentSignups: number;
-  recentRevenue: number;
+  recentRevenue: number; // cents
 }
 
 interface UserSummary {
   id: number;
   email: string;
   name: string | null;
-  credits_balance: number;
-  total_spent: number;
-  total_purchased: number;
+  print_order_count: number;
+  print_order_total_cents: number;
   models_count: number;
   generations_count: number;
   created_at: string;
@@ -122,7 +120,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'created_at' | 'credits_balance' | 'total_spent'>('created_at');
+  const [sortBy, setSortBy] = useState<'created_at' | 'print_order_total_cents'>('created_at');
   const [order, setOrder] = useState<'ASC' | 'DESC'>('DESC');
 
   // Search state
@@ -131,7 +129,6 @@ export default function AdminDashboard() {
 
   // Pending trainings state
   const [pendingTrainings, setPendingTrainings] = useState<PendingTraining[]>([]);
-  const [refundingId, setRefundingId] = useState<number | null>(null);
 
   // Videos state
   const [videos, setVideos] = useState<VideoGeneration[]>([]);
@@ -160,8 +157,6 @@ export default function AdminDashboard() {
   const [addModelLoading, setAddModelLoading] = useState(false);
   const [addModelMessage, setAddModelMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Quick credits state
-  const [addingCreditsUserId, setAddingCreditsUserId] = useState<number | null>(null);
 
   // Sample prompts config state
   const [samplePromptIds, setSamplePromptIds] = useState<string[]>([]);
@@ -273,65 +268,6 @@ export default function AdminDashboard() {
     return () => clearTimeout(debounce);
   }, [searchQuery, sortBy, order]);
 
-  // Handle refund
-  const handleRefund = async (trainingId: number) => {
-    if (!confirm('Are you sure you want to refund 5 credits for this failed training?')) return;
-
-    setRefundingId(trainingId);
-    try {
-      const res = await fetch(`/api/admin/trainings/${trainingId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'refund' }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        alert(data.message);
-        loadData(); // Refresh data
-      } else {
-        alert(data.error || 'Refund failed');
-      }
-    } catch (error) {
-      alert('Network error');
-    } finally {
-      setRefundingId(null);
-    }
-  };
-
-  // Handle quick add credits
-  const handleQuickAddCredits = async (userId: number, userEmail: string) => {
-    setAddingCreditsUserId(userId);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add_credits',
-          credits: 5,
-          description: 'Quick add by admin',
-        }),
-      });
-
-      if (res.ok) {
-        // Update local state
-        setUsers(prev =>
-          prev.map(u =>
-            u.id === userId
-              ? { ...u, credits_balance: u.credits_balance + 5, total_purchased: u.total_purchased + 5 }
-              : u
-          )
-        );
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to add credits');
-      }
-    } catch (error) {
-      alert('Network error');
-    } finally {
-      setAddingCreditsUserId(null);
-    }
-  };
 
   // Toggle sample prompt selection
   const toggleSamplePrompt = (promptId: string) => {
@@ -795,7 +731,7 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleSort = (column: 'created_at' | 'credits_balance' | 'total_spent') => {
+  const handleSort = (column: 'created_at' | 'print_order_total_cents') => {
     if (sortBy === column) {
       setOrder(order === 'ASC' ? 'DESC' : 'ASC');
     } else {
@@ -1547,15 +1483,15 @@ export default function AdminDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600">Total Revenue</div>
-            <div className="mt-2 text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</div>
-            <div className="mt-1 text-sm text-green-600">{formatCurrency(stats.recentRevenue)} this month</div>
+            <div className="text-sm font-medium text-gray-600">Print Revenue</div>
+            <div className="mt-2 text-3xl font-bold text-gray-900">{formatCurrency(stats.totalPrintRevenue / 100)}</div>
+            <div className="mt-1 text-sm text-green-600">{formatCurrency(stats.recentRevenue / 100)} this month</div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600">Credits Issued</div>
-            <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalCreditsIssued.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-gray-500">{stats.totalCreditsSpent.toLocaleString()} spent</div>
+            <div className="text-sm font-medium text-gray-600">Print Orders</div>
+            <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalPrintOrders}</div>
+            <div className="mt-1 text-sm text-gray-500">{stats.totalModels} models trained</div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
@@ -1651,18 +1587,6 @@ export default function AdminDashboard() {
                               {forceCompletingId === training.id ? 'Completing...' : 'Complete'}
                             </button>
                           </>
-                        )}
-                        {training.status === 'failed' && !training.error_message?.includes('[REFUNDED]') && (
-                          <button
-                            onClick={() => handleRefund(training.id)}
-                            disabled={refundingId === training.id}
-                            className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200 disabled:opacity-50"
-                          >
-                            {refundingId === training.id ? '...' : 'Refund'}
-                          </button>
-                        )}
-                        {training.error_message?.includes('[REFUNDED]') && (
-                          <span className="text-green-600 text-xs">Refunded</span>
                         )}
                       </div>
                     </td>
@@ -1797,15 +1721,9 @@ export default function AdminDashboard() {
                 </th>
                 <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('credits_balance')}
+                  onClick={() => handleSort('print_order_total_cents')}
                 >
-                  Credits {sortBy === 'credits_balance' && (order === 'DESC' ? '↓' : '↑')}
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('total_spent')}
-                >
-                  Spent {sortBy === 'total_spent' && (order === 'DESC' ? '↓' : '↑')}
+                  Orders {sortBy === 'print_order_total_cents' && (order === 'DESC' ? '↓' : '↑')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Activity
@@ -1829,11 +1747,14 @@ export default function AdminDashboard() {
                     {user.name && <div className="text-sm text-gray-500">{user.name}</div>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.credits_balance}</div>
-                    <div className="text-xs text-gray-500">+{user.total_purchased} purchased</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.total_spent}
+                    {user.print_order_count > 0 ? (
+                      <>
+                        <div className="text-sm font-medium text-gray-900">{formatCurrency(user.print_order_total_cents / 100)}</div>
+                        <div className="text-xs text-gray-500">{user.print_order_count} order{user.print_order_count !== 1 ? 's' : ''}</div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-400">-</div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.models_count} models</div>
@@ -1844,22 +1765,12 @@ export default function AdminDashboard() {
                     <div className="text-xs text-gray-500">Last: {formatDate(user.last_activity)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleQuickAddCredits(user.id, user.email)}
-                        disabled={addingCreditsUserId === user.id}
-                        className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
-                        title="Add 5 credits"
-                      >
-                        {addingCreditsUserId === user.id ? '...' : '+5'}
-                      </button>
-                      <Link
-                        href={`/admin/users/${user.id}`}
-                        className="text-indigo-600 hover:text-indigo-900 font-medium"
-                      >
-                        View
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="text-indigo-600 hover:text-indigo-900 font-medium"
+                    >
+                      View
+                    </Link>
                   </td>
                 </tr>
               ))}

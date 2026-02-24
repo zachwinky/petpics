@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-interface Transaction {
+interface PrintOrder {
   id: number;
-  type: string;
-  credits_change: number;
-  amount_usd: number | null;
-  description: string | null;
+  status: string;
+  total_cents: number;
+  item_count: number;
   created_at: string;
 }
 
@@ -23,7 +22,6 @@ interface Model {
 interface Generation {
   id: number;
   model_id: number | null;
-  credits_used: number;
   image_count: number;
   created_at: string;
 }
@@ -32,14 +30,13 @@ interface UserDetail {
   id: number;
   email: string;
   name: string | null;
-  credits_balance: number;
-  total_spent: number;
-  total_purchased: number;
+  print_order_count: number;
+  print_order_total_cents: number;
   models_count: number;
   generations_count: number;
   created_at: string;
   last_activity: string | null;
-  transactions: Transaction[];
+  printOrders: PrintOrder[];
   models: Model[];
   recentGenerations: Generation[];
 }
@@ -47,9 +44,6 @@ interface UserDetail {
 export default function UserDetailView({ userId }: { userId: string }) {
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [addingCredits, setAddingCredits] = useState(false);
-  const [creditAmount, setCreditAmount] = useState('');
-  const [creditDescription, setCreditDescription] = useState('');
 
   useEffect(() => {
     loadUserDetail();
@@ -65,34 +59,6 @@ export default function UserDetailView({ userId }: { userId: string }) {
       console.error('Failed to load user detail:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAddCredits = async () => {
-    const credits = parseInt(creditAmount);
-    if (!credits || credits <= 0) return;
-
-    setAddingCredits(true);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add_credits',
-          credits,
-          description: creditDescription || 'Admin credit adjustment',
-        }),
-      });
-
-      if (res.ok) {
-        setCreditAmount('');
-        setCreditDescription('');
-        await loadUserDetail();
-      }
-    } catch (error) {
-      console.error('Failed to add credits:', error);
-    } finally {
-      setAddingCredits(false);
     }
   };
 
@@ -152,21 +118,23 @@ export default function UserDetailView({ userId }: { userId: string }) {
               Joined {formatDate(user.created_at)}
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-indigo-600">{user.credits_balance}</div>
-            <div className="text-sm text-gray-600">Credits Available</div>
-          </div>
+          {user.print_order_count > 0 && (
+            <div className="text-right">
+              <div className="text-3xl font-bold text-indigo-600">{formatCurrency(user.print_order_total_cents / 100)}</div>
+              <div className="text-sm text-gray-600">{user.print_order_count} order{user.print_order_count !== 1 ? 's' : ''}</div>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
           <div>
-            <div className="text-sm text-gray-600">Total Purchased</div>
-            <div className="text-xl font-semibold text-gray-900">{user.total_purchased}</div>
+            <div className="text-sm text-gray-600">Print Orders</div>
+            <div className="text-xl font-semibold text-gray-900">{user.print_order_count}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600">Total Spent</div>
-            <div className="text-xl font-semibold text-gray-900">{user.total_spent}</div>
+            <div className="text-sm text-gray-600">Print Revenue</div>
+            <div className="text-xl font-semibold text-gray-900">{formatCurrency(user.print_order_total_cents / 100)}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600">Models Trained</div>
@@ -176,34 +144,6 @@ export default function UserDetailView({ userId }: { userId: string }) {
             <div className="text-sm text-gray-600">Generations</div>
             <div className="text-xl font-semibold text-gray-900">{user.generations_count}</div>
           </div>
-        </div>
-      </div>
-
-      {/* Add Credits Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Credits</h2>
-        <div className="flex gap-4">
-          <input
-            type="number"
-            placeholder="Amount"
-            value={creditAmount}
-            onChange={(e) => setCreditAmount(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          <input
-            type="text"
-            placeholder="Description (optional)"
-            value={creditDescription}
-            onChange={(e) => setCreditDescription(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          <button
-            onClick={handleAddCredits}
-            disabled={addingCredits || !creditAmount}
-            className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {addingCredits ? 'Adding...' : 'Add Credits'}
-          </button>
         </div>
       </div>
 
@@ -251,7 +191,6 @@ export default function UserDetailView({ userId }: { userId: string }) {
                     <tr key={gen.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">{gen.image_count} images</div>
-                        <div className="text-xs text-gray-500">{gen.credits_used} credits</div>
                       </td>
                       <td className="px-6 py-4 text-right text-xs text-gray-500">
                         {formatDate(gen.created_at)}
@@ -265,50 +204,49 @@ export default function UserDetailView({ userId }: { userId: string }) {
         </div>
       </div>
 
-      {/* Transactions */}
+      {/* Print Orders */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Print Orders</h2>
         </div>
         <div className="overflow-x-auto">
-          {user.transactions.length === 0 ? (
-            <p className="px-6 py-4 text-gray-500">No transactions yet</p>
+          {user.printOrders.length === 0 ? (
+            <p className="px-6 py-4 text-gray-500">No print orders yet</p>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Credits</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {user.transactions.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-gray-50">
+                {user.printOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{order.id}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-                        txn.type === 'purchase' ? 'bg-green-100 text-green-800' :
-                        txn.type === 'training' ? 'bg-blue-100 text-blue-800' :
-                        'bg-purple-100 text-purple-800'
+                        order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'failed' || order.status === 'refunded' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {txn.type}
+                        {order.status}
                       </span>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                      txn.credits_change > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {txn.credits_change > 0 ? '+' : ''}{txn.credits_change}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {txn.amount_usd ? formatCurrency(txn.amount_usd) : '-'}
+                      {order.item_count}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {txn.description || '-'}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatCurrency(order.total_cents / 100)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                      {formatDate(txn.created_at)}
+                      {formatDate(order.created_at)}
                     </td>
                   </tr>
                 ))}

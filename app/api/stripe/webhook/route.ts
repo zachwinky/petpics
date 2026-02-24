@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, creditPackages } from '@/lib/stripe';
-import { updateUserCredits } from '@/lib/db';
+import { stripe } from '@/lib/stripe';
 import { fulfillPrintOrder } from '@/app/api/print/checkout/route';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import { getPrintOrderByStripePaymentIntent } from '@/lib/db';
@@ -105,59 +104,6 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         console.error('Error fulfilling print order:', error);
         return NextResponse.json({ error: 'Failed to fulfill print order' }, { status: 500 });
-      }
-    } else {
-      // Handle credit purchase orders (existing flow)
-      const userId = session.metadata?.userId;
-      const credits = session.metadata?.credits;
-      const packageId = session.metadata?.packageId;
-
-      if (!userId || !credits || !packageId) {
-        console.error('Missing metadata in checkout session');
-        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
-      }
-
-      // SECURITY: Validate userId and credits are valid positive numbers
-      const parsedUserId = parseInt(userId);
-      const parsedCredits = parseInt(credits);
-
-      if (isNaN(parsedUserId) || parsedUserId <= 0) {
-        console.error('Invalid userId in metadata:', userId);
-        return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
-      }
-
-      if (isNaN(parsedCredits) || parsedCredits <= 0) {
-        console.error('Invalid credits in metadata:', credits);
-        return NextResponse.json({ error: 'Invalid credits value' }, { status: 400 });
-      }
-
-      // SECURITY: Verify packageId matches an actual package and credits match expected value
-      const validPackage = creditPackages.find(p => p.id === packageId);
-      if (!validPackage) {
-        console.error('Invalid packageId in metadata:', packageId);
-        return NextResponse.json({ error: 'Invalid package' }, { status: 400 });
-      }
-
-      if (validPackage.credits !== parsedCredits) {
-        console.error('Credits mismatch - expected:', validPackage.credits, 'received:', parsedCredits);
-        return NextResponse.json({ error: 'Credits mismatch' }, { status: 400 });
-      }
-
-      try {
-        // Add credits to user account
-        await updateUserCredits(
-          parsedUserId,
-          parsedCredits,
-          'purchase',
-          `Purchased ${packageId} package`,
-          session.amount_total ? session.amount_total / 100 : undefined,
-          session.payment_intent as string
-        );
-
-        console.log(`Successfully added ${credits} credits to user ${userId}`);
-      } catch (error) {
-        console.error('Error updating user credits:', error);
-        return NextResponse.json({ error: 'Failed to update credits' }, { status: 500 });
       }
     }
   }

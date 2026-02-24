@@ -32,8 +32,6 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const maxScenes = batchSize === 4 ? 1 : batchSize === 12 ? 3 : 5;
-  const batchCost = batchSize === 4 ? 1 : batchSize === 12 ? 3 : 4;
-
   const toggleScene = (promptId: string) => {
     if (batchSize === 4) {
       // Single scene mode
@@ -85,9 +83,6 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
 
         if (response.status === 401) {
           errorMessage = 'Please sign in to generate images.';
-        } else if (response.status === 402) {
-          const data = await response.json();
-          errorMessage = data.error || `Insufficient credits. Required: ${batchCost}, Current: ${data.current}`;
         } else {
           try {
             const data = await response.json();
@@ -191,7 +186,6 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
               >
                 <div className="font-bold text-lg text-gray-900">4 Images</div>
                 <div className="text-sm text-gray-600">1 scene</div>
-                <div className="text-xs font-medium text-coral-600 mt-1">1 credit</div>
               </button>
               <button
                 type="button"
@@ -207,7 +201,6 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
               >
                 <div className="font-bold text-lg text-gray-900">12 Images</div>
                 <div className="text-sm text-gray-600">Up to 3 scenes</div>
-                <div className="text-xs font-medium text-coral-600 mt-1">3 credits</div>
               </button>
               <button
                 type="button"
@@ -223,7 +216,6 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
               >
                 <div className="font-bold text-lg text-gray-900">20 Images</div>
                 <div className="text-sm text-gray-600">Up to 5 scenes</div>
-                <div className="text-xs font-medium text-coral-600 mt-1">4 credits</div>
               </button>
             </div>
           </div>
@@ -311,7 +303,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
             onClick={handleGenerate}
             disabled={isGenerating || (selectedScenes.length === 0 && !customPrompt)}
           >
-            {isGenerating ? 'Creating portraits...' : `Create ${batchSize} Portraits (${batchCost} credits)`}
+            {isGenerating ? 'Creating portraits...' : `Create ${batchSize} Portraits`}
           </button>
         </div>
       )}

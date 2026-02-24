@@ -39,7 +39,7 @@ export default function ImageUpload() {
   const handleTrainRef = useRef<() => void>(() => {});
   const handleGenerateRef = useRef<() => void>(() => {});
   const { toast, showToast, hideToast } = useToast();
-  const { showAuthModal, showCreditModal } = useAuthModal();
+  const { showAuthModal } = useAuthModal();
 
   // Detect mobile device
   useEffect(() => {
@@ -391,9 +391,8 @@ export default function ImageUpload() {
 
     // PRE-FLIGHT CHECK: Auth only (training is free)
     try {
-      const creditsRes = await fetch('/api/user/credits');
-      if (creditsRes.status === 401) {
-        // Not authenticated - show auth modal
+      const authRes = await fetch('/api/models');
+      if (authRes.status === 401) {
         showAuthModal({
           reason: 'Sign in to train your AI model',
           onSuccess: () => handleTrainRef.current(),
@@ -616,20 +615,6 @@ export default function ImageUpload() {
               reason: 'Sign in to generate images',
               onSuccess: () => handleGenerateRef.current(),
             });
-            return;
-          }
-
-          if (response.status === 402) {
-            setIsGenerating(false);
-            try {
-              const data = await response.json();
-              showCreditModal({
-                required: data.required || 1,
-                current: data.current || 0,
-              });
-            } catch {
-              showCreditModal({ required: 1, current: 0 });
-            }
             return;
           }
 

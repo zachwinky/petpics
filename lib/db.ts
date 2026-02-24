@@ -145,53 +145,10 @@ export async function createUser(
   googleId?: string
 ): Promise<User> {
   const result = await pool.query(
-    'INSERT INTO users (email, name, password_hash, google_id, credits_balance) VALUES ($1, $2, $3, $4, 10) RETURNING *',
+    'INSERT INTO users (email, name, password_hash, google_id, credits_balance) VALUES ($1, $2, $3, $4, 0) RETURNING *',
     [email, name || null, passwordHash || null, googleId || null]
   );
   return result.rows[0] as User;
-}
-
-export async function updateUserCredits(
-  userId: number,
-  creditsChange: number,
-  transactionType: 'purchase' | 'training' | 'generation' | 'video',
-  description?: string,
-  amountUsd?: number,
-  stripePaymentId?: string
-): Promise<User> {
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    // Get current user
-    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
-    const user = userResult.rows[0] as User;
-    if (!user) throw new Error('User not found');
-
-    const newBalance = user.credits_balance + creditsChange;
-    if (newBalance < 0) throw new Error('Insufficient credits');
-
-    // Update user credits
-    const updateResult = await client.query(
-      'UPDATE users SET credits_balance = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [newBalance, userId]
-    );
-
-    // Record transaction
-    await client.query(
-      'INSERT INTO transactions (user_id, type, credits_change, credits_balance_after, amount_usd, stripe_payment_id, description) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [userId, transactionType, creditsChange, newBalance, amountUsd || null, stripePaymentId || null, description || null]
-    );
-
-    await client.query('COMMIT');
-    return updateResult.rows[0] as User;
-  } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
-  } finally {
-    client.release();
-  }
 }
 
 // Model operations

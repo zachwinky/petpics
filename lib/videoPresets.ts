@@ -37,5 +37,3 @@ export const VIDEO_PRESETS: VideoPreset[] = [
     prompt: 'subtle ambient motion, steam or particles drift gently in background',
   },
 ];
-
-export const VIDEO_GENERATION_CREDITS = 5; // Credits required per video

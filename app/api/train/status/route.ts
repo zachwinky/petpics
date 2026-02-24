@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createModel, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId } from '@/lib/db';
+import { getUserById, createModel, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
 import { generateSampleImages } from '@/lib/training-completion';
-
-const TRAINING_COST_CREDITS = 10;
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,23 +71,12 @@ export async function POST(request: NextRequest) {
       const loraUrl = (result.data as any)?.diffusers_lora_file?.url;
 
       if (!loraUrl) {
-        // Update pending training status
         await updatePendingTrainingStatus(requestId, 'failed', 'No model file returned');
-
-        // Refund credits
-        await updateUserCredits(
-          userId,
-          TRAINING_COST_CREDITS,
-          'purchase',
-          `Refund: Training completed but no model file for ${triggerWord}`
-        );
-
-        // Send failure email
         sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training completed but no model file was generated');
 
         return NextResponse.json({
           status: 'failed',
-          error: 'Training completed but no LoRA file returned. Credits have been refunded.',
+          error: 'Training completed but no LoRA file returned.',
         });
       }
 
@@ -146,23 +133,12 @@ export async function POST(request: NextRequest) {
         message: 'Model trained successfully!',
       });
     } else if (currentStatus === 'FAILED') {
-      // Update pending training status
       await updatePendingTrainingStatus(requestId, 'failed', 'Training failed on FAL servers');
-
-      // Refund credits
-      await updateUserCredits(
-        userId,
-        TRAINING_COST_CREDITS,
-        'purchase',
-        `Refund: Training failed for ${triggerWord}`
-      );
-
-      // Send failure email
       sendTrainingFailedEmail(user.email, user.name || '', modelName, 'Training failed on FAL servers');
 
       return NextResponse.json({
         status: 'failed',
-        error: 'Training failed. Credits have been refunded.',
+        error: 'Training failed.',
       });
     } else if (currentStatus === 'IN_QUEUE' || currentStatus === 'IN_PROGRESS') {
       return NextResponse.json({

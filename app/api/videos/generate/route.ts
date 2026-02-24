@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createVideoGeneration, updateVideoGenerationFalRequestId } from '@/lib/db';
+import { getUserById, createVideoGeneration, updateVideoGenerationFalRequestId } from '@/lib/db';
 import { rateLimit } from '@/lib/rateLimit';
-import { VIDEO_GENERATION_CREDITS } from '@/lib/videoPresets';
 
 // Video generation can take a while, set max duration
 export const maxDuration = 60;
@@ -36,18 +35,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
-      );
-    }
-
-    // Check if user has enough credits
-    if (user.credits_balance < VIDEO_GENERATION_CREDITS) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          required: VIDEO_GENERATION_CREDITS,
-          current: user.credits_balance
-        },
-        { status: 402 }
       );
     }
 
@@ -120,29 +107,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Deduct credits first
-    try {
-      await updateUserCredits(
-        userId,
-        -VIDEO_GENERATION_CREDITS,
-        'video',
-        `Video generation from image`
-      );
-    } catch (error) {
-      console.error('Error deducting credits:', error);
-      return NextResponse.json(
-        { error: 'Failed to deduct credits. Please try again.' },
-        { status: 500 }
-      );
-    }
-
     // Create video generation record
     const videoGeneration = await createVideoGeneration(
       userId,
       modelId || null,
       imageUrl,
       prompt,
-      VIDEO_GENERATION_CREDITS
+      0
     );
 
     // Configure fal client
@@ -174,16 +145,8 @@ export async function POST(request: NextRequest) {
     } catch (falError) {
       console.error('FAL API error:', falError);
 
-      // Refund credits on failure
-      await updateUserCredits(
-        userId,
-        VIDEO_GENERATION_CREDITS,
-        'video',
-        `Refund: Video generation failed to start`
-      );
-
       return NextResponse.json(
-        { error: 'Failed to start video generation. Credits have been refunded.' },
+        { error: 'Failed to start video generation. Please try again.' },
         { status: 500 }
       );
     }

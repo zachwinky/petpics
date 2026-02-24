@@ -241,17 +241,14 @@ export default function RowActions({
                 <div className="p-2 border-b border-gray-100">
                   <p className="text-xs text-gray-500 text-center">Generate more</p>
                 </div>
-                <button onClick={() => handleGenerateMore(4)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between">
+                <button onClick={() => handleGenerateMore(4)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
                   <span className="text-gray-900">4 images</span>
-                  <span className="text-indigo-600 font-medium">1 cr</span>
                 </button>
-                <button onClick={() => handleGenerateMore(12)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between">
+                <button onClick={() => handleGenerateMore(12)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
                   <span className="text-gray-900">12 images</span>
-                  <span className="text-indigo-600 font-medium">3 cr</span>
                 </button>
-                <button onClick={() => handleGenerateMore(20)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between border-b border-gray-100">
+                <button onClick={() => handleGenerateMore(20)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100">
                   <span className="text-gray-900">20 images</span>
-                  <span className="text-indigo-600 font-medium">4 cr</span>
                 </button>
                 <button onClick={() => setShowGenerateMore(false)} className="w-full px-4 py-2 text-center text-sm text-gray-500 hover:bg-gray-50">
                   Cancel
@@ -321,17 +318,14 @@ export default function RowActions({
             <div className="p-2 border-b border-gray-100">
               <p className="text-xs text-gray-500 text-center">Same prompt, more images</p>
             </div>
-            <button onClick={() => handleGenerateMore(4)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between items-center">
+            <button onClick={() => handleGenerateMore(4)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
               <span className="text-gray-900">4 images</span>
-              <span className="text-indigo-600 font-medium">1 credit</span>
             </button>
-            <button onClick={() => handleGenerateMore(12)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between items-center">
+            <button onClick={() => handleGenerateMore(12)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
               <span className="text-gray-900">12 images</span>
-              <span className="text-indigo-600 font-medium">3 credits</span>
             </button>
-            <button onClick={() => handleGenerateMore(20)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex justify-between items-center border-b border-gray-100">
+            <button onClick={() => handleGenerateMore(20)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100">
               <span className="text-gray-900">20 images</span>
-              <span className="text-indigo-600 font-medium">4 credits</span>
             </button>
             <button onClick={() => setShowGenerateMore(false)} className="w-full px-4 py-2 text-center text-sm text-gray-500 hover:bg-gray-50">
               Cancel

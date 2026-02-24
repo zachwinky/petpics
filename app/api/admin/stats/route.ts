@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     if (type === 'users') {
       const limit = parseInt(searchParams.get('limit') || '50');
       const offset = parseInt(searchParams.get('offset') || '0');
-      const sortBy = (searchParams.get('sortBy') || 'created_at') as 'created_at' | 'credits_balance' | 'total_spent';
+      const sortBy = (searchParams.get('sortBy') || 'created_at') as 'created_at' | 'print_order_total_cents';
       const order = (searchParams.get('order') || 'DESC') as 'ASC' | 'DESC';
       const search = searchParams.get('search');
 

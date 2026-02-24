@@ -1,11 +1,9 @@
 import { fal } from '@fal-ai/client';
-import { createModel, createGeneration, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, updateUserCredits, getAdminConfig, PendingTraining } from '@/lib/db';
+import { createModel, createGeneration, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getAdminConfig, PendingTraining } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
 import { watermarkAndUpload } from '@/lib/watermark';
-
-const TRAINING_COST_CREDITS = 0; // Training is free — prints are the revenue
 
 // Generate a single image using flux-lora
 export async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string, petType?: string): Promise<string | null> {
@@ -151,22 +149,8 @@ export async function checkAndCompleteTraining(
       const loraUrl = (result.data as any)?.diffusers_lora_file?.url;
 
       if (!loraUrl) {
-        // Update pending training status
         await updatePendingTrainingStatus(training.fal_request_id, 'failed', 'No model file returned');
-
-        // Refund credits
-        if (TRAINING_COST_CREDITS > 0) {
-          await updateUserCredits(
-            userId,
-            TRAINING_COST_CREDITS,
-            'purchase',
-            `Refund: Training completed but no model file for ${training.trigger_word}`
-          );
-        }
-
-        // Send failure email
         sendTrainingFailedEmail(userEmail, userName, training.model_name, 'Training completed but no model file was generated');
-
         return { completed: false, failed: true };
       }
 
@@ -227,22 +211,8 @@ export async function checkAndCompleteTraining(
       return { completed: true, failed: false };
 
     } else if (currentStatus === 'FAILED') {
-      // Update pending training status
       await updatePendingTrainingStatus(training.fal_request_id, 'failed', 'Training failed on FAL servers');
-
-      // Refund credits
-      if (TRAINING_COST_CREDITS > 0) {
-        await updateUserCredits(
-          userId,
-          TRAINING_COST_CREDITS,
-          'purchase',
-          `Refund: Training failed for ${training.trigger_word}`
-        );
-      }
-
-      // Send failure email
       sendTrainingFailedEmail(userEmail, userName, training.model_name, 'Training failed on FAL servers');
-
       return { completed: false, failed: true };
     }
 
@@ -253,7 +223,7 @@ export async function checkAndCompleteTraining(
     console.error(`Error checking training ${training.id}:`, error);
 
     // If training has been pending for more than 2 hours and we can't reach FAL,
-    // mark it as failed and refund credits so the user isn't stuck forever
+    // mark it as failed so the user isn't stuck forever
     const trainingAge = Date.now() - new Date(training.created_at).getTime();
     const TWO_HOURS = 2 * 60 * 60 * 1000;
 
@@ -266,27 +236,16 @@ export async function checkAndCompleteTraining(
           `Training timed out after ${Math.round(trainingAge / 60000)} minutes. FAL status check error: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
 
-        // Refund credits
-        if (TRAINING_COST_CREDITS > 0) {
-          await updateUserCredits(
-            userId,
-            TRAINING_COST_CREDITS,
-            'purchase',
-            `Refund: Training timed out for ${training.trigger_word}`
-          );
-        }
-
-        // Send failure email
         sendTrainingFailedEmail(
           userEmail,
           userName,
           training.model_name,
-          'Training timed out. Your credits have been refunded. Please try again.'
+          'Training timed out. Please try again.'
         );
 
         return { completed: false, failed: true };
-      } catch (refundError) {
-        console.error(`Error refunding timed-out training ${training.id}:`, refundError);
+      } catch (timeoutError) {
+        console.error(`Error handling timed-out training ${training.id}:`, timeoutError);
       }
     }
 

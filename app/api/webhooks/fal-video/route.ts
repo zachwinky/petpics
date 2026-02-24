@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getVideoGenerationByFalRequestId, updateVideoGenerationStatus, updateUserCredits, getUserById } from '@/lib/db';
-import { VIDEO_GENERATION_CREDITS } from '@/lib/videoPresets';
+import { getVideoGenerationByFalRequestId, updateVideoGenerationStatus } from '@/lib/db';
 
 // This webhook is called by FAL when video generation completes
 export async function POST(request: NextRequest) {
@@ -48,34 +47,12 @@ export async function POST(request: NextRequest) {
         await updateVideoGenerationStatus(videoGeneration.id, 'completed', videoUrl);
         console.log('Video generation completed:', videoGeneration.id, videoUrl);
       } else {
-        // No video URL returned, mark as failed and refund
         await updateVideoGenerationStatus(videoGeneration.id, 'failed', undefined, 'No video URL returned');
-
-        const user = await getUserById(videoGeneration.user_id);
-        if (user) {
-          await updateUserCredits(
-            videoGeneration.user_id,
-            VIDEO_GENERATION_CREDITS,
-            'video',
-            `Refund: Video generation completed but no video returned`
-          );
-        }
         console.log('Video generation failed (no URL):', videoGeneration.id);
       }
     } else if (status === 'FAILED') {
       const errorMessage = payload?.error || 'Video generation failed';
       await updateVideoGenerationStatus(videoGeneration.id, 'failed', undefined, errorMessage);
-
-      // Refund credits
-      const user = await getUserById(videoGeneration.user_id);
-      if (user) {
-        await updateUserCredits(
-          videoGeneration.user_id,
-          VIDEO_GENERATION_CREDITS,
-          'video',
-          `Refund: Video generation failed`
-        );
-      }
       console.log('Video generation failed:', videoGeneration.id, errorMessage);
     }
 

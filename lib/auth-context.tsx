@@ -2,21 +2,14 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import AuthModal from '@/components/AuthModal';
-import CreditModal from '@/components/CreditModal';
 
 interface AuthModalOptions {
   reason?: string;
   onSuccess?: () => void;
 }
 
-interface CreditModalOptions {
-  required: number;
-  current: number;
-}
-
 interface AuthModalContextType {
   showAuthModal: (options?: AuthModalOptions) => void;
-  showCreditModal: (options: CreditModalOptions) => void;
   hideModals: () => void;
 }
 
@@ -39,34 +32,17 @@ export function AuthModalProvider({ children }: AuthModalProviderProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalOptions, setAuthModalOptions] = useState<AuthModalOptions>({});
 
-  // Credit modal state
-  const [creditModalOpen, setCreditModalOpen] = useState(false);
-  const [creditModalOptions, setCreditModalOptions] = useState<CreditModalOptions>({
-    required: 0,
-    current: 0,
-  });
-
   const showAuthModal = useCallback((options?: AuthModalOptions) => {
     setAuthModalOptions(options || {});
     setAuthModalOpen(true);
   }, []);
 
-  const showCreditModal = useCallback((options: CreditModalOptions) => {
-    setCreditModalOptions(options);
-    setCreditModalOpen(true);
-  }, []);
-
   const hideModals = useCallback(() => {
     setAuthModalOpen(false);
-    setCreditModalOpen(false);
   }, []);
 
   const handleAuthClose = useCallback(() => {
     setAuthModalOpen(false);
-  }, []);
-
-  const handleCreditClose = useCallback(() => {
-    setCreditModalOpen(false);
   }, []);
 
   const handleAuthSuccess = useCallback(() => {
@@ -78,7 +54,7 @@ export function AuthModalProvider({ children }: AuthModalProviderProps) {
   }, [authModalOptions]);
 
   return (
-    <AuthModalContext.Provider value={{ showAuthModal, showCreditModal, hideModals }}>
+    <AuthModalContext.Provider value={{ showAuthModal, hideModals }}>
       {children}
 
       <AuthModal
@@ -86,13 +62,6 @@ export function AuthModalProvider({ children }: AuthModalProviderProps) {
         onClose={handleAuthClose}
         onSuccess={handleAuthSuccess}
         reason={authModalOptions.reason}
-      />
-
-      <CreditModal
-        isOpen={creditModalOpen}
-        onClose={handleCreditClose}
-        required={creditModalOptions.required}
-        current={creditModalOptions.current}
       />
     </AuthModalContext.Provider>
   );

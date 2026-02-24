@@ -18,7 +18,6 @@ export default async function NavbarWrapper() {
         userData = {
           name: user.name,
           email: user.email,
-          creditsBalance: user.credits_balance,
           isAdmin: isAdmin(user.email),
         };
       }

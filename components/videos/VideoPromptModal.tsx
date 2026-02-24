@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { VIDEO_PRESETS, VIDEO_GENERATION_CREDITS } from '@/lib/videoPresets';
+import { VIDEO_PRESETS } from '@/lib/videoPresets';
 
 interface VideoPromptModalProps {
   isOpen: boolean;
@@ -58,9 +58,7 @@ export default function VideoPromptModal({
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 402) {
-          setError(`Insufficient credits. You need ${data.required} credits, but you have ${data.current}.`);
-        } else if (response.status === 429) {
+        if (response.status === 429) {
           setError('Rate limit exceeded. Please wait before generating another video.');
         } else {
           setError(data.error || 'Failed to start video generation');
@@ -168,13 +166,9 @@ export default function VideoPromptModal({
             </div>
           )}
 
-          {/* Credits Info */}
+          {/* Info */}
           <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Cost:</span>
-              <span className="font-medium text-gray-900">{VIDEO_GENERATION_CREDITS} credits</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500">
               Video generation may take 2-5 minutes
             </p>
           </div>

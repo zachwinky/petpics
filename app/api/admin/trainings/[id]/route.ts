@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { isAdmin, refundTraining, updateTrainingStatus, getActiveTrainingById } from '@/lib/admin';
+import { isAdmin, updateTrainingStatus, getActiveTrainingById } from '@/lib/admin';
 import { checkAndCompleteTraining } from '@/lib/training-completion';
 import { PendingTraining } from '@/lib/db';
 
@@ -32,19 +32,6 @@ export async function POST(
 
     const body = await request.json();
     const { action, status, errorMessage } = body;
-
-    if (action === 'refund') {
-      const result = await refundTraining(trainingId);
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.message },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json({ message: result.message });
-    }
 
     if (action === 'force_complete') {
       // Full completion flow: check FAL → create model → generate samples → send email

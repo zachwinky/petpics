@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { rateLimit } from '@/lib/rateLimit';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createGeneration, getModelById } from '@/lib/db';
+import { getUserById, createGeneration, getModelById } from '@/lib/db';
 import { getImageDimensions, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
 
 const MAX_PROMPT_LENGTH = 500;
-const GENERATION_COST_CREDITS = 1; // Cost per generation (4 images)
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,18 +25,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
-      );
-    }
-
-    // Check if user has enough credits
-    if (user.credits_balance < GENERATION_COST_CREDITS) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          required: GENERATION_COST_CREDITS,
-          current: user.credits_balance
-        },
-        { status: 402 }
       );
     }
 
@@ -136,42 +123,24 @@ export async function POST(request: NextRequest) {
 
     const imageUrls = images.map((img: any) => img.url);
 
-    // Deduct credits and record generation
+    // Record generation in database
     try {
-      await updateUserCredits(
-        userId,
-        -GENERATION_COST_CREDITS,
-        'generation',
-        `Generated ${imageUrls.length} images`
-      );
-
-      // Record generation in database
       await createGeneration(
         userId,
-        modelId || null, // modelId from request body
-        null, // presetPromptId
+        modelId || null,
+        null,
         prompt,
         imageUrls,
-        GENERATION_COST_CREDITS
+        0
       );
     } catch (error) {
-      console.error('Error deducting credits or recording generation:', error);
-      // Generation succeeded but credit deduction failed
-      return NextResponse.json(
-        {
-          error: 'Generation succeeded but failed to update account',
-          imageUrls,
-        },
-        { status: 500 }
-      );
+      console.error('Error recording generation:', error);
     }
 
-    // Return all image URLs
     return NextResponse.json({
       success: true,
       imageUrls,
       seed: result.data.seed,
-      creditsUsed: GENERATION_COST_CREDITS,
     });
 
   } catch (error) {

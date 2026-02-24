@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, createGeneration, updateUserCredits, getModelById } from '@/lib/db';
+import { getUserById, createGeneration, getModelById } from '@/lib/db';
 import { PRESET_PROMPTS, getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { scoreImagesWithPrompts } from '@/lib/imageQuality';
 import { getImageDimensions, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
@@ -74,24 +74,6 @@ export async function POST(request: Request) {
     const productDescription = model?.product_description;
     const petType: PetType = (model?.pet_type as PetType) || 'dog';
 
-    // Calculate cost in credits
-    // Base cost + upscale cost (1 extra credit per 4 images if upscaling)
-    const baseCost = batchSize === 4 ? 1 : batchSize === 12 ? 3 : 4;
-    const upscaleCost = enableUpscale ? Math.ceil(batchSize / 4) : 0;
-    const creditsRequired = baseCost + upscaleCost;
-
-    // Check credits
-    if (user.credits_balance < creditsRequired) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          required: creditsRequired,
-          current: user.credits_balance
-        },
-        { status: 402 }
-      );
-    }
-
     // Build prompts array
     let prompts: string[] = [];
 
@@ -136,14 +118,6 @@ export async function POST(request: Request) {
 
     // Generate images in parallel
     try {
-      // Deduct credits first
-      await updateUserCredits(
-        userId,
-        -creditsRequired,
-        'generation',
-        `Batch generation: ${batchSize} images`
-      );
-
       // Generate all batches in parallel
       const generatePromises = prompts.map(async (prompt) => {
         // Build prompt with enhanced photography keywords for engagement
@@ -232,7 +206,7 @@ export async function POST(request: Request) {
         null,
         customPrompt || selectedScenes.join(', '),
         finalImageUrls,
-        creditsRequired,
+        0,
         prompts,  // Store the prompt used for each row
         qualityScores,  // Store quality scores for each image
         aspectRatio || DEFAULT_ASPECT_RATIO  // Store aspect ratio for reroll support
@@ -246,14 +220,6 @@ export async function POST(request: Request) {
 
     } catch (error) {
       console.error('Error during batch generation:', error);
-
-      // Refund credits if generation failed
-      await updateUserCredits(
-        userId,
-        creditsRequired,
-        'generation',
-        `Refund: Batch generation failed`
-      );
 
       return NextResponse.json(
         {

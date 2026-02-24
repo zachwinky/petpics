@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, updateGenerationUpscale } from '@/lib/db';
+import { getUserById, updateGenerationUpscale } from '@/lib/db';
 import { Pool } from 'pg';
 
 const FAL_KEY = process.env.FAL_KEY;
@@ -105,31 +105,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // First upscale is free, subsequent ones cost 1 credit
-    const isFreeUpscale = !upscaleUsed;
-    const creditsRequired = isFreeUpscale ? 0 : 1;
-
-    if (!isFreeUpscale && user.credits_balance < creditsRequired) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          required: creditsRequired,
-          current: user.credits_balance
-        },
-        { status: 402 }
-      );
-    }
-
-    // Deduct credits only if not free
-    if (!isFreeUpscale) {
-      await updateUserCredits(
-        userId,
-        -creditsRequired,
-        'generation',
-        `Upscale row ${rowIndex + 1}: ${rowImages.length} images`
-      );
-    }
-
     try {
       // Upscale all images in the row in parallel
       console.log(`Upscaling ${rowImages.length} images for row ${rowIndex}`);
@@ -164,16 +139,6 @@ export async function POST(request: Request) {
 
     } catch (error) {
       console.error('Upscale error:', error);
-
-      // Refund credits on failure (only if it wasn't free)
-      if (!isFreeUpscale) {
-        await updateUserCredits(
-          userId,
-          creditsRequired,
-          'generation',
-          `Refund: Upscale failed`
-        );
-      }
 
       return NextResponse.json(
         { error: 'Upscale failed', details: error instanceof Error ? error.message : 'Unknown error' },

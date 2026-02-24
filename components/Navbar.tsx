@@ -8,7 +8,6 @@ interface NavbarProps {
   user?: {
     name?: string | null;
     email?: string | null;
-    creditsBalance?: number;
     isAdmin?: boolean;
   } | null;
 }

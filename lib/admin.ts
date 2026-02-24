@@ -18,22 +18,20 @@ export function isAdmin(email: string | null | undefined): boolean {
 
 export interface AdminStats {
   totalUsers: number;
-  totalCreditsIssued: number;
-  totalCreditsSpent: number;
-  totalRevenue: number;
+  totalPrintOrders: number;
+  totalPrintRevenue: number; // cents
   totalModels: number;
   totalGenerations: number;
   recentSignups: number; // Last 7 days
-  recentRevenue: number; // Last 30 days
+  recentRevenue: number; // Last 30 days, cents
 }
 
 export interface UserSummary {
   id: number;
   email: string;
   name: string | null;
-  credits_balance: number;
-  total_spent: number;
-  total_purchased: number;
+  print_order_count: number;
+  print_order_total_cents: number;
   models_count: number;
   generations_count: number;
   created_at: Date;
@@ -41,53 +39,47 @@ export interface UserSummary {
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
-  // Use separate subqueries to avoid cartesian product from multiple JOINs
   const stats = await pool.query(`
     SELECT
       (SELECT COUNT(*) FROM users) as total_users,
-      (SELECT COALESCE(SUM(credits_change), 0) FROM transactions WHERE type = 'purchase') as total_credits_issued,
-      (SELECT COALESCE(SUM(ABS(credits_change)), 0) FROM transactions WHERE type IN ('training', 'generation', 'video')) as total_credits_spent,
-      (SELECT COALESCE(SUM(amount_usd), 0) FROM transactions WHERE amount_usd IS NOT NULL) as total_revenue,
+      (SELECT COUNT(*) FROM print_orders WHERE status NOT IN ('failed', 'refunded')) as total_print_orders,
+      (SELECT COALESCE(SUM(total_cents), 0) FROM print_orders WHERE status NOT IN ('failed', 'refunded')) as total_print_revenue,
       (SELECT COUNT(*) FROM models) as total_models,
       (SELECT COUNT(*) FROM generations) as total_generations,
       (SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days') as recent_signups,
-      (SELECT COALESCE(SUM(amount_usd), 0) FROM transactions WHERE type = 'purchase' AND created_at > NOW() - INTERVAL '30 days') as recent_revenue
+      (SELECT COALESCE(SUM(total_cents), 0) FROM print_orders WHERE status NOT IN ('failed', 'refunded') AND created_at > NOW() - INTERVAL '30 days') as recent_revenue
   `);
 
   const row = stats.rows[0];
 
-  // Transform snake_case SQL results to camelCase for TypeScript interface
   return {
     totalUsers: parseInt(row.total_users) || 0,
-    totalCreditsIssued: parseInt(row.total_credits_issued) || 0,
-    totalCreditsSpent: parseInt(row.total_credits_spent) || 0,
-    totalRevenue: parseFloat(row.total_revenue) || 0,
+    totalPrintOrders: parseInt(row.total_print_orders) || 0,
+    totalPrintRevenue: parseInt(row.total_print_revenue) || 0,
     totalModels: parseInt(row.total_models) || 0,
     totalGenerations: parseInt(row.total_generations) || 0,
     recentSignups: parseInt(row.recent_signups) || 0,
-    recentRevenue: parseFloat(row.recent_revenue) || 0,
+    recentRevenue: parseInt(row.recent_revenue) || 0,
   };
 }
 
 export async function getAllUsers(
   limit: number = 50,
   offset: number = 0,
-  sortBy: 'created_at' | 'credits_balance' | 'total_spent' = 'created_at',
+  sortBy: 'created_at' | 'print_order_total_cents' = 'created_at',
   order: 'ASC' | 'DESC' = 'DESC'
 ): Promise<UserSummary[]> {
-  const validSortColumns = ['created_at', 'credits_balance', 'total_spent'];
+  const validSortColumns = ['created_at', 'print_order_total_cents'];
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
   const sortOrder = order === 'ASC' ? 'ASC' : 'DESC';
 
-  // Use subqueries to avoid cartesian product from multiple JOINs
   const result = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
-      u.credits_balance,
-      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
-      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
+      COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
@@ -95,21 +87,19 @@ export async function getAllUsers(
         u.created_at,
         COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
         COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
-        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+        COALESCE((SELECT MAX(created_at) FROM print_orders WHERE user_id = u.id), '1970-01-01'::timestamp)
       ) as last_activity
     FROM users u
     ORDER BY ${sortColumn} ${sortOrder}
     LIMIT $1 OFFSET $2
   `, [limit, offset]);
 
-  // Transform rows to match interface (snake_case from SQL already matches interface for this query)
   return result.rows.map(row => ({
     id: row.id,
     email: row.email,
     name: row.name,
-    credits_balance: parseInt(row.credits_balance) || 0,
-    total_spent: parseInt(row.total_spent) || 0,
-    total_purchased: parseInt(row.total_purchased) || 0,
+    print_order_count: parseInt(row.print_order_count) || 0,
+    print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
     generations_count: parseInt(row.generations_count) || 0,
     created_at: row.created_at,
@@ -118,12 +108,11 @@ export async function getAllUsers(
 }
 
 export interface UserDetail extends UserSummary {
-  transactions: Array<{
+  printOrders: Array<{
     id: number;
-    type: string;
-    credits_change: number;
-    amount_usd: number | null;
-    description: string | null;
+    status: string;
+    total_cents: number;
+    item_count: number;
     created_at: Date;
   }>;
   models: Array<{
@@ -136,22 +125,19 @@ export interface UserDetail extends UserSummary {
   recentGenerations: Array<{
     id: number;
     model_id: number | null;
-    credits_used: number;
     image_count: number;
     created_at: Date;
   }>;
 }
 
 export async function getUserDetail(userId: number): Promise<UserDetail | null> {
-  // Get user summary using subqueries to avoid cartesian product
   const userResult = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
-      u.credits_balance,
-      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
-      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
+      COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
@@ -159,7 +145,7 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
         u.created_at,
         COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
         COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
-        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+        COALESCE((SELECT MAX(created_at) FROM print_orders WHERE user_id = u.id), '1970-01-01'::timestamp)
       ) as last_activity
     FROM users u
     WHERE u.id = $1
@@ -167,13 +153,15 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
 
   if (userResult.rows.length === 0) return null;
 
-  // Get transactions
-  const transactionsResult = await pool.query(`
-    SELECT id, type, credits_change, amount_usd, description, created_at
-    FROM transactions
-    WHERE user_id = $1
-    ORDER BY created_at DESC
-    LIMIT 50
+  // Get print orders
+  const ordersResult = await pool.query(`
+    SELECT po.id, po.status, po.total_cents,
+      (SELECT COUNT(*) FROM print_order_items WHERE order_id = po.id) as item_count,
+      po.created_at
+    FROM print_orders po
+    WHERE po.user_id = $1
+    ORDER BY po.created_at DESC
+    LIMIT 20
   `, [userId]);
 
   // Get models
@@ -186,49 +174,28 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
 
   // Get recent generations
   const generationsResult = await pool.query(`
-    SELECT id, model_id, credits_used, array_length(image_urls, 1) as image_count, created_at
+    SELECT id, model_id, array_length(image_urls, 1) as image_count, created_at
     FROM generations
     WHERE user_id = $1
     ORDER BY created_at DESC
     LIMIT 20
   `, [userId]);
 
+  const row = userResult.rows[0];
   return {
-    ...userResult.rows[0],
-    transactions: transactionsResult.rows,
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    print_order_count: parseInt(row.print_order_count) || 0,
+    print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
+    models_count: parseInt(row.models_count) || 0,
+    generations_count: parseInt(row.generations_count) || 0,
+    created_at: row.created_at,
+    last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
+    printOrders: ordersResult.rows,
     models: modelsResult.rows,
     recentGenerations: generationsResult.rows,
-  } as UserDetail;
-}
-
-export async function addCreditsToUser(
-  userId: number,
-  credits: number,
-  description: string
-): Promise<void> {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    // Update user balance
-    const userResult = await client.query(
-      'UPDATE users SET credits_balance = credits_balance + $1 WHERE id = $2 RETURNING credits_balance',
-      [credits, userId]
-    );
-
-    // Record transaction
-    await client.query(
-      'INSERT INTO transactions (user_id, type, credits_change, credits_balance_after, description) VALUES ($1, $2, $3, $4, $5)',
-      [userId, 'purchase', credits, userResult.rows[0].credits_balance, description]
-    );
-
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  };
 }
 
 // Search users by email or name
@@ -238,15 +205,13 @@ export async function searchUsers(
 ): Promise<UserSummary[]> {
   const searchPattern = `%${query.toLowerCase()}%`;
 
-  // Use subqueries to avoid cartesian product from multiple JOINs
   const result = await pool.query(`
     SELECT
       u.id,
       u.email,
       u.name,
-      u.credits_balance,
-      COALESCE((SELECT SUM(ABS(credits_change)) FROM transactions WHERE user_id = u.id AND type IN ('training', 'generation', 'video')), 0) as total_spent,
-      COALESCE((SELECT SUM(credits_change) FROM transactions WHERE user_id = u.id AND type = 'purchase'), 0) as total_purchased,
+      COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
+      COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
       u.created_at,
@@ -254,7 +219,7 @@ export async function searchUsers(
         u.created_at,
         COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
         COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
-        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+        COALESCE((SELECT MAX(created_at) FROM print_orders WHERE user_id = u.id), '1970-01-01'::timestamp)
       ) as last_activity
     FROM users u
     WHERE LOWER(u.email) LIKE $1 OR LOWER(COALESCE(u.name, '')) LIKE $1
@@ -266,9 +231,8 @@ export async function searchUsers(
     id: row.id,
     email: row.email,
     name: row.name,
-    credits_balance: parseInt(row.credits_balance) || 0,
-    total_spent: parseInt(row.total_spent) || 0,
-    total_purchased: parseInt(row.total_purchased) || 0,
+    print_order_count: parseInt(row.print_order_count) || 0,
+    print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
     generations_count: parseInt(row.generations_count) || 0,
     created_at: row.created_at,
@@ -276,7 +240,7 @@ export async function searchUsers(
   }));
 }
 
-// Re-engagement: find users with models but no purchases
+// Re-engagement: find users with models but no print purchases
 export interface ReengagementUser {
   id: number;
   email: string;
@@ -305,16 +269,14 @@ export async function getReengagementEligibleUsers(): Promise<ReengagementUser[]
         u.created_at,
         COALESCE((SELECT MAX(created_at) FROM models WHERE user_id = u.id), '1970-01-01'::timestamp),
         COALESCE((SELECT MAX(created_at) FROM generations WHERE user_id = u.id), '1970-01-01'::timestamp),
-        COALESCE((SELECT MAX(created_at) FROM transactions WHERE user_id = u.id), '1970-01-01'::timestamp)
+        COALESCE((SELECT MAX(created_at) FROM print_orders WHERE user_id = u.id), '1970-01-01'::timestamp)
       ) as last_activity
     FROM users u
     INNER JOIN models m ON m.user_id = u.id
     WHERE NOT EXISTS (
-      SELECT 1 FROM transactions t
-      WHERE t.user_id = u.id
-        AND t.type = 'purchase'
-        AND t.amount_usd IS NOT NULL
-        AND t.amount_usd > 0
+      SELECT 1 FROM print_orders po
+      WHERE po.user_id = u.id
+        AND po.status NOT IN ('failed', 'refunded')
     )
     GROUP BY u.id, u.email, u.name, u.created_at
     ORDER BY MIN(m.created_at) DESC
@@ -678,54 +640,3 @@ export async function updateTrainingStatus(
   }
 }
 
-// Refund a failed training
-export async function refundTraining(trainingId: number): Promise<{ success: boolean; message: string }> {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    // Get the training details
-    const training = await client.query(
-      'SELECT user_id, trigger_word, status FROM pending_trainings WHERE id = $1',
-      [trainingId]
-    );
-
-    if (training.rows.length === 0) {
-      return { success: false, message: 'Training not found' };
-    }
-
-    if (training.rows[0].status !== 'failed') {
-      return { success: false, message: 'Can only refund failed trainings' };
-    }
-
-    const userId = training.rows[0].user_id;
-    const triggerWord = training.rows[0].trigger_word;
-    const refundAmount = 5; // Training costs 5 credits
-
-    // Add credits back to user
-    const userResult = await client.query(
-      'UPDATE users SET credits_balance = credits_balance + $1 WHERE id = $2 RETURNING credits_balance',
-      [refundAmount, userId]
-    );
-
-    // Record refund transaction
-    await client.query(
-      'INSERT INTO transactions (user_id, type, credits_change, credits_balance_after, description) VALUES ($1, $2, $3, $4, $5)',
-      [userId, 'purchase', refundAmount, userResult.rows[0].credits_balance, `Refund for failed training: ${triggerWord}`]
-    );
-
-    // Mark training as refunded by updating error message
-    await client.query(
-      "UPDATE pending_trainings SET error_message = COALESCE(error_message, '') || ' [REFUNDED]' WHERE id = $1",
-      [trainingId]
-    );
-
-    await client.query('COMMIT');
-    return { success: true, message: `Refunded ${refundAmount} credits for failed training "${triggerWord}"` };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
-}

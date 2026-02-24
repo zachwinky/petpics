@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, getVideoGenerationById, updateVideoGenerationStatus, updateUserCredits } from '@/lib/db';
-import { VIDEO_GENERATION_CREDITS } from '@/lib/videoPresets';
+import { getVideoGenerationById, updateVideoGenerationStatus } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -89,35 +88,20 @@ export async function GET(
               createdAt: videoGeneration.created_at,
             });
           } else {
-            // No video URL returned, mark as failed
             await updateVideoGenerationStatus(videoId, 'failed', undefined, 'No video URL returned');
-            // Refund credits
-            await updateUserCredits(
-              userId,
-              VIDEO_GENERATION_CREDITS,
-              'video',
-              `Refund: Video generation completed but no video returned`
-            );
             return NextResponse.json({
               id: videoGeneration.id,
               status: 'failed',
-              errorMessage: 'Video generation completed but no video was returned. Credits have been refunded.',
+              errorMessage: 'Video generation completed but no video was returned.',
               createdAt: videoGeneration.created_at,
             });
           }
         } else if (currentStatus === 'FAILED') {
           await updateVideoGenerationStatus(videoId, 'failed', undefined, 'FAL generation failed');
-          // Refund credits
-          await updateUserCredits(
-            userId,
-            VIDEO_GENERATION_CREDITS,
-            'video',
-            `Refund: Video generation failed`
-          );
           return NextResponse.json({
             id: videoGeneration.id,
             status: 'failed',
-            errorMessage: 'Video generation failed. Credits have been refunded.',
+            errorMessage: 'Video generation failed.',
             createdAt: videoGeneration.created_at,
           });
         } else {
