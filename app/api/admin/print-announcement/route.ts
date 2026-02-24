@@ -4,6 +4,9 @@ import { isAdmin, getPrintAnnouncementEligibleUsers } from '@/lib/admin';
 import { getAdminConfig, setAdminConfig } from '@/lib/db';
 import { sendPrintAnnouncementEmail } from '@/lib/email';
 
+// Allow enough time for batch email sending
+export const maxDuration = 60;
+
 // GET: Fetch eligible users for print announcement
 export async function GET() {
   try {
@@ -17,6 +20,22 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching print announcement users:', error);
     return NextResponse.json({ error: 'Failed to fetch eligible users' }, { status: 500 });
+  }
+}
+
+// DELETE: Reset sent tracking (so you can re-send after failures)
+export async function DELETE() {
+  try {
+    const session = await auth();
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    await setAdminConfig('print_announcement_sent_users', {});
+    return NextResponse.json({ success: true, message: 'Sent tracking reset' });
+  } catch (error) {
+    console.error('Error resetting print announcement tracking:', error);
+    return NextResponse.json({ error: 'Failed to reset tracking' }, { status: 500 });
   }
 }
 

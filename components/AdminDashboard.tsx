@@ -683,6 +683,21 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleResetPrintAnnouncement = async () => {
+    if (!confirm('Reset all sent tracking? This lets you re-send to everyone.')) return;
+    try {
+      const res = await fetch('/api/admin/print-announcement', { method: 'DELETE' });
+      if (res.ok) {
+        setPrintAnnouncementResult({ type: 'success', text: 'Sent tracking reset. All users are now unsent.' });
+        await loadPrintAnnouncementUsers();
+      } else {
+        setPrintAnnouncementResult({ type: 'error', text: 'Failed to reset tracking' });
+      }
+    } catch {
+      setPrintAnnouncementResult({ type: 'error', text: 'Network error' });
+    }
+  };
+
   // Handle video status update
   const handleVideoStatusUpdate = async (videoId: number, newStatus: string) => {
     const errorMessage = newStatus === 'failed' ? prompt('Error message (optional):') : undefined;
@@ -1119,13 +1134,21 @@ export default function AdminDashboard() {
                 {/* Controls */}
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                   <span className="text-sm text-gray-600">{printAnnouncementSelected.size} of {printAnnouncementUsers.length} selected</span>
-                  <button
-                    onClick={handleSendPrintAnnouncement}
-                    disabled={sendingPrintAnnouncement || printAnnouncementSelected.size === 0}
-                    className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
-                  >
-                    {sendingPrintAnnouncement ? 'Sending...' : `Send to ${printAnnouncementSelected.size} users`}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSendPrintAnnouncement}
+                      disabled={sendingPrintAnnouncement || printAnnouncementSelected.size === 0}
+                      className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                    >
+                      {sendingPrintAnnouncement ? 'Sending...' : `Send to ${printAnnouncementSelected.size} users`}
+                    </button>
+                    <button
+                      onClick={handleResetPrintAnnouncement}
+                      className="px-3 py-2 text-gray-500 hover:text-gray-700 text-sm underline"
+                    >
+                      Reset sent
+                    </button>
+                  </div>
                 </div>
 
                 {printAnnouncementResult && (
