@@ -43,7 +43,7 @@ export default async function OrderPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-50 via-white to-coral-50">
       <NavbarWrapper />
-      <Suspense><PrintPurchaseEvent totalCents={order.total_cents} /></Suspense>
+      <Suspense><PrintPurchaseEvent totalCents={order.total_cents} orderId={order.id} /></Suspense>
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* Success header */}
         {order.status !== 'failed' && order.status !== 'refunded' && (

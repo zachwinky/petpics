@@ -94,8 +94,7 @@ export function trackPrintPurchase(valueCents: number) {
 // --- Google Ads conversion tracking ---
 
 const GOOGLE_ADS_CONVERSION_ID = 'AW-17962222367';
-// TODO: Fill in conversion label once created in Google Ads
-const GOOGLE_ADS_CONVERSION_LABEL = '';
+const GOOGLE_ADS_CONVERSION_LABEL = 'RuMPCKyM8fobEJ-Gh_VC';
 
 function gtagEvent(action: string, params?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && window.gtag) {
@@ -104,11 +103,12 @@ function gtagEvent(action: string, params?: Record<string, unknown>) {
 }
 
 /** Google Ads purchase conversion */
-export function trackGoogleAdsPurchase(valueCents: number) {
+export function trackGoogleAdsPurchase(valueCents: number, orderId?: number) {
   if (!GOOGLE_ADS_CONVERSION_LABEL) return;
   gtagEvent('conversion', {
     send_to: `${GOOGLE_ADS_CONVERSION_ID}/${GOOGLE_ADS_CONVERSION_LABEL}`,
     value: valueCents / 100,
     currency: 'USD',
+    transaction_id: orderId ? String(orderId) : '',
   });
 }
