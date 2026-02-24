@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { trackPrintPurchase } from '@/components/MetaPixelEvents';
+import { trackPrintPurchase, trackGoogleAdsPurchase } from '@/components/MetaPixelEvents';
 import { useCart } from '@/lib/cart-context';
 
 interface PrintPurchaseEventProps {
@@ -10,7 +10,7 @@ interface PrintPurchaseEventProps {
 }
 
 /**
- * Fires Meta Pixel Purchase event and clears cart on the order page when arriving from checkout.
+ * Fires Meta Pixel + Google Ads conversion events and clears cart on the order page.
  * Only fires when ?new=1 is in the URL (set by the confirmation redirect).
  */
 export default function PrintPurchaseEvent({ totalCents }: PrintPurchaseEventProps) {
@@ -22,6 +22,7 @@ export default function PrintPurchaseEvent({ totalCents }: PrintPurchaseEventPro
       clearCart();
       if (totalCents > 0) {
         trackPrintPurchase(totalCents);
+        trackGoogleAdsPurchase(totalCents);
       }
     }
   }, [searchParams, totalCents, clearCart]);

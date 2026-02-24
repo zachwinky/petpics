@@ -8,6 +8,7 @@ import { CartProvider } from "@/lib/cart-context";
 import MetaPixelEvents from "@/components/MetaPixelEvents";
 
 const META_PIXEL_ID = "25793238440302657";
+const GOOGLE_ADS_ID = "AW-17962222367";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,18 @@ export default function RootLayout({
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${META_PIXEL_ID}');
             fbq('track', 'PageView');
+          `}
+        </Script>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ADS_ID}');
           `}
         </Script>
         <AuthModalProvider>
