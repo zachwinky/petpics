@@ -642,6 +642,33 @@ export default function AdminDashboard() {
     }
   };
 
+  // Force complete a training (checks FAL, creates model, generates samples, sends email)
+  const [forceCompletingId, setForceCompletingId] = useState<number | null>(null);
+  const handleForceComplete = async (trainingId: number) => {
+    if (!confirm('This will check FAL, create the model, generate sample images, and send the email. Continue?')) return;
+
+    setForceCompletingId(trainingId);
+    try {
+      const res = await fetch(`/api/admin/trainings/${trainingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'force_complete' }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(data.message);
+        loadData();
+      } else {
+        alert(data.error || 'Force complete failed');
+      }
+    } catch (error) {
+      alert('Network error');
+    } finally {
+      setForceCompletingId(null);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -1406,11 +1433,12 @@ export default function AdminDashboard() {
                               Fail
                             </button>
                             <button
-                              onClick={() => handleTrainingStatusUpdate(training.id, 'completed')}
-                              className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                              title="Mark as completed"
+                              onClick={() => handleForceComplete(training.id)}
+                              disabled={forceCompletingId === training.id}
+                              className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                              title="Check FAL, create model, generate samples, send email"
                             >
-                              Complete
+                              {forceCompletingId === training.id ? 'Completing...' : 'Complete'}
                             </button>
                           </>
                         )}

@@ -373,6 +373,67 @@ export async function getPendingTrainings(): Promise<PendingTraining[]> {
   return result.rows;
 }
 
+// Get all active trainings with full details needed for auto-completion
+export interface ActiveTrainingForCompletion {
+  id: number;
+  user_id: number;
+  fal_request_id: string;
+  user_email: string;
+  user_name: string;
+  trigger_word: string;
+  model_name: string;
+  pet_type: string;
+  images_count: number;
+  status: string;
+  created_at: Date;
+}
+
+export async function getActiveTrainingsForCompletion(): Promise<ActiveTrainingForCompletion[]> {
+  const result = await pool.query(`
+    SELECT
+      pt.id,
+      pt.user_id,
+      pt.fal_request_id,
+      u.email as user_email,
+      COALESCE(u.name, '') as user_name,
+      pt.trigger_word,
+      pt.model_name,
+      COALESCE(pt.pet_type, 'dog') as pet_type,
+      pt.images_count,
+      pt.status,
+      pt.created_at
+    FROM pending_trainings pt
+    JOIN users u ON pt.user_id = u.id
+    WHERE pt.status = 'training'
+    ORDER BY pt.created_at ASC
+  `);
+
+  return result.rows;
+}
+
+// Get a single active training by ID with full details for completion
+export async function getActiveTrainingById(trainingId: number): Promise<ActiveTrainingForCompletion | null> {
+  const result = await pool.query(`
+    SELECT
+      pt.id,
+      pt.user_id,
+      pt.fal_request_id,
+      u.email as user_email,
+      COALESCE(u.name, '') as user_name,
+      pt.trigger_word,
+      pt.model_name,
+      COALESCE(pt.pet_type, 'dog') as pet_type,
+      pt.images_count,
+      pt.status,
+      pt.created_at
+    FROM pending_trainings pt
+    JOIN users u ON pt.user_id = u.id
+    WHERE pt.id = $1
+  `, [trainingId]);
+
+  return result.rows[0] || null;
+}
+
 // Get trainings stuck for more than N minutes
 export async function getStuckTrainings(minutesOld: number): Promise<PendingTraining[]> {
   const result = await pool.query(`

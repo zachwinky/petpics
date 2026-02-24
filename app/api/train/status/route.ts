@@ -1,106 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, updateUserCredits, createModel, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId, getAdminConfig } from '@/lib/db';
-import { sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
+import { getUserById, updateUserCredits, createModel, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId } from '@/lib/db';
+import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
-import { getPromptForPetType } from '@/lib/presetPrompts';
-import { watermarkAndUpload } from '@/lib/watermark';
-
-// Generate a single image using flux-lora
-async function generateSingleImage(loraUrl: string, triggerWord: string, promptText: string, petType?: string): Promise<string | null> {
-  const FAL_KEY = process.env.FAL_KEY;
-  if (!FAL_KEY) return null;
-
-  try {
-    const petLabel = petType === 'cat' ? 'cat' : 'pet';
-    const fullPrompt = `Award-winning ${petLabel} portrait of ${triggerWord}, ${promptText}, natural pose, sharp focus, professional DSLR quality`;
-
-    const response = await fetch('https://fal.run/fal-ai/flux-lora', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${FAL_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: fullPrompt,
-        loras: [{ path: loraUrl, scale: 1 }],
-        num_images: 1,
-        image_size: { width: 1024, height: 1024 },
-        num_inference_steps: 40,
-        guidance_scale: 5.5,
-        enable_safety_checker: false,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Image generation failed:', await response.text());
-      return null;
-    }
-
-    const data = await response.json();
-    return data.images?.[0]?.url || null;
-  } catch (error) {
-    console.error('Error generating image:', error);
-    return null;
-  }
-}
-
-// Generate 3 sample images (preview + 2 admin-selected prompts) with watermarks
-async function generateSampleImages(
-  modelId: number,
-  loraUrl: string,
-  triggerWord: string,
-  petType: PetType
-): Promise<string[]> {
-  try {
-    console.log(`Generating sample images for model ${modelId}...`);
-
-    // Get admin-configured sample prompt IDs
-    const samplePromptIds = await getAdminConfig<string[]>('sample_prompt_ids') || ['studio-white', 'park-scene'];
-
-    // Build prompts: preview + 2 admin-selected
-    const previewPrompt = 'elegant studio portrait, crisp white backdrop, professional lighting, magazine cover quality';
-    const samplePrompts = samplePromptIds.map(id => getPromptForPetType(id, petType));
-
-    const allPrompts = [previewPrompt, ...samplePrompts];
-
-    // Generate all 3 images in parallel
-    const imagePromises = allPrompts.map(prompt => generateSingleImage(loraUrl, triggerWord, prompt, petType));
-    const imageUrls = await Promise.all(imagePromises);
-
-    const validImageUrls = imageUrls.filter((url): url is string => url !== null);
-
-    if (validImageUrls.length === 0) {
-      console.error('No sample images generated successfully');
-      return [];
-    }
-
-    // Save first image (preview) to model record
-    if (validImageUrls[0]) {
-      await updateModelPreviewImage(modelId, validImageUrls[0]);
-      console.log(`Preview image saved for model ${modelId}`);
-    }
-
-    // Watermark all images for email — NEVER fall back to unwatermarked originals
-    console.log(`Watermarking ${validImageUrls.length} images...`);
-    const watermarkPromises = validImageUrls.map(async (url) => {
-      try {
-        return await watermarkAndUpload(url);
-      } catch (error) {
-        console.error(`Failed to watermark image ${url}:`, error);
-        return null; // Skip failed images — never send unwatermarked
-      }
-    });
-    const watermarkedUrls = (await Promise.all(watermarkPromises)).filter((url): url is string => url !== null);
-
-    console.log(`Sample images generated and watermarked for model ${modelId}:`, watermarkedUrls);
-    return watermarkedUrls;
-  } catch (error) {
-    console.error('Error generating sample images:', error);
-    return [];
-  }
-}
+import { generateSampleImages } from '@/lib/training-completion';
 
 const TRAINING_COST_CREDITS = 10;
 
@@ -218,7 +122,7 @@ export async function POST(request: NextRequest) {
       console.log('Generating sample images for email...');
       const sampleImages = await generateSampleImages(model.id, loraUrl, triggerWord, petType);
 
-      // Send success email with sample images
+      // Send success email with sample images (or plain fallback)
       if (sampleImages.length > 0) {
         await sendTrainingCompleteEmailWithImages(
           user.email,
@@ -228,6 +132,10 @@ export async function POST(request: NextRequest) {
           sampleImages
         );
         console.log('Training complete email sent with sample images');
+      } else {
+        console.warn('No sample images generated, sending plain training complete email');
+        await sendTrainingCompleteEmail(user.email, user.name || '', modelName, triggerWord);
+        console.log('Training complete email sent (without images)');
       }
 
       return NextResponse.json({
