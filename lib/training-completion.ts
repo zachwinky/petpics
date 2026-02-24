@@ -1,5 +1,5 @@
 import { fal } from '@fal-ai/client';
-import { createModel, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, updateUserCredits, getAdminConfig, PendingTraining } from '@/lib/db';
+import { createModel, createGeneration, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, updateUserCredits, getAdminConfig, PendingTraining } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
@@ -48,6 +48,7 @@ export async function generateSingleImage(loraUrl: string, triggerWord: string, 
 
 // Generate 3 sample images (preview + 2 admin-selected prompts) with watermarks
 export async function generateSampleImages(
+  userId: number,
   modelId: number,
   loraUrl: string,
   triggerWord: string,
@@ -80,6 +81,21 @@ export async function generateSampleImages(
     if (validImageUrls[0]) {
       await updateModelPreviewImage(modelId, validImageUrls[0]);
       console.log(`Preview image saved for model ${modelId}`);
+    }
+
+    // Save unwatermarked images as a generation so they appear in the pet's gallery
+    try {
+      await createGeneration(
+        userId,
+        modelId,
+        null,
+        'Training samples',
+        validImageUrls,
+        0,
+      );
+      console.log(`Sample generation saved for model ${modelId} (${validImageUrls.length} images)`);
+    } catch (err) {
+      console.error('Failed to save sample generation:', err);
     }
 
     // Watermark all images for email — NEVER fall back to unwatermarked originals
@@ -180,7 +196,7 @@ export async function checkAndCompleteTraining(
       // Wrapped in try/catch so model creation is never lost even if samples fail
       try {
         console.log('Generating sample images for email...');
-        const sampleImages = await generateSampleImages(model.id, loraUrl, training.trigger_word, petType);
+        const sampleImages = await generateSampleImages(userId, model.id, loraUrl, training.trigger_word, petType);
 
         if (sampleImages.length > 0) {
           // Send success email with sample images

@@ -345,7 +345,7 @@ export async function POST(request: NextRequest) {
     // Generate sample images with watermarks, then send email
     // This DOES wait because we need the images for the email
     console.log('Generating sample images for email...');
-    const sampleImages = await generateSampleImages(model.id, loraUrl, triggerWord, petType);
+    const sampleImages = await generateSampleImages(userId, model.id, loraUrl, triggerWord, petType);
 
     // Send success email with sample images
     if (sampleImages.length > 0) {
