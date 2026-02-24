@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import ProductPicker from './ProductPicker';
 import ScenePicker from './ScenePicker';
 import FavoritePick from './FavoritePick';
 import RefinePick from './RefinePick';
@@ -21,6 +22,7 @@ export interface StudioPortraitResult {
   generationId: number;
   imageIndex: number;
   sceneId: string;
+  productType: string;
 }
 
 interface StudioOverlayProps {
@@ -29,11 +31,14 @@ interface StudioOverlayProps {
   onPortraitSelected: (portrait: StudioPortraitResult) => void;
 }
 
-type StudioStep = 'scenes' | 'loading' | 'pick' | 'refine-loading' | 'refine';
+type StudioStep = 'product' | 'scenes' | 'loading' | 'pick' | 'refine-loading' | 'refine';
 
 export default function StudioOverlay({ model, onClose, onPortraitSelected }: StudioOverlayProps) {
-  const [step, setStep] = useState<StudioStep>('scenes');
+  const [step, setStep] = useState<StudioStep>('product');
   const [error, setError] = useState<string | null>(null);
+
+  // Product selection
+  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
 
   // Step 1 → 2 data
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
@@ -134,8 +139,9 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected }: St
       generationId: finalGenerationId,
       imageIndex: isOriginal ? selectedImageIndex : finalIndex + 1, // +1 because original is at 0 in the variation generation... actually we stored variations separately
       sceneId: selectedSceneId!,
+      productType: selectedProductType!,
     });
-  }, [generationId, variationGenerationId, selectedImageIndex, selectedSceneId, variationUrls, onPortraitSelected]);
+  }, [generationId, variationGenerationId, selectedImageIndex, selectedSceneId, selectedProductType, variationUrls, onPortraitSelected]);
 
   // Reset to scene picker
   const handleReject = useCallback(() => {
@@ -177,16 +183,27 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected }: St
 
       {/* Step content */}
       <div className="h-full pt-16 pb-4 overflow-hidden">
+        {step === 'product' && (
+          <ProductPicker
+            petName={model.trigger_word}
+            previewImageUrl={model.preview_image_url}
+            onProductSelected={(productType) => {
+              setSelectedProductType(productType);
+              setStep('scenes');
+            }}
+          />
+        )}
+
         {step === 'scenes' && (
           <ScenePicker
-            petName={model.name}
+            petName={model.trigger_word}
             onScenesSelected={handleScenesSelected}
           />
         )}
 
         {step === 'loading' && (
           <StudioLoading
-            petName={model.name}
+            petName={model.trigger_word}
             previewImageUrl={model.preview_image_url}
           />
         )}

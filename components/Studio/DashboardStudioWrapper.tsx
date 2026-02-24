@@ -42,10 +42,9 @@ export default function DashboardStudioWrapper({ models, children }: DashboardSt
       console.error('Failed to save portrait:', err);
     }
 
-    // Close studio and redirect to product selection
+    // Close studio and redirect to size selection with product pre-selected
     closeStudio();
-    // Navigate to print product selector with the selected portrait
-    window.location.href = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}`;
+    window.location.href = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}&productType=${encodeURIComponent(portrait.productType)}`;
   }, [selectedModel, closeStudio]);
 
   return (

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useCart } from '@/lib/cart-context';
 import { trackSelectProduct, trackAddToCart } from '@/components/MetaPixelEvents';
+import { MINI_MOCKUPS } from './MiniMockups';
 
 interface Product {
   id: number;
@@ -21,6 +22,7 @@ interface ProductSelectorProps {
   imageUrl: string;
   generationId: number;
   imageIndex: number;
+  initialProductType?: string;
 }
 
 const PRODUCT_TYPE_INFO: Record<string, { label: string; description: string }> = {
@@ -54,64 +56,6 @@ function getQualityLabel(product: Product): { label: string; color: string } | n
   }
   return { label: 'May appear soft', color: 'text-orange-400' };
 }
-
-// --- Mini mockup components for product type cards ---
-
-function MiniCanvasMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <div className="w-16 h-16 mx-auto mb-2">
-      <div className="w-full h-full bg-white p-[3px] shadow-md" style={{ boxShadow: '2px 3px 8px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.05)' }}>
-        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-      </div>
-    </div>
-  );
-}
-
-function MiniFramedMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
-      <div className="w-14 h-[4.5rem] bg-gray-900 p-[3px] shadow-md" style={{ boxShadow: '2px 3px 8px rgba(0,0,0,0.3)' }}>
-        <div className="w-full h-full bg-white p-[3px]">
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MiniPosterMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
-      <div className="w-12 h-16 shadow-md rounded-[1px] overflow-hidden" style={{ boxShadow: '2px 3px 8px rgba(0,0,0,0.25)' }}>
-        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-      </div>
-    </div>
-  );
-}
-
-function MiniMugMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
-      <div className="relative">
-        {/* Mug body */}
-        <div className="w-12 h-10 bg-white rounded-b-lg overflow-hidden relative" style={{ boxShadow: '2px 2px 6px rgba(0,0,0,0.2)' }}>
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-          {/* Ceramic highlight */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-transparent pointer-events-none" />
-        </div>
-        {/* Handle */}
-        <div className="absolute -right-2 top-1 w-3 h-6 border-2 border-white/80 rounded-r-full" />
-      </div>
-    </div>
-  );
-}
-
-const MINI_MOCKUPS: Record<string, React.ComponentType<{ imageUrl: string }>> = {
-  canvas: MiniCanvasMockup,
-  framed_poster: MiniFramedMockup,
-  poster: MiniPosterMockup,
-  mug: MiniMugMockup,
-};
 
 // --- Large mockup components ---
 
@@ -283,11 +227,11 @@ function usePrintfulMockup(
 
 // --- Main component ---
 
-export default function ProductSelector({ imageUrl, generationId, imageIndex }: ProductSelectorProps) {
+export default function ProductSelector({ imageUrl, generationId, imageIndex, initialProductType }: ProductSelectorProps) {
   const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(initialProductType || null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [frameColor, setFrameColor] = useState('black');
   const [addedToCart, setAddedToCart] = useState(false);
@@ -299,10 +243,19 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex }: 
     fetch('/api/print/products')
       .then(res => res.json())
       .then(data => {
-        setProducts(data.products || []);
+        const prods = data.products || [];
+        setProducts(prods);
+        // Auto-select first size variant when initialProductType is provided
+        if (initialProductType && !selectedProduct) {
+          const typeProducts = prods.filter((p: Product) => p.product_type === initialProductType);
+          if (typeProducts.length > 0) {
+            setSelectedProduct(typeProducts[0]);
+          }
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Group products by type
