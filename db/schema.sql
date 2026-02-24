@@ -202,7 +202,7 @@ CREATE INDEX IF NOT EXISTS idx_print_products_type ON print_products(product_typ
 CREATE INDEX IF NOT EXISTS idx_print_products_active ON print_products(active);
 CREATE INDEX IF NOT EXISTS idx_print_orders_user_id ON print_orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_print_orders_status ON print_orders(status);
-CREATE INDEX IF NOT EXISTS idx_print_orders_stripe ON print_orders(stripe_payment_intent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_print_orders_stripe ON print_orders(stripe_payment_intent_id);
 CREATE INDEX IF NOT EXISTS idx_print_orders_printful ON print_orders(printful_order_id);
 CREATE INDEX IF NOT EXISTS idx_print_order_items_order ON print_order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_studio_portraits_user ON studio_portraits(user_id);

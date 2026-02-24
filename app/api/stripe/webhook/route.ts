@@ -59,8 +59,14 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
         }
 
-        const items = JSON.parse(itemsJson);
-        const address = JSON.parse(addressJson);
+        let items, address;
+        try {
+          items = JSON.parse(itemsJson);
+          address = JSON.parse(addressJson);
+        } catch (parseErr) {
+          console.error('Failed to parse print order metadata:', parseErr);
+          return NextResponse.json({ error: 'Malformed metadata' }, { status: 400 });
+        }
         const paymentIntentId = session.payment_intent as string;
 
         // Idempotency: skip if order already exists for this payment intent

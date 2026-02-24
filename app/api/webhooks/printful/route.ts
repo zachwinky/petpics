@@ -129,6 +129,18 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case 'order_put_hold': {
+        console.log(`Order ${order.id} put on hold by Printful`);
+        try {
+          const { sendAdminAlert } = await import('@/lib/email');
+          await sendAdminAlert(
+            `Order ${order.id} put on hold by Printful`,
+            `Order ID: ${order.id}\nPrintful ID: ${printfulOrderId}\nUser ID: ${order.user_id}\n\nPrintful has put this order on hold (quality issue or address problem). Check the Printful dashboard.`
+          );
+        } catch {}
+        break;
+      }
+
       default:
         console.log(`Unhandled Printful webhook event: ${type}`);
     }

@@ -285,8 +285,23 @@ export async function fulfillPrintOrder(
     // Save Printful ID immediately so we can recover if confirm fails
     await updatePrintOrderPrintfulId(order.id, printfulOrder.id.toString());
 
-    // Confirm the order for fulfillment
-    await confirmOrder(printfulOrder.id);
+    // Confirm the order for fulfillment (separate try-catch so we know it was created)
+    try {
+      await confirmOrder(printfulOrder.id);
+    } catch (confirmErr) {
+      console.error(`Printful order ${printfulOrder.id} created but confirmation failed:`, confirmErr);
+      try {
+        const { sendAdminAlert } = await import('@/lib/email');
+        await sendAdminAlert(
+          `Print order ${order.id} — Printful confirmation failed (needs manual confirm)`,
+          `Order ID: ${order.id}\nPrintful Order ID: ${printfulOrder.id}\nUser ID: ${userId}\nStripe PI: ${stripePaymentIntentId}\n\nThe order was created in Printful but confirmation failed. Please confirm it manually in the Printful dashboard.\n\nError: ${confirmErr instanceof Error ? confirmErr.message : String(confirmErr)}`
+        );
+      } catch (alertErr) {
+        console.error('Failed to send admin alert:', alertErr);
+      }
+      // Still return the printfulOrderId since the order exists — it just needs manual confirm
+      return { orderId: order.id, printfulOrderId: printfulOrder.id.toString() };
+    }
 
     return { orderId: order.id, printfulOrderId: printfulOrder.id.toString() };
   } catch (err) {
