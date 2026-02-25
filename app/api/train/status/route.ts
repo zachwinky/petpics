@@ -49,6 +49,15 @@ export async function POST(request: NextRequest) {
 
     // Get pending training record to retrieve model_name and pet_type
     const pendingTraining = await getPendingTrainingByRequestId(requestId);
+
+    // Verify ownership — prevent cross-user model theft via request ID guessing
+    if (pendingTraining && pendingTraining.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Training not found' },
+        { status: 404 }
+      );
+    }
+
     const modelName = pendingTraining?.model_name || `Photo Subject ${triggerWord}`;
     const petType: PetType = (pendingTraining?.pet_type as PetType) || 'dog';
 

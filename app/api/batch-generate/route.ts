@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getUserById, createGeneration, getModelById } from '@/lib/db';
+import { rateLimit } from '@/lib/rateLimit';
 import { PRESET_PROMPTS, getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { scoreImagesWithPrompts } from '@/lib/imageQuality';
 import { getImageDimensions, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
 
 const FAL_KEY = process.env.FAL_KEY;
+const MAX_PROMPT_LENGTH = 500;
 
 // Upscale a single image using FAL Clarity Upscaler
 async function upscaleImage(imageUrl: string, upscaleFactor: number = 2): Promise<string> {
@@ -37,7 +39,7 @@ async function upscaleImage(imageUrl: string, upscaleFactor: number = 2): Promis
   return data.image?.url || imageUrl; // Return original if upscale fails
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -56,23 +58,47 @@ export async function POST(request: Request) {
       );
     }
 
+    // Rate limiting: 10 batch generations per minute per IP
+    const rateLimitResult = await rateLimit(request, 10, 60000);
+    if (rateLimitResult.isRateLimited) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.', retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { 'Retry-After': rateLimitResult.retryAfter.toString() } }
+      );
+    }
+
     const body = await request.json();
-    const { modelId, loraUrl, triggerWord, batchSize, selectedScenes, customPrompt, enableUpscale, aspectRatio } = body;
+    const { modelId, triggerWord, batchSize, selectedScenes, customPrompt, enableUpscale, aspectRatio } = body;
 
     // Get image dimensions based on selected aspect ratio
     const imageSize = getImageDimensions(aspectRatio || DEFAULT_ASPECT_RATIO);
 
-    if (!modelId || !loraUrl || !triggerWord || !batchSize) {
+    if (!modelId || !triggerWord || !batchSize) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Fetch model to get product description (for text accuracy) and pet type (for prompt selection)
+    // Validate custom prompt length
+    if (customPrompt && customPrompt.length > MAX_PROMPT_LENGTH) {
+      return NextResponse.json(
+        { error: `Custom prompt must be ${MAX_PROMPT_LENGTH} characters or less` },
+        { status: 400 }
+      );
+    }
+
+    // Fetch model to get loraUrl, product description, and pet type — always use DB value, never trust client
     const model = await getModelById(modelId, userId);
-    const productDescription = model?.product_description;
-    const petType: PetType = (model?.pet_type as PetType) || 'dog';
+    if (!model) {
+      return NextResponse.json(
+        { error: 'Model not found' },
+        { status: 404 }
+      );
+    }
+    const loraUrl = model.lora_url;
+    const productDescription = model.product_description;
+    const petType: PetType = (model.pet_type as PetType) || 'dog';
 
     // Build prompts array
     let prompts: string[] = [];

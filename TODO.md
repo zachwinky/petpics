@@ -1,7 +1,4 @@
-<!-- Test comment added via AI assistant -->
-<!-- Test comment added to the top of this file -->
-
-# Akoolai Generator - Feature Roadmap & TODO
+# Petpics - Feature Roadmap & TODO
 
 ## Infrastructure & Cost Optimization
 
@@ -118,7 +115,7 @@
   - "Animate" button on each generated image
   - Motion prompt input for custom animations
   - 5-second product videos
-  - 3 credits per video generation
+  - 5-second product videos
 - ✅ Video gallery with tabs (Images | Videos)
   - Auto-refresh when switching to Videos tab
   - Video playback with controls
@@ -147,7 +144,7 @@
 - ✅ Upscale HD feature
   - Free upscale once per batch
   - 2x AI upscaling via FAL Clarity Upscaler
-  - Subsequent upscales cost 1 credit
+  - Subsequent upscales available
   - Cannot remake after upscaling
 - ✅ Generate More from row
   - Creates new batch using same prompt
@@ -159,7 +156,7 @@
 ### 13. Auto-Preview Generation ✅ COMPLETED
 - ✅ Automatic preview generation after model training
   - Generates preview image when training completes
-  - No credits charged for auto-preview
+  - Free auto-preview generation
   - Shows on model detail page
 - ✅ Training flow improvements
   - Shows popup confirmation when training starts
@@ -183,7 +180,7 @@
 - ✅ Global placeholder text and cursor styling
 - ✅ Email verification system
 - ✅ Mobile responsive design
-- ✅ Stripe credit purchase integration
+- ✅ Stripe payment integration (originally credits, now print shop)
 - ✅ FLUX model training and generation
 - ✅ Reorganize product images under photo subjects (#9)
   - Clickable model cards linking to detail pages
@@ -192,7 +189,7 @@
   - API fix to link new generations to models
 - ✅ Batch generation with multi-scene selection (#4)
   - Free preview generation with delete functionality
-  - 4, 12, or 20 image batch options with credit pricing
+  - 4, 12, or 20 image batch options
   - Multi-scene preset library with 10+ backgrounds
   - Loading spinner during generation
   - Download buttons for all generated images
@@ -256,4 +253,4 @@
 
 ---
 
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-02-25

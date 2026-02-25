@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, getGenerationById, updateGenerationImages } from '@/lib/db';
+import { getUserById, getGenerationById, updateGenerationImages, getModelById } from '@/lib/db';
+import { rateLimit } from '@/lib/rateLimit';
 import { PRESET_PROMPTS } from '@/lib/presetPrompts';
 import { getImageDimensions, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
 
 const FAL_KEY = process.env.FAL_KEY;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -25,10 +26,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { generationId, modelId, loraUrl, triggerWord, rowIndex = 0 } = body;
+    // Rate limiting: 5 rerolls per minute per IP
+    const rateLimitResult = await rateLimit(request, 5, 60000);
+    if (rateLimitResult.isRateLimited) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.', retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { 'Retry-After': rateLimitResult.retryAfter.toString() } }
+      );
+    }
 
-    if (!generationId || !modelId || !loraUrl || !triggerWord) {
+    const body = await request.json();
+    const { generationId, modelId, triggerWord, rowIndex = 0 } = body;
+
+    if (!generationId || !modelId || !triggerWord) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -43,6 +53,16 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
+
+    // Look up model from DB — always use DB loraUrl, never trust client
+    const model = await getModelById(modelId, userId);
+    if (!model) {
+      return NextResponse.json(
+        { error: 'Model not found' },
+        { status: 404 }
+      );
+    }
+    const loraUrl = model.lora_url;
 
     // Check if remake was already used (only one free remake per batch)
     if (generation.reroll_used) {

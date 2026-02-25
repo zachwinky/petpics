@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
-});
+import { auth } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
+import { pool } from '@/lib/db';
 
 export async function POST() {
   try {
+    // Require admin authentication
+    const session = await auth();
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     console.log('Starting migration to link generations to models...');
 
     // Get all generations with null model_id

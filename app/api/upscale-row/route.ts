@@ -1,14 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, updateGenerationUpscale } from '@/lib/db';
-import { Pool } from 'pg';
+import { getUserById, updateGenerationUpscale, pool } from '@/lib/db';
+import { rateLimit } from '@/lib/rateLimit';
 
 const FAL_KEY = process.env.FAL_KEY;
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: { rejectUnauthorized: false },
-});
 
 // Upscale a single image using FAL Clarity Upscaler
 async function upscaleImage(imageUrl: string): Promise<string> {
@@ -40,7 +35,7 @@ async function upscaleImage(imageUrl: string): Promise<string> {
   return data.image?.url || imageUrl;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -63,6 +58,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
+      );
+    }
+
+    // Rate limiting: 5 upscales per minute per IP
+    const rateLimitResult = await rateLimit(request, 5, 60000);
+    if (rateLimitResult.isRateLimited) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.', retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { 'Retry-After': rateLimitResult.retryAfter.toString() } }
       );
     }
 
@@ -92,6 +96,14 @@ export async function POST(request: Request) {
     const generation = genResult.rows[0];
     const imageUrls: string[] = generation.image_urls;
     const upscaleUsed: boolean = generation.upscale_used || false;
+
+    // Enforce one-time upscale limit
+    if (upscaleUsed) {
+      return NextResponse.json(
+        { error: 'Upscale has already been used for this generation' },
+        { status: 400 }
+      );
+    }
 
     // Calculate which images belong to this row (4 images per row)
     const startIdx = rowIndex * 4;

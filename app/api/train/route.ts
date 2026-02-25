@@ -132,11 +132,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file sizes
+    // Validate file sizes and types
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/heic', 'image/heif'];
     for (const image of images) {
       if (image.size > MAX_FILE_SIZE) {
         return NextResponse.json(
           { error: `File ${image.name} exceeds maximum size of 10MB` },
+          { status: 400 }
+        );
+      }
+      if (!ALLOWED_TYPES.includes(image.type)) {
+        return NextResponse.json(
+          { error: `File ${image.name} has unsupported type "${image.type}". Only PNG, JPEG, WebP, and HEIC images are allowed.` },
           { status: 400 }
         );
       }

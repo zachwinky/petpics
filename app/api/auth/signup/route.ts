@@ -3,11 +3,21 @@ import bcrypt from 'bcryptjs';
 // Email verification disabled - uncomment when re-enabling
 // import crypto from 'crypto';
 import { getUserByEmail, createUser } from '@/lib/db';
+import { rateLimit } from '@/lib/rateLimit';
 // import { setEmailVerificationToken } from '@/lib/db';
 // import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 5 signups per hour per IP
+    const rateLimitResult = await rateLimit(request, 5, 3600000);
+    if (rateLimitResult.isRateLimited) {
+      return NextResponse.json(
+        { error: 'Too many signup attempts. Please try again later.', retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { 'Retry-After': rateLimitResult.retryAfter.toString() } }
+      );
+    }
+
     const { email, password, name } = await request.json();
 
     // Validate input

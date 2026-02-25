@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { modelId, loraUrl, triggerWord, prompt, aspectRatio } = body;
+    const { modelId, triggerWord, prompt, aspectRatio } = body;
 
     // Get image dimensions based on selected aspect ratio
     const imageSize = getImageDimensions(aspectRatio || DEFAULT_ASPECT_RATIO);
 
-    if (!loraUrl) {
+    if (!modelId) {
       return NextResponse.json(
-        { error: 'LoRA URL required' },
+        { error: 'Model ID required' },
         { status: 400 }
       );
     }
@@ -84,13 +84,20 @@ export async function POST(request: NextRequest) {
     // Configure fal client
     fal.config({ credentials: apiKey });
 
+    // Fetch model from DB — always use DB loraUrl, never trust client
+    const model = await getModelById(modelId, userId);
+    if (!model) {
+      return NextResponse.json(
+        { error: 'Model not found' },
+        { status: 404 }
+      );
+    }
+    const loraUrl = model.lora_url;
+
     // Build prompt with product description for text accuracy (if available)
     let fullPrompt = `Professional pet photography of ${triggerWord}, ${prompt}, high quality, detailed, studio lighting`;
-    if (modelId) {
-      const model = await getModelById(modelId, userId);
-      if (model?.product_description && model.product_description !== 'NO_TEXT_VISIBLE') {
-        fullPrompt = `Professional pet photography of ${triggerWord} with text ${model.product_description}, ${prompt}, high quality, detailed, studio lighting`;
-      }
+    if (model.product_description && model.product_description !== 'NO_TEXT_VISIBLE') {
+      fullPrompt = `Professional pet photography of ${triggerWord} with text ${model.product_description}, ${prompt}, high quality, detailed, studio lighting`;
     }
 
     const result = await fal.subscribe('fal-ai/flux-lora', {
@@ -155,7 +162,6 @@ export async function POST(request: NextRequest) {
       {
         error: 'Generation failed',
         details: error instanceof Error ? error.message : 'Unknown error',
-        debugInfo: error && typeof error === 'object' && 'body' in error ? (error as any).body : undefined
       },
       { status: 500 }
     );

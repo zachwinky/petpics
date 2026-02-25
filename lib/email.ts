@@ -2,11 +2,22 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// HTML-encode user-supplied values to prevent HTML injection in emails
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function sendVerificationEmail(
   to: string,
   name: string,
   verificationUrl: string
 ): Promise<void> {
+  const safeName = escapeHtml(name);
   try {
     await resend.emails.send({
       from: 'Petpics <hello@petpics.akoolai.com>',
@@ -26,7 +37,7 @@ export async function sendVerificationEmail(
             </div>
 
             <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name},</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
                 Thanks for signing up! To get started creating beautiful pet photos, please verify your email address:
@@ -71,6 +82,8 @@ export async function sendTrainingCompleteEmail(
   triggerWord: string
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
+  const safeTriggerWord = escapeHtml(triggerWord);
 
   try {
     await resend.emails.send({
@@ -87,14 +100,14 @@ export async function sendTrainingCompleteEmail(
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">${triggerWord} is Ready! 🐾</h1>
+              <h1 style="color: white; margin: 0; font-size: 28px;">${safeTriggerWord} is Ready! 🐾</h1>
             </div>
 
             <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Great news! <strong>${triggerWord}</strong> has finished training. Pick your favorite portrait and order a print &mdash; canvas, poster, or mug, shipped to your door.
+                Great news! <strong>${safeTriggerWord}</strong> has finished training. Pick your favorite portrait and order a print &mdash; canvas, poster, or mug, shipped to your door.
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
@@ -134,6 +147,8 @@ export async function sendTrainingCompleteEmailWithImages(
   sampleImages: string[] // Array of 3 watermarked image URLs
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
+  const safeTriggerWord = escapeHtml(triggerWord);
 
   // Build image grid HTML
   const imageGridHtml = sampleImages.map((url, index) => `
@@ -156,14 +171,14 @@ export async function sendTrainingCompleteEmailWithImages(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">${triggerWord} is Ready! 🐾</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">${safeTriggerWord} is Ready! 🐾</h1>
           </div>
 
           <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Great news! Here's a preview of what <strong>${triggerWord}</strong> looks like. Pick your favorite scene and order a print &mdash; canvas, poster, or mug, shipped to your door.
+              Great news! Here's a preview of what <strong>${safeTriggerWord}</strong> looks like. Pick your favorite scene and order a print &mdash; canvas, poster, or mug, shipped to your door.
             </p>
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 24px 0; padding: 16px; background: white; border-radius: 12px;">
@@ -208,6 +223,8 @@ export async function sendTrainingFailedEmail(
   errorReason: string
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
+  const safeModelName = escapeHtml(modelName);
 
   try {
     await resend.emails.send({
@@ -228,10 +245,10 @@ export async function sendTrainingFailedEmail(
             </div>
 
             <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                Unfortunately, there was an issue training <strong>${modelName}</strong>.
+                Unfortunately, there was an issue training <strong>${safeModelName}</strong>.
               </p>
 
               <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0;">
@@ -286,6 +303,8 @@ export async function sendReengagementEmail(
   sampleImages: string[]
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
+  const safePetName = escapeHtml(petName);
 
   const imageGridHtml = sampleImages.map((url, index) => `
     <div style="flex: 1; min-width: 150px; max-width: 180px; margin: 8px;">
@@ -307,14 +326,14 @@ export async function sendReengagementEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ff9672 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">${petName} is waiting for you! 🐾</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">${safePetName} is waiting for you! 🐾</h1>
           </div>
 
           <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
             <p style="font-size: 16px; margin-bottom: 20px;">
-              We generated some sample portraits of <strong>${petName}</strong> &mdash; pick your favorite and get it printed!
+              We generated some sample portraits of <strong>${safePetName}</strong> &mdash; pick your favorite and get it printed!
             </p>
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 24px 0; padding: 16px; background: white; border-radius: 12px;">
@@ -445,6 +464,7 @@ export async function sendOrderConfirmationEmail(
   totalCents: number,
   address: OrderAddress
 ): Promise<void> {
+  const safeName = escapeHtml(name || 'there');
   const itemsHtml = items.map(item => `
     <tr>
       <td style="padding: 12px 0; border-bottom: 1px solid #eee;">
@@ -473,7 +493,7 @@ export async function sendOrderConfirmationEmail(
             <h1 style="color: white; margin: 0; font-size: 24px;">Order Confirmed! 🎉</h1>
           </div>
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-            <p>Hi ${name || 'there'},</p>
+            <p>Hi ${safeName},</p>
             <p>Your order <strong>#${orderId}</strong> has been placed and is being prepared.</p>
 
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">${itemsHtml}</table>
@@ -520,6 +540,7 @@ export async function sendOrderShippedEmail(
   trackingNumber: string,
   trackingUrl: string
 ): Promise<void> {
+  const safeName = escapeHtml(name || 'there');
   const result = await resend.emails.send({
     from: 'Petpics <hello@petpics.akoolai.com>',
     replyTo: 'zach@akoolai.com',
@@ -534,7 +555,7 @@ export async function sendOrderShippedEmail(
             <h1 style="color: white; margin: 0; font-size: 24px;">Your Order Has Shipped! 📦</h1>
           </div>
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-            <p>Hi ${name || 'there'},</p>
+            <p>Hi ${safeName},</p>
             <p>Great news! Your order <strong>#${orderId}</strong> is on its way to you.</p>
 
             <div style="background: white; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
@@ -575,6 +596,7 @@ export async function sendDeliveryFollowupEmail(
   orderId: number
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
 
   const result = await resend.emails.send({
     from: 'Petpics <hello@petpics.akoolai.com>',
@@ -590,7 +612,7 @@ export async function sendDeliveryFollowupEmail(
             <h1 style="color: white; margin: 0; font-size: 24px;">How does it look? 🐾</h1>
           </div>
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-            <p>Hi ${name || 'there'},</p>
+            <p>Hi ${safeName},</p>
             <p>Your order <strong>#${orderId}</strong> should have arrived by now. We hope you love it!</p>
 
             <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
@@ -695,6 +717,8 @@ export async function sendPrintAnnouncementEmail(
   petName: string
 ): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://petpics.akoolai.com';
+  const safeName = escapeHtml(name || 'there');
+  const safePetName = escapeHtml(petName);
 
   const result = await resend.emails.send({
     from: 'Petpics <hello@petpics.akoolai.com>',
@@ -714,10 +738,10 @@ export async function sendPrintAnnouncementEmail(
           </div>
 
           <div style="background: #f9fafb; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${safeName},</p>
 
             <p style="font-size: 16px; margin-bottom: 20px;">
-              We've added something new to Petpics &mdash; you can now print your favorite AI portrait of <strong>${petName}</strong> on canvas, poster, or mug and have it shipped to your door.
+              We've added something new to Petpics &mdash; you can now print your favorite AI portrait of <strong>${safePetName}</strong> on canvas, poster, or mug and have it shipped to your door.
             </p>
 
             <p style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">

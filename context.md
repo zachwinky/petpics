@@ -1,9 +1,9 @@
 # Petpics - Development Context
 
-## Last Updated: 2026-02-17
+## Last Updated: 2026-02-25
 
 ## Project Overview
-AI Pet Photography SaaS. Users upload 5-20 photos of their pet, train a custom LoRA model via FAL.ai, then generate portraits in any scene/setting. Monetized via Stripe credit system.
+AI Pet Photography SaaS. Users upload 5-20 photos of their pet, train a custom LoRA model via FAL.ai, then generate portraits in any scene/setting. Monetized via print shop (Printful fulfillment via Stripe checkout). Credit system removed Feb 2026.
 
 ## Production
 - **App URL**: https://petpics.akoolai.com
@@ -19,12 +19,35 @@ AI Pet Photography SaaS. Users upload 5-20 photos of their pet, train a custom L
 - **Auth**: NextAuth.js (Google OAuth + Credentials)
 - **Payments**: Stripe (API version 2025-12-15.clover)
 - **AI**: FAL.ai (LoRA training via flux-lora-fast, generation via flux-lora)
-- **Email**: Resend (4 email types: verification, training complete, training complete w/ images, training failed)
+- **Email**: Resend (11 email types: verification, training complete, training complete w/ images, training failed, reengagement, stuck training alert, order confirmation, order shipped, delivery followup, admin alert, print announcement)
+- **Fulfillment**: Printful (print-on-demand canvas, posters, framed prints)
+- **Ad Tracking**: Google Ads (conversion ID: AW-17962222367)
 - **Rate Limiting**: Vercel KV (Upstash Redis)
 - **Styling**: Tailwind CSS 4
 - **Tracking**: Meta Pixel + Vercel Analytics
 
 ## Recent Changes (Feb 2026)
+
+### Credit System Removal (Feb 25)
+- Removed entire credit system: CreditModal, CreditPurchase, credit packages, credit balance, updateUserCredits
+- Deleted files: CreditModal.tsx, CreditPurchase.tsx, create-checkout-session/route.ts, user/credits/route.ts
+- Training and generation are now free; monetization is via print shop only
+- Stripe webhook handles print order fulfillment only (credit purchase branch removed)
+- Admin dashboard tracks print orders as revenue instead of credit purchases
+- Credit labels removed from all UI (generate buttons, video modal, navbar, row actions)
+- DB columns retained for historical data (credits_balance, transactions, credits_used)
+
+### Print Shop (Feb ~20)
+- Full print-on-demand integration via Printful
+- Product catalog: canvas prints, posters, framed prints (stored in print_products table)
+- Print order flow: /print/configure → /print/cart → /print/checkout → Stripe → webhook → Printful
+- Printful webhook receives order status updates (in_production, shipped, delivered, failed)
+- Studio portraits table for saving user's selected images
+- Pages: /print/configure, /print/cart, /print/checkout, /print/order/[id], /print/order/confirmation
+- Components: PrintShop/ (CartView, CheckoutForm, OrderConfirmationContent, MiniMockups, ProductSelector, PrintPurchaseEvent)
+- Cron jobs: check-stuck-trainings (maxDuration=300), delivery-followup
+- Re-engagement emails for users with models but no print purchases
+- Print announcement emails for all users with trained models
 
 ### Watermark Fix (Feb 17)
 - SVG text rendering fails on Vercel serverless (librsvg renders tiny/invisible, no system fonts)
@@ -79,6 +102,10 @@ AI Pet Photography SaaS. Users upload 5-20 photos of their pet, train a custom L
 ## Key Admin Config Keys (admin_config table)
 - `hero_gallery_images` — `[{ url: string, alt: string }]` for landing page gallery
 - `sample_prompt_ids` — `string[]` (2 preset IDs for training completion email samples)
+- `reengagement_sent_users` — tracks users who received reengagement email
+- `print_announcement_sent_users` — tracks users who received print announcement
+- `stuck_training_alerts_sent` — tracks pending training IDs alerted for being stuck
+- `delivery_followups_sent` — tracks order IDs that received delivery followup email
 
 ## Key Files
 - `app/page.tsx` — Landing page layout (server component)
@@ -99,13 +126,21 @@ AI Pet Photography SaaS. Users upload 5-20 photos of their pet, train a custom L
 - `app/api/admin/gallery-config/route.ts` — Gallery image CRUD
 - `app/api/gallery/route.ts` — Public gallery endpoint
 - `app/api/pending-trainings/route.ts` — Training status polling (maxDuration=300)
+- `lib/training-completion.ts` — Training completion logic (sample generation, email sending)
+- `lib/printful.ts` — Printful API client (order creation, status, shipping rates)
+- `app/print/` — Print shop pages (configure, cart, checkout, order)
+- `components/PrintShop/` — Print shop components (CartView, CheckoutForm, ProductSelector, etc.)
+- `app/api/print/` — Print shop API routes (products, mockup, shipping-rates, checkout, order-status)
+- `app/api/cron/check-stuck-trainings/route.ts` — Stuck training alert cron (maxDuration=300)
+- `app/api/cron/delivery-followup/route.ts` — Delivery followup email cron
+- `app/api/webhooks/printful/route.ts` — Printful order status webhook
 
 ## Vercel Serverless Constraints
 - No system fonts installed (any font-dependent rendering fails)
 - librsvg renders SVG text at wrong size vs local environment
 - Memory limited: avoid large intermediate RGBA canvases (keep under ~16MB)
 - `maxDuration` required on long-running routes (default timeout = 10-60s)
-- Current maxDuration routes: train (300), pending-trainings (300), resend-training-email (300), videos/generate (60)
+- Current maxDuration routes: train (300), pending-trainings (300), resend-training-email (300), check-stuck-trainings (300), videos/generate (60)
 
 ## Known Considerations
 - FAL storage URLs are semi-permanent but can expire — for gallery, use stable URLs

@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
+import { auth } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
 
 // This endpoint initializes/updates the database schema
-// Protected by admin secret
+// Protected by admin authentication
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin secret
-    const { secret } = await request.json();
-    const adminSecret = process.env.ADMIN_SECRET || 'petpics-admin-2024';
-
-    if (secret !== adminSecret) {
+    // Require admin authentication
+    const session = await auth();
+    if (!session?.user?.email || !isAdmin(session.user.email)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

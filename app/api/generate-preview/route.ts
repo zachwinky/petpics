@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getUserById, getModelById, updateModelPreview } from '@/lib/db';
+import { rateLimit } from '@/lib/rateLimit';
 
 const FAL_KEY = process.env.FAL_KEY;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -23,17 +24,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { modelId, loraUrl, triggerWord } = body;
+    // Rate limiting: 5 preview generations per minute per IP
+    const rateLimitResult = await rateLimit(request, 5, 60000);
+    if (rateLimitResult.isRateLimited) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.', retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { 'Retry-After': rateLimitResult.retryAfter.toString() } }
+      );
+    }
 
-    if (!modelId || !loraUrl || !triggerWord) {
+    const body = await request.json();
+    const { modelId, triggerWord } = body;
+
+    if (!modelId || !triggerWord) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Verify model ownership
+    // Verify model ownership and get loraUrl from DB — never trust client
     const model = await getModelById(modelId, userId);
     if (!model) {
       return NextResponse.json(
@@ -41,6 +51,7 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
+    const loraUrl = model.lora_url;
 
     // Generate free preview with FAL API - backgroundless
     const falResponse = await fetch('https://fal.run/fal-ai/flux-lora', {

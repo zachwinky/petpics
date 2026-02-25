@@ -1,12 +1,4 @@
-import { Pool } from 'pg';
-import { getAdminConfig } from '@/lib/db';
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
-});
+import { pool, getAdminConfig } from '@/lib/db';
 
 // Admin user emails (configure these in environment variable)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
