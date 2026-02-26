@@ -4,6 +4,7 @@ import { getUserById, getModelById, createGeneration } from '@/lib/db';
 import { getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { getStudioSceneById } from '@/lib/studioScenes';
 import { rateLimit } from '@/lib/rateLimit';
+import { getGenerationSize } from '@/lib/productDimensions';
 
 const FAL_KEY = process.env.FAL_KEY;
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { modelId, sceneIds } = body;
+    const { modelId, sceneIds, productType } = body;
 
     if (!modelId || !sceneIds || !Array.isArray(sceneIds) || sceneIds.length !== 4) {
       return NextResponse.json(
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
 
     const petType: PetType = (model.pet_type as PetType) || 'dog';
     const petLabel = petType === 'cat' ? 'cat' : 'pet';
+    const imageSize = getGenerationSize(productType);
 
     // Generate 1 image per scene in parallel (4 parallel FAL calls)
     const generatePromises = scenes.map(async (scene) => {
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
           prompt: fullPrompt,
           loras: [{ path: model.lora_url, scale: 1 }],
           num_images: 1,
-          image_size: { width: 1024, height: 1024 },
+          image_size: imageSize,
           num_inference_steps: 40,
           guidance_scale: 5.5,
           enable_safety_checker: false,
@@ -115,7 +117,7 @@ export async function POST(request: NextRequest) {
       0,       // Free — no credit cost
       rowPrompts,
       undefined,
-      'square' // Studio always generates square for print
+      productType || 'square'
     );
 
     return NextResponse.json({

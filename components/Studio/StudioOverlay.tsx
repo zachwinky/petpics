@@ -75,6 +75,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
         body: JSON.stringify({
           modelId: model.id,
           sceneIds: selectedSceneIds,
+          productType: selectedProductType,
         }),
       });
 
@@ -91,7 +92,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setStep('scenes');
     }
-  }, [model.id]);
+  }, [model.id, selectedProductType]);
 
   // Step 2: Pick favorite → generate variations
   const handleFavoritePicked = useCallback(async (imageUrl: string, index: number, sceneId: string) => {
@@ -110,6 +111,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
           modelId: model.id,
           sceneId,
           originalGenerationId: generationId,
+          productType: selectedProductType,
         }),
       });
 
@@ -127,7 +129,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
       // Still show refine step with just the original
       setStep('refine');
     }
-  }, [model.id, generationId]);
+  }, [model.id, generationId, selectedProductType]);
 
   // Step 3: Final pick → pass to print flow
   const handleRefinePick = useCallback((imageUrl: string, isOriginal: boolean) => {
