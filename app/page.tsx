@@ -159,13 +159,13 @@ export default function Home() {
       {/* NAV */}
       <nav className="landing-nav">
         <a href="/" className="landing-nav-logo">
-          <span className="landing-nav-shark">🦈</span> petpics<span>.ai</span>
+          <span className="landing-nav-shark">🦈</span> petpics
         </a>
         <div className="landing-nav-links">
           <a href="#products" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Shop</a>
           <a href="#how" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('how'); }}>How It Works</a>
           <a href="#faq" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
-          <a href="/dashboard" className="landing-nav-signin">Sign In</a>
+          <a href="/auth/signin" className="landing-nav-signin">Sign In</a>
           <a href="#products" className="landing-nav-cta" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Get Started</a>
         </div>
       </nav>
@@ -365,7 +365,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="landing-footer">
         <div className="landing-footer-logo">
-          <span className="landing-nav-shark">🦈</span> petpics<span>.ai</span>
+          <span className="landing-nav-shark">🦈</span> petpics
         </div>
         <div className="landing-footer-links">
           <a href="/privacy">Privacy</a>
