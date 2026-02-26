@@ -8,7 +8,7 @@ export const pool = new Pool({
     : { rejectUnauthorized: false }, // Allow self-signed certs in development
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
 export interface User {
@@ -326,7 +326,7 @@ export async function getModelGenerationCount(modelId: number, userId: number): 
     'SELECT COUNT(*) FROM generations WHERE model_id = $1 AND user_id = $2',
     [modelId, userId]
   );
-  return parseInt(result.rows[0].count);
+  return parseInt(result.rows[0]?.count ?? '0');
 }
 
 export async function getGenerationById(generationId: number, userId: number): Promise<Generation | null> {

@@ -29,7 +29,7 @@ export default function OrderHistorySection({ orders, orderItemsMap }: OrderHist
         {displayOrders.map(order => {
           const items = orderItemsMap[order.id] || [];
           const firstItem = items[0];
-          const statusConfig = ORDER_STATUS_CONFIG[order.status];
+          const statusConfig = ORDER_STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', stepIndex: -1 };
           const productLabel = firstItem
             ? firstItem.product_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
             : 'Print';

@@ -10,7 +10,7 @@ interface ActiveOrderCardProps {
 }
 
 export default function ActiveOrderCard({ order, items }: ActiveOrderCardProps) {
-  const statusConfig = ORDER_STATUS_CONFIG[order.status];
+  const statusConfig = ORDER_STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', stepIndex: -1 };
   const cta = getOrderCTA(order.status, order.id);
   const firstItem = items[0];
   const productLabel = firstItem

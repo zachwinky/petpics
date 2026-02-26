@@ -23,6 +23,7 @@ interface DashboardContentProps {
   activeOrders: PrintOrder[];
   completedOrders: PrintOrder[];
   orderItemsMap: Record<number, PrintOrderItem[]>;
+  loadError?: boolean;
 }
 
 export default function DashboardContent({
@@ -33,6 +34,7 @@ export default function DashboardContent({
   activeOrders,
   completedOrders,
   orderItemsMap,
+  loadError,
 }: DashboardContentProps) {
   const searchParams = useSearchParams();
   const [studioOpen, setStudioOpen] = useState(false);
@@ -106,6 +108,38 @@ export default function DashboardContent({
   return (
     <>
       <main className="dash-main">
+        {loadError && (
+          <div style={{
+            background: '#2a1a1a',
+            border: '1px solid #663333',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            color: '#ffaaaa',
+            fontSize: '14px',
+          }}>
+            <span>Some data couldn&apos;t be loaded. Please refresh to try again.</span>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#663333',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 14px',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: '13px',
+                flexShrink: 0,
+                marginLeft: '12px',
+              }}
+            >
+              Refresh
+            </button>
+          </div>
+        )}
         {isNewUser ? (
           <>
             {/* New user: upload is the hero action */}
