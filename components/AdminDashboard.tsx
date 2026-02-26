@@ -171,6 +171,11 @@ export default function AdminDashboard() {
   const [newImageAlt, setNewImageAlt] = useState('');
   const [savingGallery, setSavingGallery] = useState(false);
 
+  // Product images config state
+  const [productImagesSectionOpen, setProductImagesSectionOpen] = useState(false);
+  const [productImages, setProductImages] = useState<Record<string, string>>({});
+  const [savingProductImages, setSavingProductImages] = useState(false);
+
   // Re-engagement state
   const [reengagementSectionOpen, setReengagementSectionOpen] = useState(false);
   const [reengagementUsers, setReengagementUsers] = useState<ReengagementUser[]>([]);
@@ -229,6 +234,13 @@ export default function AdminDashboard() {
       if (galleryRes.ok) {
         const galleryData = await galleryRes.json();
         setGalleryImages(galleryData.images || []);
+      }
+
+      // Load product images config
+      const productImagesRes = await fetch('/api/admin/product-images');
+      if (productImagesRes.ok) {
+        const productImagesData = await productImagesRes.json();
+        setProductImages(productImagesData.images || {});
       }
     } catch (error) {
       console.error('Failed to load admin data:', error);
@@ -349,6 +361,27 @@ export default function AdminDashboard() {
       alert('Network error');
     } finally {
       setSavingGallery(false);
+    }
+  };
+
+  const saveProductImages = async () => {
+    setSavingProductImages(true);
+    try {
+      const res = await fetch('/api/admin/product-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: productImages }),
+      });
+      if (res.ok) {
+        alert('Product images saved!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save product images');
+      }
+    } catch {
+      alert('Network error');
+    } finally {
+      setSavingProductImages(false);
     }
   };
 
@@ -1037,6 +1070,133 @@ export default function AdminDashboard() {
                 className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {savingGallery ? 'Saving...' : 'Save Gallery'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Product Card Images */}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={() => setProductImagesSectionOpen(!productImagesSectionOpen)}
+          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Landing Page Product Images</h2>
+            <p className="text-sm text-gray-500">Set images for the product cards and hero section on the landing page</p>
+          </div>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${productImagesSectionOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {productImagesSectionOpen && (
+          <div className="px-6 py-4 space-y-6">
+            <p className="text-sm text-gray-600">
+              Paste image URLs below. These replace the placeholder icons on the landing page product cards and hero section.
+              Leave blank to keep the emoji placeholder.
+            </p>
+
+            {/* Product card images */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Product Card Images</h3>
+              <div className="space-y-3">
+                {[
+                  { key: 'canvas', label: 'Canvas Print' },
+                  { key: 'poster', label: 'Poster Print' },
+                  { key: 'mug', label: 'Ceramic Mug' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                      {productImages[key] ? (
+                        <img src={productImages[key]} alt={label} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">{key === 'canvas' ? '🖼️' : key === 'poster' ? '🎨' : '☕'}</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700">{label}</label>
+                      <input
+                        type="text"
+                        value={productImages[key] || ''}
+                        onChange={(e) => setProductImages(prev => ({ ...prev, [key]: e.target.value }))}
+                        placeholder={`Image URL for ${label.toLowerCase()}`}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-1"
+                      />
+                    </div>
+                    {productImages[key] && (
+                      <button
+                        onClick={() => setProductImages(prev => { const next = { ...prev }; delete next[key]; return next; })}
+                        className="p-1 text-red-500 hover:text-red-700 flex-shrink-0"
+                        title="Clear"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hero section images */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Hero Section Images</h3>
+              <p className="text-xs text-gray-500 mb-3">These appear in the hero area at the top of the landing page. Can be different from the product cards.</p>
+              <div className="space-y-3">
+                {[
+                  { key: 'hero_canvas', label: 'Hero Canvas' },
+                  { key: 'hero_poster', label: 'Hero Poster' },
+                  { key: 'hero_mug', label: 'Hero Mug' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                      {productImages[key] ? (
+                        <img src={productImages[key]} alt={label} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs text-gray-400">empty</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700">{label}</label>
+                      <input
+                        type="text"
+                        value={productImages[key] || ''}
+                        onChange={(e) => setProductImages(prev => ({ ...prev, [key]: e.target.value }))}
+                        placeholder={`Image URL (falls back to product card image)`}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-1"
+                      />
+                    </div>
+                    {productImages[key] && (
+                      <button
+                        onClick={() => setProductImages(prev => { const next = { ...prev }; delete next[key]; return next; })}
+                        className="p-1 text-red-500 hover:text-red-700 flex-shrink-0"
+                        title="Clear"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Save button */}
+            <div className="flex justify-end">
+              <button
+                onClick={saveProductImages}
+                disabled={savingProductImages}
+                className="px-4 py-2 bg-coral-500 text-white font-medium rounded-lg hover:bg-coral-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {savingProductImages ? 'Saving...' : 'Save Product Images'}
               </button>
             </div>
           </div>

@@ -79,12 +79,22 @@ const ArrowIcon = () => (
   </svg>
 );
 
+interface ProductImageConfig {
+  canvas?: string;
+  poster?: string;
+  mug?: string;
+  hero_canvas?: string;
+  hero_poster?: string;
+  hero_mug?: string;
+}
+
 export default function Home() {
   const router = useRouter();
   const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [productImages, setProductImages] = useState<ProductImageConfig>({});
 
-  // Fetch real product prices from API
+  // Fetch real product prices and product images
   useEffect(() => {
     async function fetchPrices() {
       try {
@@ -116,7 +126,18 @@ export default function Home() {
         // Use fallback prices
       }
     }
+    async function fetchProductImages() {
+      try {
+        const res = await fetch('/api/product-images');
+        if (!res.ok) return;
+        const data = await res.json();
+        setProductImages(data.images || {});
+      } catch {
+        // Use fallback placeholders
+      }
+    }
     fetchPrices();
+    fetchProductImages();
   }, []);
 
   const handleCreateYours = (productType: string) => {
@@ -144,6 +165,7 @@ export default function Home() {
           <a href="#products" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Shop</a>
           <a href="#how" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('how'); }}>How It Works</a>
           <a href="#faq" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
+          <a href="/dashboard" className="landing-nav-signin">Sign In</a>
           <a href="#products" className="landing-nav-cta" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Get Started</a>
         </div>
       </nav>
@@ -176,27 +198,26 @@ export default function Home() {
           </div>
         </div>
         <div className="landing-hero-visual">
-          <div className="landing-hero-product">
-            <div className="landing-hero-product-inner">
-              <div className="product-icon">🖼️</div>
-              <div className="product-label">Canvas Print</div>
-              <div className="product-note">Your pet portrait sample here</div>
-            </div>
-          </div>
-          <div className="landing-hero-product">
-            <div className="landing-hero-product-inner">
-              <div className="product-icon">☕</div>
-              <div className="product-label">Ceramic Mug</div>
-              <div className="product-note">Your pet portrait sample here</div>
-            </div>
-          </div>
-          <div className="landing-hero-product">
-            <div className="landing-hero-product-inner">
-              <div className="product-icon">🎨</div>
-              <div className="product-label">Poster Print</div>
-              <div className="product-note">Your pet portrait sample here</div>
-            </div>
-          </div>
+          {[
+            { type: 'canvas', icon: '🖼️', label: 'Canvas Print', heroKey: 'hero_canvas' as const, imgKey: 'canvas' as const },
+            { type: 'mug', icon: '☕', label: 'Ceramic Mug', heroKey: 'hero_mug' as const, imgKey: 'mug' as const },
+            { type: 'poster', icon: '🎨', label: 'Poster Print', heroKey: 'hero_poster' as const, imgKey: 'poster' as const },
+          ].map(({ type, icon, label, heroKey, imgKey }) => {
+            const imgUrl = productImages[heroKey] || productImages[imgKey];
+            return (
+              <div key={type} className="landing-hero-product" onClick={() => handleCreateYours(type)}>
+                {imgUrl ? (
+                  <img src={imgUrl} alt={label} className="landing-hero-product-img" />
+                ) : (
+                  <div className="landing-hero-product-inner">
+                    <div className="product-icon">{icon}</div>
+                    <div className="product-label">{label}</div>
+                    <div className="product-note">Your pet portrait sample here</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="landing-hero-scroll-hint">← swipe to see products →</div>
       </section>
@@ -209,52 +230,33 @@ export default function Home() {
           <p>Every product features your pet transformed into stunning AI art, printed with vibrant, fade-resistant inks.</p>
         </div>
         <div className="landing-products-grid">
-          {/* Canvas */}
-          <div className="landing-product-card" onClick={() => handleCreateYours('canvas')}>
-            <div className="landing-product-card-image">
-              <div className="landing-product-popular">Most Popular</div>
-              <div className="card-icon">🖼️</div>
-              <div className="card-placeholder">Canvas preview<br /><small>Replace with your sample</small></div>
-            </div>
-            <div className="landing-product-card-body">
-              <h3>Canvas Print</h3>
-              <p>Gallery-wrapped on a solid wood frame. Arrives ready to hang — no framing needed.</p>
-              <div className="landing-product-card-footer">
-                <div className="landing-product-price">From {prices.canvas} <span>+ shipping</span></div>
-                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('canvas'); }}>Create Yours</button>
+          {[
+            { type: 'canvas' as const, icon: '🖼️', name: 'Canvas Print', desc: 'Gallery-wrapped on a solid wood frame. Arrives ready to hang — no framing needed.', popular: true },
+            { type: 'poster' as const, icon: '🎨', name: 'Poster Print', desc: 'Vibrant matte finish on heavyweight paper. Perfect for framing your way.', popular: false },
+            { type: 'mug' as const, icon: '☕', name: 'Ceramic Mug', desc: 'Start every morning with your best friend. Dishwasher-safe, 11oz white ceramic.', popular: false },
+          ].map(({ type, icon, name, desc, popular }) => (
+            <div key={type} className="landing-product-card" onClick={() => handleCreateYours(type)}>
+              <div className="landing-product-card-image">
+                {popular && <div className="landing-product-popular">Most Popular</div>}
+                {productImages[type] ? (
+                  <img src={productImages[type]} alt={name} className="landing-product-card-photo" />
+                ) : (
+                  <>
+                    <div className="card-icon">{icon}</div>
+                    <div className="card-placeholder">{name} preview<br /><small>Replace with your sample</small></div>
+                  </>
+                )}
+              </div>
+              <div className="landing-product-card-body">
+                <h3>{name}</h3>
+                <p>{desc}</p>
+                <div className="landing-product-card-footer">
+                  <div className="landing-product-price">From {prices[type]} <span>+ shipping</span></div>
+                  <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours(type); }}>Create Yours</button>
+                </div>
               </div>
             </div>
-          </div>
-          {/* Poster */}
-          <div className="landing-product-card" onClick={() => handleCreateYours('poster')}>
-            <div className="landing-product-card-image">
-              <div className="card-icon">🎨</div>
-              <div className="card-placeholder">Poster preview<br /><small>Replace with your sample</small></div>
-            </div>
-            <div className="landing-product-card-body">
-              <h3>Poster Print</h3>
-              <p>Vibrant matte finish on heavyweight paper. Perfect for framing your way.</p>
-              <div className="landing-product-card-footer">
-                <div className="landing-product-price">From {prices.poster} <span>+ shipping</span></div>
-                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('poster'); }}>Create Yours</button>
-              </div>
-            </div>
-          </div>
-          {/* Mug */}
-          <div className="landing-product-card" onClick={() => handleCreateYours('mug')}>
-            <div className="landing-product-card-image">
-              <div className="card-icon">☕</div>
-              <div className="card-placeholder">Mug preview<br /><small>Replace with your sample</small></div>
-            </div>
-            <div className="landing-product-card-body">
-              <h3>Ceramic Mug</h3>
-              <p>Start every morning with your best friend. Dishwasher-safe, 11oz white ceramic.</p>
-              <div className="landing-product-card-footer">
-                <div className="landing-product-price">From {prices.mug} <span>+ shipping</span></div>
-                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('mug'); }}>Create Yours</button>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
