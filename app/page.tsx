@@ -86,6 +86,13 @@ const PRODUCT_IMAGES: Record<string, string> = {
   mug: '/products/mug-mockup.png',
 };
 
+// Hero lifestyle images (people holding products)
+const HERO_IMAGES: Record<string, string> = {
+  canvas: '/products/hero-canvas.png',
+  poster: '/products/hero-poster.png',
+  mug: '/products/hero-mug.png',
+};
+
 export default function Home() {
   const router = useRouter();
   const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
@@ -190,7 +197,7 @@ export default function Home() {
             { type: 'poster', label: 'Poster Print' },
           ].map(({ type, label }) => (
             <div key={type} className="landing-hero-product" onClick={() => handleCreateYours(type)}>
-              <img src={PRODUCT_IMAGES[type]} alt={label} className="landing-hero-product-img" />
+              <img src={HERO_IMAGES[type]} alt={label} className="landing-hero-product-img" />
             </div>
           ))}
         </div>
