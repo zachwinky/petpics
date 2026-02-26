@@ -23,6 +23,7 @@ export interface StudioPortraitResult {
   imageIndex: number;
   sceneId: string;
   productType: string;
+  mockupUrl?: string;
 }
 
 interface StudioOverlayProps {
@@ -132,7 +133,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
   }, [model.id, generationId, selectedProductType]);
 
   // Step 3: Final pick → pass to print flow
-  const handleRefinePick = useCallback((imageUrl: string, isOriginal: boolean) => {
+  const handleRefinePick = useCallback((imageUrl: string, isOriginal: boolean, mockupUrl?: string) => {
     const finalGenerationId = isOriginal ? generationId! : variationGenerationId!;
     const finalIndex = isOriginal ? selectedImageIndex : variationUrls.indexOf(imageUrl);
     trackPortraitSelected();
@@ -143,6 +144,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
       imageIndex: isOriginal ? selectedImageIndex : finalIndex + 1, // +1 because original is at 0 in the variation generation... actually we stored variations separately
       sceneId: selectedSceneId!,
       productType: selectedProductType!,
+      mockupUrl,
     });
   }, [generationId, variationGenerationId, selectedImageIndex, selectedSceneId, selectedProductType, variationUrls, onPortraitSelected]);
 
@@ -225,6 +227,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
             originalImageUrl={selectedImage}
             variationUrls={variationUrls}
             isLoading={step === 'refine-loading'}
+            productType={selectedProductType || 'canvas'}
             onPick={handleRefinePick}
             onReject={handleReject}
           />

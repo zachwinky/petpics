@@ -54,7 +54,11 @@ export default function SubjectActions({ model, hasExistingPortraits }: SubjectA
     }
 
     setStudioOpen(false);
-    window.location.href = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}&productType=${encodeURIComponent(portrait.productType)}`;
+    let configureUrl = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}&productType=${encodeURIComponent(portrait.productType)}`;
+    if (portrait.mockupUrl) {
+      configureUrl += `&mockupUrl=${encodeURIComponent(portrait.mockupUrl)}`;
+    }
+    window.location.href = configureUrl;
   }, [model.id]);
 
   return (

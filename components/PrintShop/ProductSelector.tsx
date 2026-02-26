@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useCart } from '@/lib/cart-context';
 import { trackSelectProduct, trackAddToCart } from '@/components/MetaPixelEvents';
 import { MINI_MOCKUPS } from './MiniMockups';
+import {
+  LargeCanvasMockup, LargeFramedMockup, LargePosterMockup, LargeMugMockup,
+  PRINTFUL_PRODUCT_IDS,
+} from './LargeMockups';
 
 interface Product {
   id: number;
@@ -23,6 +27,7 @@ interface ProductSelectorProps {
   generationId: number;
   imageIndex: number;
   initialProductType?: string;
+  initialMockupUrl?: string;
 }
 
 const PRODUCT_TYPE_INFO: Record<string, { label: string; description: string }> = {
@@ -33,14 +38,6 @@ const PRODUCT_TYPE_INFO: Record<string, { label: string; description: string }> 
 };
 
 const PRODUCT_TYPE_ORDER = ['canvas', 'framed_poster', 'poster', 'mug'];
-
-// Printful product IDs for mockup generation
-const PRINTFUL_PRODUCT_IDS: Record<string, number> = {
-  canvas: 3,
-  framed_poster: 2,
-  poster: 1,
-  mug: 19,
-};
 
 // Max upscaled resolution from 1024px source with 4x upscale
 const MAX_UPSCALED_PX = 4096;
@@ -57,136 +54,25 @@ function getQualityLabel(product: Product): { label: string; color: string } | n
   return { label: 'May appear soft', color: 'text-orange-400' };
 }
 
-// --- Large mockup components ---
-
-function WallBackground({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="w-full rounded-xl p-6 md:p-10 flex items-center justify-center min-h-[280px] md:min-h-[360px]"
-      style={{
-        background: 'linear-gradient(180deg, #ede7e0 0%, #d6cfc7 60%, #c8bfb7 100%)',
-        boxShadow: 'inset 0 0 60px rgba(0,0,0,0.04)',
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function LargeCanvasMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <WallBackground>
-      <div className="max-w-[260px] w-full">
-        <div
-          className="bg-white p-[6px] relative"
-          style={{
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(0,0,0,0.05)',
-          }}
-        >
-          <img src={imageUrl} alt="Canvas preview" className="w-full aspect-square object-cover block" />
-          {/* Gallery wrap depth */}
-          <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 3px 3px 0 rgba(0,0,0,0.04), inset -1px -1px 0 rgba(0,0,0,0.02)' }} />
-        </div>
-      </div>
-    </WallBackground>
-  );
-}
-
-function LargeFramedMockup({ imageUrl, frameColor }: { imageUrl: string; frameColor: string }) {
-  const frameBg = frameColor === 'black' ? '#1a1a1a' : frameColor === 'white' ? '#f5f5f5' : '#d4a574';
-  const frameWidth = 'p-2';
-  return (
-    <WallBackground>
-      <div className="max-w-[260px] w-full">
-        <div
-          className={`${frameWidth} rounded-[2px]`}
-          style={{
-            backgroundColor: frameBg,
-            boxShadow: '0 8px 30px rgba(0,0,0,0.28), 0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          {/* White mat */}
-          <div className="bg-white p-3 md:p-4">
-            <img src={imageUrl} alt="Framed preview" className="w-full aspect-[3/4] object-cover block" />
-          </div>
-        </div>
-      </div>
-    </WallBackground>
-  );
-}
-
-function LargePosterMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <WallBackground>
-      <div className="max-w-[220px] w-full relative">
-        <div
-          className="rounded-[2px] overflow-hidden"
-          style={{
-            boxShadow: '0 4px 20px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.1)',
-          }}
-        >
-          <img src={imageUrl} alt="Poster preview" className="w-full aspect-[3/4] object-cover block" />
-        </div>
-        {/* Subtle page curl */}
-        <div
-          className="absolute bottom-0 right-0 w-6 h-6 pointer-events-none"
-          style={{
-            background: 'linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.06) 50%)',
-            borderRadius: '0 0 2px 0',
-          }}
-        />
-      </div>
-    </WallBackground>
-  );
-}
-
-function LargeMugMockup({ imageUrl }: { imageUrl: string }) {
-  return (
-    <div
-      className="w-full rounded-xl p-6 md:p-10 flex items-center justify-center min-h-[280px] md:min-h-[360px]"
-      style={{ background: 'linear-gradient(180deg, #f0ebe6 0%, #e5ddd5 60%, #ddd4cc 100%)' }}
-    >
-      <div className="relative">
-        {/* Mug body */}
-        <div
-          className="w-44 h-36 md:w-52 md:h-44 bg-white rounded-b-2xl rounded-t-sm overflow-hidden relative"
-          style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.1)' }}
-        >
-          {/* Image wrap area */}
-          <div className="absolute inset-2 md:inset-3 overflow-hidden rounded-sm">
-            <img src={imageUrl} alt="Mug preview" className="w-full h-full object-cover" />
-          </div>
-          {/* Ceramic highlight */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/20 pointer-events-none" />
-          {/* Rim highlight */}
-          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-b from-white/60 to-transparent" />
-        </div>
-        {/* Handle */}
-        <div
-          className="absolute -right-4 md:-right-5 top-3 md:top-4 w-5 md:w-6 h-14 md:h-16 border-[3px] md:border-4 border-white rounded-r-full"
-          style={{ boxShadow: '2px 2px 6px rgba(0,0,0,0.12)' }}
-        />
-        {/* Table shadow */}
-        <div
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[110%] h-4 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%)' }}
-        />
-      </div>
-    </div>
-  );
-}
-
 // --- Printful mockup hook ---
 
 function usePrintfulMockup(
   imageUrl: string,
   selectedType: string | null,
   selectedProduct: Product | null,
+  initialMockupUrl?: string,
 ) {
-  const [mockupUrl, setMockupUrl] = useState<string | null>(null);
+  const [mockupUrl, setMockupUrl] = useState<string | null>(initialMockupUrl || null);
   const [loading, setLoading] = useState(false);
+  const [usedInitial, setUsedInitial] = useState(!!initialMockupUrl);
 
   useEffect(() => {
+    // If we have an initial mockup URL from the Studio, skip the first fetch
+    if (usedInitial) {
+      setUsedInitial(false);
+      return;
+    }
+
     if (!selectedType || !selectedProduct) {
       setMockupUrl(null);
       return;
@@ -220,14 +106,14 @@ function usePrintfulMockup(
       });
 
     return () => { cancelled = true; };
-  }, [imageUrl, selectedType, selectedProduct?.printful_variant_id, selectedProduct]);
+  }, [imageUrl, selectedType, selectedProduct?.printful_variant_id, selectedProduct, usedInitial]);
 
   return { mockupUrl, loading };
 }
 
 // --- Main component ---
 
-export default function ProductSelector({ imageUrl, generationId, imageIndex, initialProductType }: ProductSelectorProps) {
+export default function ProductSelector({ imageUrl, generationId, imageIndex, initialProductType, initialMockupUrl }: ProductSelectorProps) {
   const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -235,7 +121,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [frameColor, setFrameColor] = useState('black');
 
-  const { mockupUrl, loading: mockupLoading } = usePrintfulMockup(imageUrl, selectedType, selectedProduct);
+  const { mockupUrl, loading: mockupLoading } = usePrintfulMockup(imageUrl, selectedType, selectedProduct, initialMockupUrl);
 
   // Fetch products from API
   useEffect(() => {

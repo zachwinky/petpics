@@ -94,7 +94,11 @@ export default function DashboardContent({
 
     // Close studio and redirect to print configure
     closeStudio();
-    window.location.href = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}&productType=${encodeURIComponent(portrait.productType)}`;
+    let configureUrl = `/print/configure?image=${encodeURIComponent(portrait.imageUrl)}&generationId=${portrait.generationId}&imageIndex=${portrait.imageIndex}&productType=${encodeURIComponent(portrait.productType)}`;
+    if (portrait.mockupUrl) {
+      configureUrl += `&mockupUrl=${encodeURIComponent(portrait.mockupUrl)}`;
+    }
+    window.location.href = configureUrl;
   }, [selectedModel, closeStudio]);
 
   const handleAddPet = useCallback(() => {
