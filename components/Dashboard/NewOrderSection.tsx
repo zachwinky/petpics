@@ -23,9 +23,9 @@ const FALLBACK_PRICES: ProductPricing = {
 };
 
 const PRODUCTS = [
-  { type: 'canvas', icon: '🖼️', name: 'Canvas', key: 'canvas' as const },
-  { type: 'poster', icon: '🎨', name: 'Poster', key: 'poster' as const },
-  { type: 'mug', icon: '☕', name: 'Mug', key: 'mug' as const },
+  { type: 'canvas', image: '/products/canvas-mockup.png', name: 'Canvas', key: 'canvas' as const },
+  { type: 'poster', image: '/products/poster-mockup.png', name: 'Poster', key: 'poster' as const },
+  { type: 'mug', image: '/products/mug-mockup.png', name: 'Mug', key: 'mug' as const },
 ];
 
 export default function NewOrderSection({ hasModels, models, onOpenStudio, onAddPet }: NewOrderSectionProps) {
@@ -88,7 +88,9 @@ export default function NewOrderSection({ hasModels, models, onOpenStudio, onAdd
             className="dash-product-mini"
             onClick={() => handleProductClick(product.type)}
           >
-            <div className="dash-product-mini-icon">{product.icon}</div>
+            <div className="dash-product-mini-icon">
+              <img src={product.image} alt={product.name} className="dash-product-mini-img" />
+            </div>
             <div className="dash-product-mini-name">{product.name}</div>
             <div className="dash-product-mini-price">From {prices[product.key]} + shipping</div>
           </button>

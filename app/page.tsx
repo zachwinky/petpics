@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface ProductInfo {
   product_type: string;
@@ -95,6 +96,7 @@ const HERO_IMAGES: Record<string, string> = {
 
 export default function Home() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -158,7 +160,11 @@ export default function Home() {
           <a href="#products" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Shop</a>
           <a href="#how" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('how'); }}>How It Works</a>
           <a href="#faq" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
-          <a href="/auth/signin" className="landing-nav-signin">Sign In</a>
+          {session ? (
+            <a href="/dashboard" className="landing-nav-signin">Dashboard</a>
+          ) : (
+            <a href="/auth/signin" className="landing-nav-signin">Sign In</a>
+          )}
           <a href="#products" className="landing-nav-cta" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Get Started</a>
         </div>
       </nav>

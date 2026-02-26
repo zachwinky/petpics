@@ -37,13 +37,21 @@ function useMockupPreview(imageUrl: string | null, productType: string) {
         productId: printfulProductId,
       }),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Mockup API returned', res.status);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (!cancelled && data.mockupUrl) {
+        if (!cancelled && data?.mockupUrl) {
           setMockupUrl(data.mockupUrl);
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.warn('Mockup fetch failed:', err);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

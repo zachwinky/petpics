@@ -3,8 +3,7 @@ import { Geist, Geist_Mono, Playfair_Display, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import "./globals.css";
-import { AuthModalProvider } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+import Providers from "@/components/Providers";
 import MetaPixelEvents from "@/components/MetaPixelEvents";
 
 const META_PIXEL_ID = "25793238440302657";
@@ -85,11 +84,9 @@ export default function RootLayout({
             gtag('config', '${GOOGLE_ADS_ID}');
           `}
         </Script>
-        <AuthModalProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </AuthModalProvider>
+        <Providers>
+          {children}
+        </Providers>
         <MetaPixelEvents />
         <Analytics />
       </body>

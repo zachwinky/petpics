@@ -94,13 +94,21 @@ function usePrintfulMockup(
         variantIds: [selectedProduct.printful_variant_id],
       }),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Mockup API returned', res.status);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (!cancelled && data.mockupUrl) {
+        if (!cancelled && data?.mockupUrl) {
           setMockupUrl(data.mockupUrl);
         }
       })
-      .catch(() => {}) // CSS mockup stays as fallback
+      .catch((err) => {
+        console.warn('Mockup fetch failed:', err);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

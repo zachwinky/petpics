@@ -42,7 +42,7 @@ export default function DashboardNavbar({ user }: DashboardNavbarProps) {
   return (
     <nav className="dash-nav">
       <Link href="/" className="dash-nav-logo">
-        <span style={{ fontSize: '1.1rem' }}>🦈</span> petpics<span>.ai</span>
+        <span style={{ fontSize: '1.1rem' }}>🦈</span> petpics
       </Link>
       <div className="dash-nav-right">
         <button className="dash-nav-cta" onClick={scrollToNewOrder}>
