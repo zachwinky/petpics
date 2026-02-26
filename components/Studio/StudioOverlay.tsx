@@ -164,7 +164,7 @@ export default function StudioOverlay({ model, onClose, onPortraitSelected, init
   }, [step]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className="fixed inset-0 z-[200] bg-black">
       {/* Close button */}
       <button
         onClick={onClose}
