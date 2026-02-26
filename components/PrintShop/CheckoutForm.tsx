@@ -117,6 +117,7 @@ export default function CheckoutForm() {
             variantId: item.variantId,
             priceCents: item.priceCents,
             options: item.options,
+            mockupUrl: item.mockupUrl,
           })),
           address,
           shippingMethod: selectedShipping.id,
@@ -272,7 +273,7 @@ export default function CheckoutForm() {
                 {items.map(item => (
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded overflow-hidden bg-gray-100 flex-shrink-0">
-                      <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                      <img src={item.mockupUrl || item.imageUrl} alt="" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-medium truncate">{item.displayName}</div>

@@ -311,11 +311,12 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
       variantId,
       priceCents: selectedProduct.price_cents,
       options,
+      mockupUrl: mockupUrl || undefined,
     });
 
     trackAddToCart(selectedProduct.product_type, selectedProduct.price_cents);
     window.location.href = '/print/checkout';
-  }, [selectedProduct, frameColor, imageUrl, generationId, imageIndex, addItem]);
+  }, [selectedProduct, frameColor, imageUrl, generationId, imageIndex, addItem, mockupUrl]);
 
   if (loading) {
     return (

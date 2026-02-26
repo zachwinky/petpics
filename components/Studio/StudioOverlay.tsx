@@ -29,16 +29,17 @@ interface StudioOverlayProps {
   model: StudioModel;
   onClose: () => void;
   onPortraitSelected: (portrait: StudioPortraitResult) => void;
+  initialProductType?: string;
 }
 
 type StudioStep = 'product' | 'scenes' | 'loading' | 'pick' | 'refine-loading' | 'refine';
 
-export default function StudioOverlay({ model, onClose, onPortraitSelected }: StudioOverlayProps) {
-  const [step, setStep] = useState<StudioStep>('product');
+export default function StudioOverlay({ model, onClose, onPortraitSelected, initialProductType }: StudioOverlayProps) {
+  const [step, setStep] = useState<StudioStep>(initialProductType ? 'scenes' : 'product');
   const [error, setError] = useState<string | null>(null);
 
   // Product selection
-  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
+  const [selectedProductType, setSelectedProductType] = useState<string | null>(initialProductType || null);
 
   // Step 1 → 2 data
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);

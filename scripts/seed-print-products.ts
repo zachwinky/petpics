@@ -49,7 +49,7 @@ const PRODUCTS = [
     product_type: 'canvas',
     display_name: 'Canvas Print 24×36"',
     size_label: '24x36',
-    printful_variant_id: 7, // TODO: verify via Printful dashboard — GET /products/3
+    printful_variant_id: 825, // Printful cost: $52.02
     price_cents: 7999,
     min_image_width_px: 7200,
     min_image_height_px: 10800,
@@ -94,14 +94,14 @@ const PRODUCTS = [
     product_type: 'framed_poster',
     display_name: 'Framed Poster 24×36"',
     size_label: '24x36',
-    printful_variant_id: 4401, // Black frame — TODO: verify via Printful dashboard — GET /products/2
+    printful_variant_id: 4, // Black frame, Printful cost: $74.41
     price_cents: 8999,
     min_image_width_px: 7200,
     min_image_height_px: 10800,
     orientation: 'portrait',
     options: JSON.stringify({
       frame_colors: ['black', 'white', 'natural'],
-      variant_ids_by_color: { black: 4401, white: 10755, natural: 15033 }, // TODO: verify IDs
+      variant_ids_by_color: { black: 4, white: 10750, natural: 15032 },
     }),
     sort_order: 12,
   },
@@ -135,7 +135,7 @@ const PRODUCTS = [
     product_type: 'poster',
     display_name: 'Matte Poster 24×36"',
     size_label: '24x36',
-    printful_variant_id: 3878, // TODO: verify via Printful dashboard — GET /products/1
+    printful_variant_id: 2, // Printful cost: $17.89
     price_cents: 4999,
     min_image_width_px: 7200,
     min_image_height_px: 10800,

@@ -34,7 +34,7 @@ export default function CartView() {
           >
             {/* Thumbnail */}
             <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-              <img src={item.imageUrl} alt="Product" className="w-full h-full object-cover" />
+              <img src={item.mockupUrl || item.imageUrl} alt="Product" className="w-full h-full object-cover" />
             </div>
 
             {/* Details */}

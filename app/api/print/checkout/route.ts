@@ -20,6 +20,7 @@ interface CheckoutItem {
   variantId: number;
   priceCents: number;
   options: Record<string, string>;
+  mockupUrl?: string;
 }
 
 interface CheckoutAddress {
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
         product_data: {
           name: item.product!.display_name,
           description: `Pet portrait — ${item.sizeLabel}`,
-          images: [item.imageUrl],
+          images: [item.mockupUrl || item.imageUrl],
         },
         unit_amount: item.priceCents,
       },
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
           variantId: item.variantId,
           priceCents: item.priceCents,
           options: item.options,
+          mockupUrl: item.mockupUrl,
         }))),
         addressJson: JSON.stringify(address),
         shippingMethod: shippingMethod || 'STANDARD',

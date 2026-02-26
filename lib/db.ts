@@ -813,6 +813,41 @@ export async function getUserPrintOrders(userId: number, limit: number = 50): Pr
   return result.rows as PrintOrder[];
 }
 
+export async function getUserActivePrintOrders(userId: number): Promise<PrintOrder[]> {
+  const result = await pool.query(
+    `SELECT * FROM print_orders
+     WHERE user_id = $1 AND status NOT IN ('delivered', 'failed', 'refunded')
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+  return result.rows as PrintOrder[];
+}
+
+export async function getUserCompletedPrintOrders(userId: number, limit: number = 20): Promise<PrintOrder[]> {
+  const result = await pool.query(
+    `SELECT * FROM print_orders
+     WHERE user_id = $1 AND status IN ('delivered', 'failed', 'refunded')
+     ORDER BY created_at DESC LIMIT $2`,
+    [userId, limit]
+  );
+  return result.rows as PrintOrder[];
+}
+
+export async function getOrderItemsForOrders(orderIds: number[]): Promise<Map<number, PrintOrderItem[]>> {
+  const map = new Map<number, PrintOrderItem[]>();
+  if (orderIds.length === 0) return map;
+  const result = await pool.query(
+    'SELECT * FROM print_order_items WHERE order_id = ANY($1) ORDER BY order_id, id',
+    [orderIds]
+  );
+  for (const row of result.rows as PrintOrderItem[]) {
+    const items = map.get(row.order_id) || [];
+    items.push(row);
+    map.set(row.order_id, items);
+  }
+  return map;
+}
+
 export async function updatePrintOrderStatus(
   orderId: number,
   status: PrintOrderStatus,

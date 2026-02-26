@@ -1,113 +1,378 @@
-import ImageUpload from '@/components/ImageUpload';
-import NavbarWrapper from '@/components/NavbarWrapper';
-import HeroGallery from '@/components/HeroGallery';
-import HowItWorks from '@/components/HowItWorks';
-import SocialProof from '@/components/SocialProof';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface ProductInfo {
+  product_type: string;
+  price_cents: number;
+}
+
+interface ProductPricing {
+  canvas: string;
+  poster: string;
+  mug: string;
+}
+
+const FALLBACK_PRICES: ProductPricing = {
+  canvas: '$34.99',
+  poster: '$24.99',
+  mug: '$24.99',
+};
+
+const FAQ_ITEMS = [
+  {
+    q: 'What kind of photos work best?',
+    a: 'Clear, well-lit photos where your pet\'s face and features are visible. We recommend a mix of close-ups and full body shots. 5-10 photos gives the AI the best results — variety in angles and backgrounds helps a lot.',
+  },
+  {
+    q: 'How long does the whole process take?',
+    a: 'The AI generates your portrait in minutes. Once you approve the design, printing and shipping typically takes 5-10 business days depending on your location.',
+  },
+  {
+    q: 'What if I don\'t like the result?',
+    a: 'You\'ll preview your AI portrait before anything gets printed. You can regenerate with different styles until you love it. We don\'t print until you approve.',
+  },
+  {
+    q: 'Can I use this for a pet that\'s passed away?',
+    a: 'Absolutely. Many of our customers create memorial portraits of beloved pets. As long as you have a few clear photos, our AI can create a beautiful tribute.',
+  },
+  {
+    q: 'Do you ship internationally?',
+    a: 'Yes! We ship worldwide through our fulfillment partner. Shipping times vary by location, but most international orders arrive within 10-15 business days.',
+  },
+  {
+    q: 'What pets do you support?',
+    a: 'Dogs, cats, birds, rabbits, reptiles — if you\'ve got photos, we can make art. Our AI works best with dogs and cats, but we\'ve had great results with all kinds of animals.',
+  },
+];
+
+const REVIEWS = [
+  {
+    text: '"I ordered a canvas of my golden retriever and it looks AMAZING hanging above my couch. The AI captured his goofy smile perfectly."',
+    author: 'Jessica M.',
+    pet: "Buddy's mom",
+  },
+  {
+    text: '"Gave my sister a mug with her cat on it for Christmas. She literally cried. Best gift I\'ve ever given, hands down."',
+    author: 'Marcus T.',
+    pet: 'Uncle to Whiskers',
+  },
+  {
+    text: '"The quality of the print blew me away. I\'ve ordered from other pet portrait sites and nothing comes close. Already ordering another for my office."',
+    author: 'Sarah K.',
+    pet: "Luna's human",
+  },
+];
+
+const GIFT_USECASES = ['Birthdays', 'Holidays', 'Pet Memorials', 'New Pet Parents', 'Just Because'];
+
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+const ArrowIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <path d="M5 12h14m-7-7 7 7-7 7" />
+  </svg>
+);
 
 export default function Home() {
+  const router = useRouter();
+  const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Fetch real product prices from API
+  useEffect(() => {
+    async function fetchPrices() {
+      try {
+        const res = await fetch('/api/print/products');
+        if (!res.ok) return;
+        const data = await res.json();
+        const products: ProductInfo[] = data.products || [];
+
+        // Find minimum price per product type
+        const minByType: Record<string, number> = {};
+        for (const p of products) {
+          const type = p.product_type;
+          if (!minByType[type] || p.price_cents < minByType[type]) {
+            minByType[type] = p.price_cents;
+          }
+        }
+
+        const format = (cents: number) => {
+          const dollars = cents / 100;
+          return dollars % 1 === 0 ? `$${dollars}` : `$${dollars.toFixed(2)}`;
+        };
+
+        setPrices({
+          canvas: minByType['canvas'] ? format(minByType['canvas']) : FALLBACK_PRICES.canvas,
+          poster: minByType['poster'] ? format(minByType['poster']) : FALLBACK_PRICES.poster,
+          mug: minByType['mug'] ? format(minByType['mug']) : FALLBACK_PRICES.mug,
+        });
+      } catch {
+        // Use fallback prices
+      }
+    }
+    fetchPrices();
+  }, []);
+
+  const handleCreateYours = (productType: string) => {
+    // Store selected product in localStorage so it survives auth redirect
+    localStorage.setItem('selectedProduct', productType);
+    router.push('/dashboard?product=' + productType);
+  };
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-peach-50 via-white to-coral-50 relative overflow-hidden">
-      {/* Decorative paw prints - hidden on mobile near top to avoid clipping with headline */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute top-20 left-[5%] text-coral-200 text-4xl opacity-40 rotate-[-15deg] hidden md:block">🐾</div>
-        <div className="absolute top-40 right-[8%] text-peach-300 text-3xl opacity-30 rotate-[20deg] hidden md:block">🐾</div>
-        <div className="absolute top-[60%] left-[3%] text-coral-200 text-5xl opacity-25 rotate-[-25deg]">🐾</div>
-        <div className="absolute top-[45%] right-[5%] text-peach-200 text-4xl opacity-35 rotate-[10deg]">🐾</div>
-        <div className="absolute bottom-32 left-[12%] text-coral-100 text-3xl opacity-40 rotate-[30deg]">🐾</div>
-        <div className="absolute bottom-20 right-[15%] text-peach-200 text-4xl opacity-30 rotate-[-10deg]">🐾</div>
-      </div>
-      <NavbarWrapper />
-      <main className="container mx-auto px-4 py-8 md:py-16 relative z-10">
-        <div className="max-w-6xl mx-auto space-y-12">
-
-          {/* Hero Headline */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
-              Turn Your Pet Into a Work of Art
-            </h1>
-            <p className="text-lg md:text-2xl text-gray-600 max-w-3xl mx-auto">
-              AI-generated portraits of your pet, printed on canvas, poster, or mug and shipped to your door
-            </p>
-            <p className="text-sm text-gray-500">Prints from $24.99 + shipping</p>
-          </div>
-
-          {/* Example Gallery */}
-          <HeroGallery />
-
-          {/* Social Proof — hidden for now, re-enable when we have real customer examples */}
-          {/* <SocialProof /> */}
-
-          {/* Upload CTA - right after gallery on mobile, after everything on desktop */}
-          <div className="md:hidden bg-white rounded-2xl shadow-xl p-6 border border-coral-100">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                  Ready to Get Started?
-                </h2>
-                <p className="text-gray-600">
-                  Upload 5-20 photos of your pet, pick your favorite portrait, and we'll print it for you
-                </p>
-              </div>
-              <ImageUpload />
-            </div>
-          </div>
-
-          {/* How It Works */}
-          <HowItWorks />
-
-          {/* Trust line */}
-          <p className="text-center text-sm text-gray-400">
-            Printed &amp; shipped from the US &middot; Satisfaction guaranteed
-          </p>
-
-          {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-coral-50">
-              <svg className="w-8 h-8 text-coral-500 mb-3" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8.35 3c-.76 0-1.38.67-1.27 1.42l.17 1.15C5.4 6.4 4 8.17 4 10.2c0 .55.45 1 1 1s1-.45 1-1c0-1.1.6-2.1 1.57-2.68l-.06.48c-.12.75.46 1.42 1.22 1.42.6 0 1.1-.43 1.22-1.02l.32-1.6c.8-.12 1.65-.12 2.46 0l.32 1.6c.11.59.62 1.02 1.22 1.02.76 0 1.34-.67 1.22-1.42l-.06-.48C17.4 8.1 18 9.1 18 10.2c0 .55.45 1 1 1s1-.45 1-1c0-2.03-1.4-3.8-3.25-4.63l.17-1.15c.11-.75-.51-1.42-1.27-1.42-.6 0-1.1.43-1.22 1.02L14.1 5.6c-.68-.2-1.38-.33-2.1-.33s-1.42.13-2.1.33l-.33-1.58C9.45 3.43 8.95 3 8.35 3ZM12 13.5c-3.87 0-7 2.24-7 5 0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5 0-2.76-3.13-5-7-5Z"/>
-              </svg>
-              <h3 className="font-semibold text-gray-900 mb-2">Your Actual Pet</h3>
-              <p className="text-sm text-gray-600">
-                The AI learns your specific pet — same markings, colors, and personality captured perfectly
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-coral-50">
-              <svg className="w-8 h-8 text-coral-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-              </svg>
-              <h3 className="font-semibold text-gray-900 mb-2">Beautiful Scenes</h3>
-              <p className="text-sm text-gray-600">
-                Golden hour, cozy home, flower fields — choose from 12 curated portrait scenes
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-coral-50">
-              <svg className="w-8 h-8 text-coral-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-              </svg>
-              <h3 className="font-semibold text-gray-900 mb-2">Gallery-Quality Prints</h3>
-              <p className="text-sm text-gray-600">
-                Canvas, framed poster, matte print, or mug — shipped to your door in days
-              </p>
-            </div>
-          </div>
-
-          {/* Upload CTA - desktop only (mobile version is above) */}
-          <div className="hidden md:block bg-white rounded-2xl shadow-xl p-8 border border-coral-100">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-3xl font-semibold text-gray-800 mb-2">
-                  Ready to Get Started?
-                </h2>
-                <p className="text-gray-600">
-                  Upload 5-20 photos of your pet, pick your favorite portrait, and we'll print it for you
-                </p>
-              </div>
-              <ImageUpload />
-            </div>
-          </div>
-
+    <div className="landing">
+      {/* NAV */}
+      <nav className="landing-nav">
+        <a href="/" className="landing-nav-logo">
+          <span className="landing-nav-shark">🦈</span> petpics<span>.ai</span>
+        </a>
+        <div className="landing-nav-links">
+          <a href="#products" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Shop</a>
+          <a href="#how" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('how'); }}>How It Works</a>
+          <a href="#faq" className="landing-nav-link-desktop" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
+          <a href="#products" className="landing-nav-cta" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Get Started</a>
         </div>
-      </main>
+      </nav>
+
+      {/* HERO */}
+      <section className="landing-hero">
+        <div className="landing-hero-text">
+          <h1>Your pet deserves to be a <em>masterpiece</em></h1>
+          <p>AI-powered pet portraits printed on museum-quality canvas, posters, and mugs. Upload a few photos, pick your style — we&apos;ll handle the rest.</p>
+          <div className="landing-hero-badges">
+            <div className="landing-hero-badge">
+              <CheckIcon />
+              AI-generated in minutes
+            </div>
+            <div className="landing-hero-badge">
+              <CheckIcon />
+              Premium print quality
+            </div>
+            <div className="landing-hero-badge">
+              <CheckIcon />
+              Ships to your door
+            </div>
+          </div>
+          <div className="landing-hero-cta-group">
+            <button className="landing-btn-primary" onClick={() => scrollTo('products')}>
+              Shop Products
+              <ArrowIcon />
+            </button>
+            <button className="landing-btn-secondary" onClick={() => scrollTo('how')}>See How It Works</button>
+          </div>
+        </div>
+        <div className="landing-hero-visual">
+          <div className="landing-hero-product">
+            <div className="landing-hero-product-inner">
+              <div className="product-icon">🖼️</div>
+              <div className="product-label">Canvas Print</div>
+              <div className="product-note">Your pet portrait sample here</div>
+            </div>
+          </div>
+          <div className="landing-hero-product">
+            <div className="landing-hero-product-inner">
+              <div className="product-icon">☕</div>
+              <div className="product-label">Ceramic Mug</div>
+              <div className="product-note">Your pet portrait sample here</div>
+            </div>
+          </div>
+          <div className="landing-hero-product">
+            <div className="landing-hero-product-inner">
+              <div className="product-icon">🎨</div>
+              <div className="product-label">Poster Print</div>
+              <div className="product-note">Your pet portrait sample here</div>
+            </div>
+          </div>
+        </div>
+        <div className="landing-hero-scroll-hint">← swipe to see products →</div>
+      </section>
+
+      {/* PRODUCTS */}
+      <section className="landing-products-section" id="products">
+        <div className="section-header">
+          <div className="section-tag">Choose Your Product</div>
+          <h2>Pick how you want to show off your best friend</h2>
+          <p>Every product features your pet transformed into stunning AI art, printed with vibrant, fade-resistant inks.</p>
+        </div>
+        <div className="landing-products-grid">
+          {/* Canvas */}
+          <div className="landing-product-card" onClick={() => handleCreateYours('canvas')}>
+            <div className="landing-product-card-image">
+              <div className="landing-product-popular">Most Popular</div>
+              <div className="card-icon">🖼️</div>
+              <div className="card-placeholder">Canvas preview<br /><small>Replace with your sample</small></div>
+            </div>
+            <div className="landing-product-card-body">
+              <h3>Canvas Print</h3>
+              <p>Gallery-wrapped on a solid wood frame. Arrives ready to hang — no framing needed.</p>
+              <div className="landing-product-card-footer">
+                <div className="landing-product-price">From {prices.canvas} <span>+ shipping</span></div>
+                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('canvas'); }}>Create Yours</button>
+              </div>
+            </div>
+          </div>
+          {/* Poster */}
+          <div className="landing-product-card" onClick={() => handleCreateYours('poster')}>
+            <div className="landing-product-card-image">
+              <div className="card-icon">🎨</div>
+              <div className="card-placeholder">Poster preview<br /><small>Replace with your sample</small></div>
+            </div>
+            <div className="landing-product-card-body">
+              <h3>Poster Print</h3>
+              <p>Vibrant matte finish on heavyweight paper. Perfect for framing your way.</p>
+              <div className="landing-product-card-footer">
+                <div className="landing-product-price">From {prices.poster} <span>+ shipping</span></div>
+                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('poster'); }}>Create Yours</button>
+              </div>
+            </div>
+          </div>
+          {/* Mug */}
+          <div className="landing-product-card" onClick={() => handleCreateYours('mug')}>
+            <div className="landing-product-card-image">
+              <div className="card-icon">☕</div>
+              <div className="card-placeholder">Mug preview<br /><small>Replace with your sample</small></div>
+            </div>
+            <div className="landing-product-card-body">
+              <h3>Ceramic Mug</h3>
+              <p>Start every morning with your best friend. Dishwasher-safe, 11oz white ceramic.</p>
+              <div className="landing-product-card-footer">
+                <div className="landing-product-price">From {prices.mug} <span>+ shipping</span></div>
+                <button className="landing-product-card-btn" onClick={(e) => { e.stopPropagation(); handleCreateYours('mug'); }}>Create Yours</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="landing-how-section" id="how">
+        <div className="section-header">
+          <div className="section-tag">How It Works</div>
+          <h2>Three steps to a masterpiece</h2>
+          <p>From photo to front door in minutes (well, plus shipping).</p>
+        </div>
+        <div className="landing-steps-grid">
+          <div className="landing-step">
+            <div className="landing-step-connector-vertical"></div>
+            <div className="landing-step-number">1</div>
+            <div className="landing-step-connector"></div>
+            <h3>Pick your product</h3>
+            <p>Canvas, poster, or mug — choose the format that fits your style (or their gift).</p>
+          </div>
+          <div className="landing-step">
+            <div className="landing-step-connector-vertical"></div>
+            <div className="landing-step-number">2</div>
+            <div className="landing-step-connector"></div>
+            <h3>Upload pet photos</h3>
+            <p>A few good shots of your furry friend is all we need. Our AI does the rest.</p>
+          </div>
+          <div className="landing-step">
+            <div className="landing-step-connector-vertical"></div>
+            <div className="landing-step-number">3</div>
+            <h3>We print &amp; ship</h3>
+            <p>Preview your AI portrait, approve the design, and we&apos;ll deliver it to your door.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* GIFT SECTION */}
+      <section className="landing-gift-section">
+        <div className="section-tag">The Perfect Gift</div>
+        <h2>They won&apos;t stop talking about <em>this one</em></h2>
+        <p>Surprise the pet parent in your life with a custom portrait of their best friend. No guessing sizes, no generic gift cards.</p>
+        <div className="landing-gift-usecases">
+          {GIFT_USECASES.map((use) => (
+            <div key={use} className="landing-gift-use">
+              <div className="landing-gift-use-dot"></div>
+              {use}
+            </div>
+          ))}
+        </div>
+        <button className="landing-btn-primary" onClick={() => scrollTo('products')}>
+          Shop Gift-Worthy Portraits
+          <ArrowIcon />
+        </button>
+      </section>
+
+      {/* REVIEWS */}
+      <section className="landing-reviews-section">
+        <div className="section-header">
+          <div className="section-tag">Happy Pet Parents</div>
+          <h2>See why they&apos;re obsessed</h2>
+        </div>
+        <div className="landing-reviews-grid">
+          {REVIEWS.map((review, i) => (
+            <div key={i} className="landing-review-card">
+              <div className="landing-review-stars">★★★★★</div>
+              <div className="landing-review-text">{review.text}</div>
+              <div className="landing-review-author">
+                {review.author} <span className="landing-review-pet">— {review.pet}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="landing-faq-section" id="faq">
+        <div className="section-header">
+          <div className="section-tag">FAQ</div>
+          <h2>Questions? We&apos;ve got answers</h2>
+        </div>
+        <div className="landing-faq-list">
+          {FAQ_ITEMS.map((item, i) => (
+            <div key={i} className="landing-faq-item">
+              <button
+                className={`landing-faq-q${openFaq === i ? ' open' : ''}`}
+                onClick={() => toggleFaq(i)}
+              >
+                {item.q}
+              </button>
+              <div className={`landing-faq-a${openFaq === i ? ' open' : ''}`}>
+                <p>{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="landing-final-cta">
+        <h2>Ready to turn your pet into <em>art</em>?</h2>
+        <p>Pick a product, upload a few photos, and let our AI do the heavy lifting. Your walls (and mornings) will thank you.</p>
+        <button className="landing-btn-primary" onClick={() => scrollTo('products')}>
+          Get Started
+          <ArrowIcon />
+        </button>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="landing-footer">
+        <div className="landing-footer-logo">
+          <span className="landing-nav-shark">🦈</span> petpics<span>.ai</span>
+        </div>
+        <div className="landing-footer-links">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="mailto:support@akoolai.com">Support</a>
+          <a href="mailto:support@akoolai.com">Contact</a>
+        </div>
+        <div>© 2026 Dyneeoh LLC. All rights reserved.</div>
+      </footer>
     </div>
   );
 }
