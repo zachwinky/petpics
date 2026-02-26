@@ -79,22 +79,19 @@ const ArrowIcon = () => (
   </svg>
 );
 
-interface ProductImageConfig {
-  canvas?: string;
-  poster?: string;
-  mug?: string;
-  hero_canvas?: string;
-  hero_poster?: string;
-  hero_mug?: string;
-}
+// Hardcoded product mockup images — served from /public, loads instantly
+const PRODUCT_IMAGES: Record<string, string> = {
+  canvas: '/products/canvas-mockup.png',
+  poster: '/products/poster-mockup.png',
+  mug: '/products/mug-mockup.png',
+};
 
 export default function Home() {
   const router = useRouter();
   const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [productImages, setProductImages] = useState<ProductImageConfig>({});
 
-  // Fetch real product prices and product images
+  // Fetch real product prices
   useEffect(() => {
     async function fetchPrices() {
       try {
@@ -126,18 +123,7 @@ export default function Home() {
         // Use fallback prices
       }
     }
-    async function fetchProductImages() {
-      try {
-        const res = await fetch('/api/product-images');
-        if (!res.ok) return;
-        const data = await res.json();
-        setProductImages(data.images || {});
-      } catch {
-        // Use fallback placeholders
-      }
-    }
     fetchPrices();
-    fetchProductImages();
   }, []);
 
   const handleCreateYours = (productType: string) => {
@@ -199,25 +185,14 @@ export default function Home() {
         </div>
         <div className="landing-hero-visual">
           {[
-            { type: 'canvas', icon: '🖼️', label: 'Canvas Print', heroKey: 'hero_canvas' as const, imgKey: 'canvas' as const },
-            { type: 'mug', icon: '☕', label: 'Ceramic Mug', heroKey: 'hero_mug' as const, imgKey: 'mug' as const },
-            { type: 'poster', icon: '🎨', label: 'Poster Print', heroKey: 'hero_poster' as const, imgKey: 'poster' as const },
-          ].map(({ type, icon, label, heroKey, imgKey }) => {
-            const imgUrl = productImages[heroKey] || productImages[imgKey];
-            return (
-              <div key={type} className="landing-hero-product" onClick={() => handleCreateYours(type)}>
-                {imgUrl ? (
-                  <img src={imgUrl} alt={label} className="landing-hero-product-img" />
-                ) : (
-                  <div className="landing-hero-product-inner">
-                    <div className="product-icon">{icon}</div>
-                    <div className="product-label">{label}</div>
-                    <div className="product-note">Your pet portrait sample here</div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+            { type: 'canvas', label: 'Canvas Print' },
+            { type: 'mug', label: 'Ceramic Mug' },
+            { type: 'poster', label: 'Poster Print' },
+          ].map(({ type, label }) => (
+            <div key={type} className="landing-hero-product" onClick={() => handleCreateYours(type)}>
+              <img src={PRODUCT_IMAGES[type]} alt={label} className="landing-hero-product-img" />
+            </div>
+          ))}
         </div>
         <div className="landing-hero-scroll-hint">← swipe to see products →</div>
       </section>
@@ -231,21 +206,14 @@ export default function Home() {
         </div>
         <div className="landing-products-grid">
           {[
-            { type: 'canvas' as const, icon: '🖼️', name: 'Canvas Print', desc: 'Gallery-wrapped on a solid wood frame. Arrives ready to hang — no framing needed.', popular: true },
-            { type: 'poster' as const, icon: '🎨', name: 'Poster Print', desc: 'Vibrant matte finish on heavyweight paper. Perfect for framing your way.', popular: false },
-            { type: 'mug' as const, icon: '☕', name: 'Ceramic Mug', desc: 'Start every morning with your best friend. Dishwasher-safe, 11oz white ceramic.', popular: false },
-          ].map(({ type, icon, name, desc, popular }) => (
+            { type: 'canvas' as const, name: 'Canvas Print', desc: 'Gallery-wrapped on a solid wood frame. Arrives ready to hang — no framing needed.', popular: true },
+            { type: 'poster' as const, name: 'Poster Print', desc: 'Vibrant matte finish on heavyweight paper. Perfect for framing your way.', popular: false },
+            { type: 'mug' as const, name: 'Ceramic Mug', desc: 'Start every morning with your best friend. Dishwasher-safe, 11oz white ceramic.', popular: false },
+          ].map(({ type, name, desc, popular }) => (
             <div key={type} className="landing-product-card" onClick={() => handleCreateYours(type)}>
               <div className="landing-product-card-image">
                 {popular && <div className="landing-product-popular">Most Popular</div>}
-                {productImages[type] ? (
-                  <img src={productImages[type]} alt={name} className="landing-product-card-photo" />
-                ) : (
-                  <>
-                    <div className="card-icon">{icon}</div>
-                    <div className="card-placeholder">{name} preview<br /><small>Replace with your sample</small></div>
-                  </>
-                )}
+                <img src={PRODUCT_IMAGES[type]} alt={name} className="landing-product-card-photo" />
               </div>
               <div className="landing-product-card-body">
                 <h3>{name}</h3>
