@@ -11,6 +11,8 @@ interface AdminStats {
   totalGenerations: number;
   recentSignups: number;
   recentRevenue: number; // cents
+  activeCartsCount: number;
+  activeCartsValue: number; // cents
 }
 
 interface UserSummary {
@@ -184,6 +186,11 @@ export default function AdminDashboard() {
   const [sendingReengagement, setSendingReengagement] = useState(false);
   const [reengagementBatchSize, setReengagementBatchSize] = useState(10);
   const [reengagementResult, setReengagementResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Active carts state
+  const [activeCarts, setActiveCarts] = useState<{ user_email: string; user_name: string | null; item_count: number; total_cents: number; updated_at: string }[]>([]);
+  const [cartsSectionOpen, setCartsSectionOpen] = useState(false);
+  const [cartsLoading, setCartsLoading] = useState(false);
 
   // Print announcement state
   const [printAnnouncementOpen, setPrintAnnouncementOpen] = useState(false);
@@ -423,6 +430,27 @@ export default function AdminDashboard() {
       loadPrintOrders();
     }
   }, [printOrdersSectionOpen, printOrders.length, loadPrintOrders]);
+
+  const loadActiveCarts = useCallback(async () => {
+    setCartsLoading(true);
+    try {
+      const res = await fetch('/api/admin/stats?type=active-carts');
+      const data = await res.json();
+      setActiveCarts(data.carts || []);
+    } catch (error) {
+      console.error('Failed to load active carts:', error);
+    } finally {
+      setCartsLoading(false);
+    }
+  }, []);
+
+  const toggleCartsSection = useCallback(() => {
+    const willOpen = !cartsSectionOpen;
+    setCartsSectionOpen(willOpen);
+    if (willOpen && activeCarts.length === 0) {
+      loadActiveCarts();
+    }
+  }, [cartsSectionOpen, activeCarts.length, loadActiveCarts]);
 
   const handleUpdateOrderStatus = async (orderId: number, newStatus: string) => {
     try {
@@ -1655,9 +1683,9 @@ export default function AdminDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600">Total Activity</div>
-            <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalModels}</div>
-            <div className="mt-1 text-sm text-gray-500">{stats.totalGenerations.toLocaleString()} generations</div>
+            <div className="text-sm font-medium text-gray-600">Active Carts</div>
+            <div className="mt-2 text-3xl font-bold text-gray-900">{stats.activeCartsCount}</div>
+            <div className="mt-1 text-sm text-gray-500">{formatCurrency(stats.activeCartsValue / 100)} total value</div>
           </div>
         </div>
       )}
@@ -1690,6 +1718,57 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Active Carts Section */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <button
+          className="w-full px-6 py-4 border-b border-gray-200 flex items-center justify-between text-left"
+          onClick={toggleCartsSection}
+        >
+          <h2 className="text-xl font-semibold text-gray-900">Active Carts</h2>
+          <span className="text-gray-400">{cartsSectionOpen ? '▲' : '▼'}</span>
+        </button>
+        {cartsSectionOpen && (
+          <div className="p-4">
+            {cartsLoading ? (
+              <div className="text-center py-4 text-gray-500">Loading...</div>
+            ) : activeCarts.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">No active carts</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {activeCarts.map((cart, i) => (
+                      <tr key={i}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {cart.user_name || cart.user_email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {cart.item_count}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {formatCurrency(cart.total_cents / 100)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(cart.updated_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Pending Trainings Section */}
       {pendingTrainings.length > 0 && (

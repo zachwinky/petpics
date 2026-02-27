@@ -9,6 +9,7 @@ import {
   getFailedTrainings,
   getVideoGenerations,
   getFailureCounts,
+  getActiveCartSnapshots,
 } from '@/lib/admin';
 
 export async function GET(request: Request) {
@@ -60,6 +61,11 @@ export async function GET(request: Request) {
     if (type === 'failure-counts') {
       const counts = await getFailureCounts();
       return NextResponse.json({ counts });
+    }
+
+    if (type === 'active-carts') {
+      const carts = await getActiveCartSnapshots();
+      return NextResponse.json({ carts });
     }
 
     // Default: return stats

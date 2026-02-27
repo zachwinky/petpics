@@ -1,4 +1,5 @@
-import { pool, getAdminConfig } from '@/lib/db';
+import { pool, getAdminConfig, getActiveCartSnapshots } from '@/lib/db';
+export { getActiveCartSnapshots };
 
 // Admin user emails (configure these in environment variable)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
@@ -16,6 +17,8 @@ export interface AdminStats {
   totalGenerations: number;
   recentSignups: number; // Last 7 days
   recentRevenue: number; // Last 30 days, cents
+  activeCartsCount: number;
+  activeCartsValue: number; // cents
 }
 
 export interface UserSummary {
@@ -39,7 +42,9 @@ export async function getAdminStats(): Promise<AdminStats> {
       (SELECT COUNT(*) FROM models) as total_models,
       (SELECT COUNT(*) FROM generations) as total_generations,
       (SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days') as recent_signups,
-      (SELECT COALESCE(SUM(total_cents), 0) FROM print_orders WHERE status NOT IN ('failed', 'refunded') AND created_at > NOW() - INTERVAL '30 days') as recent_revenue
+      (SELECT COALESCE(SUM(total_cents), 0) FROM print_orders WHERE status NOT IN ('failed', 'refunded') AND created_at > NOW() - INTERVAL '30 days') as recent_revenue,
+      (SELECT COUNT(*) FROM cart_snapshots WHERE item_count > 0) as active_carts_count,
+      (SELECT COALESCE(SUM(total_cents), 0) FROM cart_snapshots WHERE item_count > 0) as active_carts_value
   `);
 
   const row = stats.rows[0];
@@ -52,6 +57,8 @@ export async function getAdminStats(): Promise<AdminStats> {
     totalGenerations: parseInt(row.total_generations) || 0,
     recentSignups: parseInt(row.recent_signups) || 0,
     recentRevenue: parseInt(row.recent_revenue) || 0,
+    activeCartsCount: parseInt(row.active_carts_count) || 0,
+    activeCartsValue: parseInt(row.active_carts_value) || 0,
   };
 }
 

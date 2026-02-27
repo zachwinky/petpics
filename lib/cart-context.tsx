@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { useSession } from 'next-auth/react';
 
 export interface CartItem {
   id: string;
@@ -64,8 +65,10 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
   const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -79,6 +82,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       saveCartToStorage(items);
     }
   }, [items, loaded]);
+
+  // Sync cart to server (debounced, fire-and-forget) for admin visibility
+  useEffect(() => {
+    if (!loaded || !session?.user) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      const totalCents = items.reduce((sum, item) => sum + item.priceCents * (item.options?.quantity ? parseInt(item.options.quantity) : 1), 0);
+      fetch('/api/cart/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, itemCount: items.length, totalCents }),
+      }).catch(() => {}); // fire-and-forget
+    }, 1000);
+    return () => { if (syncTimerRef.current) clearTimeout(syncTimerRef.current); };
+  }, [items, loaded, session]);
 
   // Sync cart across browser tabs
   useEffect(() => {

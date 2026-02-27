@@ -978,3 +978,43 @@ export async function getStudioPortraitById(portraitId: number, userId: number):
   );
   return result.rows[0] as StudioPortrait || null;
 }
+
+// ─── Cart Snapshots ──────────────────────────────────────────────────
+
+export async function upsertCartSnapshot(
+  userId: number,
+  items: unknown[],
+  itemCount: number,
+  totalCents: number
+): Promise<void> {
+  await pool.query(
+    `INSERT INTO cart_snapshots (user_id, items, item_count, total_cents, updated_at)
+     VALUES ($1, $2, $3, $4, NOW())
+     ON CONFLICT (user_id)
+     DO UPDATE SET items = $2, item_count = $3, total_cents = $4, updated_at = NOW()`,
+    [userId, JSON.stringify(items), itemCount, totalCents]
+  );
+}
+
+export interface CartSnapshot {
+  id: number;
+  user_id: number;
+  user_email: string;
+  user_name: string | null;
+  items: unknown[];
+  item_count: number;
+  total_cents: number;
+  updated_at: Date;
+}
+
+export async function getActiveCartSnapshots(): Promise<CartSnapshot[]> {
+  const result = await pool.query(
+    `SELECT cs.id, cs.user_id, u.email as user_email, u.name as user_name,
+            cs.items, cs.item_count, cs.total_cents, cs.updated_at
+     FROM cart_snapshots cs
+     JOIN users u ON cs.user_id = u.id
+     WHERE cs.item_count > 0
+     ORDER BY cs.updated_at DESC`
+  );
+  return result.rows as CartSnapshot[];
+}

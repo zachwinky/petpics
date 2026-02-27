@@ -198,6 +198,18 @@ CREATE TABLE IF NOT EXISTS studio_portraits (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Cart snapshots (server-side mirror of localStorage cart for admin visibility)
+CREATE TABLE IF NOT EXISTS cart_snapshots (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  items JSONB NOT NULL DEFAULT '[]',
+  item_count INTEGER NOT NULL DEFAULT 0,
+  total_cents INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_cart_snapshots_user ON cart_snapshots(user_id);
+
 CREATE INDEX IF NOT EXISTS idx_print_products_type ON print_products(product_type);
 CREATE INDEX IF NOT EXISTS idx_print_products_active ON print_products(active);
 CREATE INDEX IF NOT EXISTS idx_print_orders_user_id ON print_orders(user_id);

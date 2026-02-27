@@ -136,6 +136,19 @@ export async function POST(request: NextRequest) {
     `);
     results.push('✓ video_generations table');
 
+    // Create cart_snapshots table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cart_snapshots (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+        items JSONB NOT NULL DEFAULT '[]',
+        item_count INTEGER NOT NULL DEFAULT 0,
+        total_cents INTEGER NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    results.push('✓ cart_snapshots table');
+
     // Add missing columns (safe to run multiple times)
     const alterQueries = [
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE',
@@ -173,6 +186,7 @@ export async function POST(request: NextRequest) {
       'CREATE INDEX IF NOT EXISTS idx_pending_trainings_request ON pending_trainings(fal_request_id)',
       'CREATE INDEX IF NOT EXISTS idx_video_generations_user_id ON video_generations(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_video_generations_fal_request_id ON video_generations(fal_request_id)',
+      'CREATE INDEX IF NOT EXISTS idx_cart_snapshots_user ON cart_snapshots(user_id)',
     ];
 
     for (const query of indexQueries) {
