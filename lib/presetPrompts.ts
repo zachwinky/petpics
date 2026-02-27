@@ -321,4 +321,12 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     category: 'fun',
     prompt: 'standing on concert stage playing electric guitar, wearing leather jacket and sunglasses, dramatic stage lighting with spotlights and smoke machine, adoring crowd with raised hands, rockstar power pose, epic performance moment',
   },
+  {
+    id: 'fun-knight',
+    label: 'Medieval Knight',
+    description: 'Suited up in shining armor',
+    category: 'fun',
+    prompt: 'wearing full medieval knight armor with shining silver breastplate and helmet with visor up, holding sword upright, standing in grand castle throne room, tapestries on stone walls, dramatic torchlight, noble heroic pose, chivalrous guardian',
+    catPrompt: 'wearing full medieval knight armor with shining silver breastplate and helmet with visor up, perched regally on castle windowsill, grand throne room with tapestries on stone walls, dramatic torchlight, noble guardian of the realm, dignified feline warrior',
+  },
 ];

@@ -178,6 +178,13 @@ export const STUDIO_SCENES: StudioScene[] = [
     promptId: 'fun-rockstar',
     category: 'fun',
   },
+  {
+    id: 'fun-knight',
+    label: 'Medieval Knight',
+    previewImage: '/studio-scenes/fun-knight.svg',
+    promptId: 'fun-knight',
+    category: 'fun',
+  },
 
   // Seasonal
   {
