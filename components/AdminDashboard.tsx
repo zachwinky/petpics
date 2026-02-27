@@ -194,6 +194,9 @@ export default function AdminDashboard() {
   const [cartsSectionOpen, setCartsSectionOpen] = useState(false);
   const [cartsLoading, setCartsLoading] = useState(false);
 
+  // Admin tools parent collapsible
+  const [adminToolsOpen, setAdminToolsOpen] = useState(false);
+
   // Print announcement state
   const [printAnnouncementOpen, setPrintAnnouncementOpen] = useState(false);
   const [printAnnouncementUsers, setPrintAnnouncementUsers] = useState<PrintAnnouncementUser[]>([]);
@@ -862,11 +865,33 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Add Model Section */}
+      {/* Admin Tools — groups 6 config/tool sections */}
       <div className="bg-white rounded-lg shadow">
         <button
+          onClick={() => setAdminToolsOpen(!adminToolsOpen)}
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Admin Tools</h2>
+            <p className="text-sm text-gray-500">Training recovery, email campaigns, gallery & product image config</p>
+          </div>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ml-4 ${adminToolsOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {adminToolsOpen && (
+          <div className="border-t border-gray-200 divide-y divide-gray-100">
+
+      {/* Add Model Section */}
+      <div>
+        <button
           onClick={() => setShowAddModel(!showAddModel)}
-          className="w-full px-6 py-4 flex items-center justify-between text-left"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Recover Lost Training</h2>
@@ -954,10 +979,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Sample Prompts Config */}
-      <div className="bg-white rounded-lg shadow">
+      <div>
         <button
           onClick={() => setSampleSectionOpen(!sampleSectionOpen)}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Training Completion Samples</h2>
@@ -973,7 +998,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {sampleSectionOpen && (
-          <div className="px-6 py-4">
+          <div className="px-4 py-3">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
               {availablePresets.map(preset => {
                 const isSelected = samplePromptIds.includes(preset.id);
@@ -1015,10 +1040,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Hero Gallery Config */}
-      <div className="bg-white rounded-lg shadow">
+      <div>
         <button
           onClick={() => setGallerySectionOpen(!gallerySectionOpen)}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Landing Page Gallery</h2>
@@ -1034,7 +1059,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {gallerySectionOpen && (
-          <div className="px-6 py-4 space-y-4">
+          <div className="px-4 py-3 space-y-4">
             {/* Add new image */}
             <div className="flex flex-col sm:flex-row gap-2">
               <input
@@ -1123,10 +1148,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Product Card Images */}
-      <div className="bg-white rounded-lg shadow">
+      <div>
         <button
           onClick={() => setProductImagesSectionOpen(!productImagesSectionOpen)}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Landing Page Product Images</h2>
@@ -1142,7 +1167,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {productImagesSectionOpen && (
-          <div className="px-6 py-4 space-y-6">
+          <div className="px-4 py-3 space-y-6">
             <p className="text-sm text-gray-600">
               Paste image URLs below. These replace the placeholder icons on the landing page product cards and hero section.
               Leave blank to keep the emoji placeholder.
@@ -1250,10 +1275,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Print Shop Announcement */}
-      <div className="bg-white rounded-lg shadow">
+      <div>
         <button
           onClick={togglePrintAnnouncementSection}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Print Shop Announcement</h2>
@@ -1264,7 +1289,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {printAnnouncementOpen && (
-          <div className="px-6 py-4">
+          <div className="px-4 py-3">
             {printAnnouncementLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -1300,7 +1325,7 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left">
@@ -1312,7 +1337,7 @@ export default function AdminDashboard() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-100">
                       {printAnnouncementUsers.map((user) => {
                         const wasSent = !!user.announcement_sent_at;
                         return (
@@ -1350,10 +1375,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Re-engagement Emails */}
-      <div className="bg-white rounded-lg shadow">
+      <div>
         <button
           onClick={toggleReengagementSection}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-5 py-3 flex items-center justify-between text-left"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Re-engagement Emails</h2>
@@ -1364,7 +1389,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {reengagementSectionOpen && (
-          <div className="px-6 py-4">
+          <div className="px-4 py-3">
             {reengagementLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -1401,7 +1426,7 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left">
@@ -1414,7 +1439,7 @@ export default function AdminDashboard() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-100">
                       {reengagementUsers.map((user) => {
                         const wasSent = !!user.reengagement_sent_at;
                         return (
@@ -1452,11 +1477,15 @@ export default function AdminDashboard() {
         )}
       </div>
 
+          </div>
+        )}
+      </div>
+
       {/* Print Orders */}
       <div className="bg-white rounded-lg shadow">
         <button
           onClick={togglePrintOrdersSection}
-          className="w-full px-6 py-4 flex items-center justify-between text-left border-b border-gray-200"
+          className="w-full px-4 py-3 flex items-center justify-between text-left border-b border-gray-200"
         >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Print Orders</h2>
@@ -1467,7 +1496,7 @@ export default function AdminDashboard() {
           </svg>
         </button>
         {printOrdersSectionOpen && (
-          <div className="px-6 py-4">
+          <div className="px-4 py-3">
             {printOrdersLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -1476,7 +1505,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500 text-center py-4">No print orders yet.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-100">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
@@ -1489,7 +1518,7 @@ export default function AdminDashboard() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-100">
                     {printOrders.map((order) => (
                       <React.Fragment key={order.id}>
                         <tr
@@ -1746,10 +1775,10 @@ export default function AdminDashboard() {
       {/* Active Carts Section */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <button
-          className="w-full px-6 py-4 border-b border-gray-200 flex items-center justify-between text-left"
+          className="w-full px-4 py-3 border-b border-gray-200 flex items-center justify-between text-left"
           onClick={toggleCartsSection}
         >
-          <h2 className="text-xl font-semibold text-gray-900">Active Carts</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Active Carts</h2>
           <span className="text-gray-400">{cartsSectionOpen ? '▲' : '▼'}</span>
         </button>
         {cartsSectionOpen && (
@@ -1760,28 +1789,28 @@ export default function AdminDashboard() {
               <div className="text-center py-4 text-gray-500">No active carts</div>
             ) : (
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-100">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Updated</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-100">
                     {activeCarts.map((cart, i) => (
-                      <tr key={i}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <tr key={i} className={i % 2 === 1 ? 'bg-gray-50/50' : ''}>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                           {cart.user_name || cart.user_email}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                           {cart.item_count}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                           {formatCurrency(cart.total_cents / 100)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                           {new Date(cart.updated_at).toLocaleString()}
                         </td>
                       </tr>
@@ -1797,27 +1826,27 @@ export default function AdminDashboard() {
       {/* Pending Trainings Section */}
       {pendingTrainings.length > 0 && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Pending & Failed Trainings</h2>
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Pending & Failed Trainings</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trigger Word</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Started</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trigger Word</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Started</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {pendingTrainings.map((training) => (
-                  <tr key={training.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{training.user_email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{training.trigger_word}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+              <tbody className="bg-white divide-y divide-gray-100">
+                {pendingTrainings.map((training, idx) => (
+                  <tr key={training.id} className={`hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50/50' : ''}`}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{training.user_email}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900">{training.trigger_word}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         training.status === 'training'
                           ? 'bg-yellow-100 text-yellow-800'
@@ -1826,11 +1855,11 @@ export default function AdminDashboard() {
                         {training.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(training.created_at)}</td>
-                    <td className="px-6 py-4 text-sm text-red-600 max-w-xs truncate" title={training.error_message || ''}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(training.created_at)}</td>
+                    <td className="px-4 py-3 text-sm text-red-600 max-w-xs truncate" title={training.error_message || ''}>
                       {training.error_message || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
                       <div className="flex gap-1 flex-wrap">
                         {training.status === 'training' && (
                           <>
@@ -1864,8 +1893,8 @@ export default function AdminDashboard() {
       {/* Videos Section */}
       {videos.length > 0 && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Video Generations</h2>
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Video Generations</h2>
             <div className="flex gap-2">
               {(['all', 'pending', 'processing', 'failed'] as const).map((filter) => (
                 <button
@@ -1883,25 +1912,25 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Credits</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {videos
                   .filter(v => videoFilter === 'all' || v.status === videoFilter)
                   .slice(0, 20)
-                  .map((video) => (
-                    <tr key={video.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{video.user_email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                  .map((video, idx) => (
+                    <tr key={video.id} className={`hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50/50' : ''}`}>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{video.user_email}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           video.status === 'completed' ? 'bg-green-100 text-green-800' :
                           video.status === 'failed' ? 'bg-red-100 text-red-800' :
@@ -1911,12 +1940,12 @@ export default function AdminDashboard() {
                           {video.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{video.credits_used}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(video.created_at)}</td>
-                      <td className="px-6 py-4 text-sm text-red-600 max-w-xs truncate" title={video.error_message || ''}>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{video.credits_used}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(video.created_at)}</td>
+                      <td className="px-4 py-3 text-sm text-red-600 max-w-xs truncate" title={video.error_message || ''}>
                         {video.error_message || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
                         {video.status !== 'completed' && (
                           <div className="flex gap-1">
                             {video.status !== 'failed' && (
@@ -1948,9 +1977,9 @@ export default function AdminDashboard() {
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <h2 className="text-xl font-semibold text-gray-900">All Users</h2>
+            <h2 className="text-lg font-semibold text-gray-900">All Users</h2>
             <div className="relative">
               <input
                 type="text"
@@ -1976,40 +2005,40 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   User
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('print_order_total_cents')}
                 >
                   Orders {sortBy === 'print_order_total_cents' && (order === 'DESC' ? '↓' : '↑')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Activity
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('created_at')}
                 >
                   Joined {sortBy === 'created_at' && (order === 'DESC' ? '↓' : '↑')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+            <tbody className="bg-white divide-y divide-gray-100">
+              {users.map((user, idx) => (
+                <tr key={user.id} className={`hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50/50' : ''}`}>
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{user.email}</div>
                     {user.name && <div className="text-sm text-gray-500">{user.name}</div>}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     {user.print_order_count > 0 ? (
                       <>
                         <div className="text-sm font-medium text-gray-900">{formatCurrency(user.print_order_total_cents / 100)}</div>
@@ -2019,15 +2048,15 @@ export default function AdminDashboard() {
                       <div className="text-sm text-gray-400">-</div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.models_count} models</div>
                     <div className="text-xs text-gray-500">{user.generations_count} generations</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{formatDate(user.created_at)}</div>
                     <div className="text-xs text-gray-500">Last: {formatDate(user.last_activity)}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
                     <Link
                       href={`/admin/users/${user.id}`}
                       className="text-indigo-600 hover:text-indigo-900 font-medium"
@@ -2046,7 +2075,7 @@ export default function AdminDashboard() {
           </div>
         )}
         {usersHasMore && users.length > 0 && !searchQuery && (
-          <div className="px-6 py-3 border-t border-gray-200 text-center">
+          <div className="px-4 py-3 border-t border-gray-200 text-center">
             <button
               onClick={loadMoreUsers}
               disabled={loadingMore}
