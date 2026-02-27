@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8d5e0"/>
+      <stop offset="100%" stop-color="#c8b0c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Candles -->
+  <rect x="80" y="200" width="8" height="30" rx="2" fill="#f5e6ca" opacity="0.7"/>
+  <circle cx="84" cy="197" r="4" fill="#ff9800" opacity="0.5"/>
+  <rect x="310" y="210" width="8" height="25" rx="2" fill="#f5e6ca" opacity="0.7"/>
+  <circle cx="314" cy="207" r="4" fill="#ff9800" opacity="0.5"/>
+  <!-- Spa table -->
+  <rect x="110" y="230" width="180" height="20" rx="5" fill="#a08090" opacity="0.4"/>
+  <!-- Cucumber slices -->
+  <circle cx="175" cy="170" r="12" fill="#4caf50" opacity="0.4"/>
+  <circle cx="175" cy="170" r="8" fill="#66bb6a" opacity="0.3"/>
+  <circle cx="225" cy="170" r="12" fill="#4caf50" opacity="0.4"/>
+  <circle cx="225" cy="170" r="8" fill="#66bb6a" opacity="0.3"/>
+  <!-- Towel turban -->
+  <ellipse cx="200" cy="140" rx="35" ry="20" fill="white" opacity="0.5"/>
+  <!-- Orchid -->
+  <circle cx="330" cy="180" r="8" fill="#e91e63" opacity="0.3"/>
+  <circle cx="340" cy="172" r="6" fill="#e91e63" opacity="0.25"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#7b5e7b" opacity="0.7">Yoga &amp; Spa</text>
+</svg>

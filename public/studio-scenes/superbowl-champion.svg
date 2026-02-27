@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1b5e20"/>
+      <stop offset="100%" stop-color="#2e7d32"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Confetti -->
+  <rect x="60" y="50" width="10" height="4" rx="1" fill="#ffeb3b" opacity="0.5" transform="rotate(25 65 52)"/>
+  <rect x="140" y="30" width="10" height="4" rx="1" fill="#e0e0e0" opacity="0.4" transform="rotate(-30 145 32)"/>
+  <rect x="260" y="55" width="10" height="4" rx="1" fill="#ffeb3b" opacity="0.5" transform="rotate(45 265 57)"/>
+  <rect x="330" y="40" width="10" height="4" rx="1" fill="#e0e0e0" opacity="0.4" transform="rotate(-15 335 42)"/>
+  <!-- Trophy -->
+  <rect x="180" y="180" width="40" height="8" rx="2" fill="#c0a030" opacity="0.5"/>
+  <rect x="190" y="150" width="20" height="35" fill="#c0a030" opacity="0.4"/>
+  <path d="M175 150 Q175 110 200 100 Q225 110 225 150Z" fill="#ffb300" opacity="0.5"/>
+  <!-- Trophy handles -->
+  <path d="M175 125 Q160 125 160 140 Q160 150 175 150" stroke="#c0a030" stroke-width="3" fill="none" opacity="0.4"/>
+  <path d="M225 125 Q240 125 240 140 Q240 150 225 150" stroke="#c0a030" stroke-width="3" fill="none" opacity="0.4"/>
+  <!-- Football -->
+  <ellipse cx="200" cy="260" rx="25" ry="15" fill="#795548" opacity="0.4"/>
+  <line x1="200" y1="245" x2="200" y2="275" stroke="white" stroke-width="1" opacity="0.3"/>
+  <line x1="190" y1="257" x2="210" y2="257" stroke="white" stroke-width="1" opacity="0.2"/>
+  <line x1="190" y1="263" x2="210" y2="263" stroke="white" stroke-width="1" opacity="0.2"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffeb3b" opacity="0.7">Champion</text>
+</svg>

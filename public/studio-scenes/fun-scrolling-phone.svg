@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a3728"/>
+      <stop offset="100%" stop-color="#8b7355"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Couch -->
+  <rect x="50" y="200" width="300" height="120" rx="20" fill="#6b5b4f" opacity="0.6"/>
+  <!-- Phone -->
+  <rect x="170" y="130" width="60" height="100" rx="8" fill="#333" opacity="0.8"/>
+  <rect x="175" y="140" width="50" height="75" rx="4" fill="#5b8dd9" opacity="0.6"/>
+  <!-- Glow -->
+  <circle cx="200" cy="170" r="60" fill="#5b8dd9" opacity="0.1"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#ccc" opacity="0.7">Doomscrolling</text>
+</svg>

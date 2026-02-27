@@ -4,15 +4,33 @@
  * The promptId maps to existing presets in lib/presetPrompts.ts.
  */
 
+import type { PresetCategory } from './presetPrompts';
+
 export interface StudioScene {
   id: string;
   label: string;
   previewImage: string;
   promptId: string; // references PRESET_PROMPTS id
+  category?: PresetCategory; // defaults to 'classics' if omitted
+}
+
+export type { PresetCategory };
+
+export const STUDIO_CATEGORIES: { id: PresetCategory; label: string }[] = [
+  { id: 'classics', label: 'Classics' },
+  { id: 'fun', label: 'Fun & Quirky' },
+  { id: 'seasonal', label: 'Seasonal' },
+];
+
+export function getStudioScenesForCategory(category: PresetCategory): StudioScene[] {
+  if (category === 'classics') {
+    return STUDIO_SCENES.filter(s => !s.category || s.category === 'classics');
+  }
+  return STUDIO_SCENES.filter(s => s.category === category);
 }
 
 /**
- * 12 curated scenes that consistently produce great results at print quality.
+ * Curated scenes for print quality.
  * Preview images are SVG placeholders in /public/studio-scenes/{id}.svg
  */
 export const STUDIO_SCENES: StudioScene[] = [
@@ -87,6 +105,108 @@ export const STUDIO_SCENES: StudioScene[] = [
     label: 'Holiday Theme',
     previewImage: '/studio-scenes/holiday-theme.svg',
     promptId: 'holiday-theme',
+  },
+
+  // Fun & Quirky
+  {
+    id: 'fun-scrolling-phone',
+    label: 'Doomscrolling',
+    previewImage: '/studio-scenes/fun-scrolling-phone.svg',
+    promptId: 'fun-scrolling-phone',
+    category: 'fun',
+  },
+  {
+    id: 'fun-chef',
+    label: 'Master Chef',
+    previewImage: '/studio-scenes/fun-chef.svg',
+    promptId: 'fun-chef',
+    category: 'fun',
+  },
+  {
+    id: 'fun-dj',
+    label: 'DJ Booth',
+    previewImage: '/studio-scenes/fun-dj.svg',
+    promptId: 'fun-dj',
+    category: 'fun',
+  },
+  {
+    id: 'fun-road-trip',
+    label: 'Road Trip',
+    previewImage: '/studio-scenes/fun-road-trip.svg',
+    promptId: 'fun-road-trip',
+    category: 'fun',
+  },
+  {
+    id: 'fun-yoga',
+    label: 'Yoga & Spa',
+    previewImage: '/studio-scenes/fun-yoga.svg',
+    promptId: 'fun-yoga',
+    category: 'fun',
+  },
+  {
+    id: 'fun-office-worker',
+    label: 'Office Worker',
+    previewImage: '/studio-scenes/fun-office-worker.svg',
+    promptId: 'fun-office-worker',
+    category: 'fun',
+  },
+  {
+    id: 'fun-artist',
+    label: 'Artist',
+    previewImage: '/studio-scenes/fun-artist.svg',
+    promptId: 'fun-artist',
+    category: 'fun',
+  },
+  {
+    id: 'fun-astronaut',
+    label: 'Astronaut',
+    previewImage: '/studio-scenes/fun-astronaut.svg',
+    promptId: 'fun-astronaut',
+    category: 'fun',
+  },
+  {
+    id: 'fun-graduation',
+    label: 'Graduate',
+    previewImage: '/studio-scenes/fun-graduation.svg',
+    promptId: 'fun-graduation',
+    category: 'fun',
+  },
+  {
+    id: 'fun-rockstar',
+    label: 'Rockstar',
+    previewImage: '/studio-scenes/fun-rockstar.svg',
+    promptId: 'fun-rockstar',
+    category: 'fun',
+  },
+
+  // Seasonal
+  {
+    id: 'oval-office',
+    label: 'Oval Office',
+    previewImage: '/studio-scenes/oval-office.svg',
+    promptId: 'presidents-oval-office',
+    category: 'seasonal',
+  },
+  {
+    id: 'valentine-cupid',
+    label: 'Cupid',
+    previewImage: '/studio-scenes/valentine-cupid.svg',
+    promptId: 'valentine-cupid',
+    category: 'seasonal',
+  },
+  {
+    id: 'superbowl-champion',
+    label: 'Champion',
+    previewImage: '/studio-scenes/superbowl-champion.svg',
+    promptId: 'superbowl-champion',
+    category: 'seasonal',
+  },
+  {
+    id: 'cozy-bedtime',
+    label: 'Cozy Bedtime',
+    previewImage: '/studio-scenes/cozy-bedtime.svg',
+    promptId: 'cozy-bedtime',
+    category: 'seasonal',
   },
 ];
 

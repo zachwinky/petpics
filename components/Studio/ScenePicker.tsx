@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { STUDIO_SCENES } from '@/lib/studioScenes';
+import { STUDIO_CATEGORIES, getStudioScenesForCategory, type PresetCategory } from '@/lib/studioScenes';
 
 interface ScenePickerProps {
   petName: string;
@@ -10,6 +10,7 @@ interface ScenePickerProps {
 
 export default function ScenePicker({ petName, onScenesSelected }: ScenePickerProps) {
   const [selectedScenes, setSelectedScenes] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<PresetCategory>('fun');
 
   const toggleScene = (sceneId: string) => {
     setSelectedScenes(prev => {
@@ -21,10 +22,15 @@ export default function ScenePicker({ petName, onScenesSelected }: ScenePickerPr
     });
   };
 
+  const filteredScenes = getStudioScenesForCategory(activeCategory);
+  const hiddenSelectedCount = selectedScenes.filter(
+    id => !filteredScenes.find(s => s.id === id)
+  ).length;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="text-center mb-6 px-4">
+      <div className="text-center mb-4 px-4">
         <h2 className="text-white text-xl font-semibold mb-1">
           {petName}&apos;s Portrait Studio
         </h2>
@@ -38,10 +44,34 @@ export default function ScenePicker({ petName, onScenesSelected }: ScenePickerPr
         </p>
       </div>
 
+      {/* Category Tabs */}
+      <div className="flex gap-2 justify-center px-4 mb-4">
+        {STUDIO_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              activeCategory === cat.id
+                ? 'bg-white text-black'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Cross-tab indicator */}
+      {hiddenSelectedCount > 0 && (
+        <p className="text-center text-white/50 text-xs mb-2 px-4">
+          + {hiddenSelectedCount} scene(s) selected from other tabs
+        </p>
+      )}
+
       {/* Scene grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-24">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {STUDIO_SCENES.map(scene => {
+          {filteredScenes.map(scene => {
             const isSelected = selectedScenes.includes(scene.id);
             return (
               <button

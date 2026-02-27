@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#81d4fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Road -->
+  <rect x="0" y="280" width="400" height="120" fill="#555" opacity="0.4"/>
+  <rect x="0" y="335" width="40" height="4" rx="2" fill="#ffeb3b" opacity="0.5"/>
+  <rect x="60" y="335" width="40" height="4" rx="2" fill="#ffeb3b" opacity="0.5"/>
+  <rect x="120" y="335" width="40" height="4" rx="2" fill="#ffeb3b" opacity="0.5"/>
+  <rect x="180" y="335" width="40" height="4" rx="2" fill="#ffeb3b" opacity="0.5"/>
+  <!-- Car silhouette -->
+  <rect x="120" y="230" width="180" height="70" rx="15" fill="#e74c3c" opacity="0.6"/>
+  <rect x="150" y="200" width="120" height="40" rx="10" fill="#e74c3c" opacity="0.5"/>
+  <!-- Window -->
+  <rect x="220" y="205" width="40" height="28" rx="5" fill="#4fc3f7" opacity="0.5"/>
+  <!-- Sunglasses -->
+  <circle cx="180" cy="140" r="15" fill="#333" opacity="0.5"/>
+  <circle cx="215" cy="140" r="15" fill="#333" opacity="0.5"/>
+  <line x1="195" y1="140" x2="200" y2="140" stroke="#333" stroke-width="2" opacity="0.5"/>
+  <!-- Wind lines -->
+  <line x1="310" y1="180" x2="370" y2="175" stroke="white" stroke-width="2" opacity="0.3"/>
+  <line x1="320" y1="200" x2="380" y2="198" stroke="white" stroke-width="2" opacity="0.25"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#1565c0" opacity="0.7">Road Trip</text>
+</svg>

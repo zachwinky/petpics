@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#1b2838"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Stars -->
+  <circle cx="50" cy="60" r="1.5" fill="white" opacity="0.6"/>
+  <circle cx="120" cy="30" r="1" fill="white" opacity="0.5"/>
+  <circle cx="300" cy="50" r="1.5" fill="white" opacity="0.6"/>
+  <circle cx="350" cy="120" r="1" fill="white" opacity="0.4"/>
+  <circle cx="80" cy="150" r="1" fill="white" opacity="0.5"/>
+  <circle cx="330" cy="200" r="1.5" fill="white" opacity="0.5"/>
+  <!-- Earth -->
+  <circle cx="320" cy="300" r="50" fill="#1565c0" opacity="0.4"/>
+  <ellipse cx="310" cy="290" rx="25" ry="15" fill="#4caf50" opacity="0.2"/>
+  <ellipse cx="340" cy="310" rx="15" ry="10" fill="#4caf50" opacity="0.15"/>
+  <!-- Helmet -->
+  <circle cx="200" cy="170" r="45" fill="#ddd" opacity="0.3"/>
+  <circle cx="200" cy="170" r="35" fill="#1a237e" opacity="0.3"/>
+  <!-- Visor reflection -->
+  <ellipse cx="190" cy="165" rx="10" ry="15" fill="white" opacity="0.1"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#64b5f6" opacity="0.7">Astronaut</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0533"/>
+      <stop offset="100%" stop-color="#2d1b69"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Neon lights -->
+  <circle cx="80" cy="80" r="40" fill="#ff00ff" opacity="0.15"/>
+  <circle cx="320" cy="100" r="50" fill="#00ffff" opacity="0.15"/>
+  <circle cx="200" cy="60" r="30" fill="#ff6600" opacity="0.12"/>
+  <!-- Turntable -->
+  <rect x="100" y="200" width="200" height="80" rx="8" fill="#333" opacity="0.7"/>
+  <circle cx="170" cy="235" r="28" fill="#222" opacity="0.8"/>
+  <circle cx="170" cy="235" r="4" fill="#ff00ff" opacity="0.6"/>
+  <circle cx="270" cy="235" r="28" fill="#222" opacity="0.8"/>
+  <circle cx="270" cy="235" r="4" fill="#00ffff" opacity="0.6"/>
+  <!-- Headphones -->
+  <path d="M165 140 Q165 110 200 110 Q235 110 235 140" stroke="#444" stroke-width="6" fill="none" opacity="0.7"/>
+  <rect x="155" y="135" width="16" height="22" rx="4" fill="#444" opacity="0.7"/>
+  <rect x="229" y="135" width="16" height="22" rx="4" fill="#444" opacity="0.7"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#b388ff" opacity="0.7">DJ Booth</text>
+</svg>

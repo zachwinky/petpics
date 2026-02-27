@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a237e"/>
+      <stop offset="100%" stop-color="#283593"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Confetti -->
+  <rect x="80" y="60" width="8" height="3" rx="1" fill="#ffeb3b" opacity="0.5" transform="rotate(30 84 62)"/>
+  <rect x="150" y="40" width="8" height="3" rx="1" fill="#e91e63" opacity="0.4" transform="rotate(-20 154 42)"/>
+  <rect x="280" y="70" width="8" height="3" rx="1" fill="#4caf50" opacity="0.5" transform="rotate(45 284 72)"/>
+  <rect x="320" y="50" width="8" height="3" rx="1" fill="#ff9800" opacity="0.4" transform="rotate(-15 324 52)"/>
+  <!-- Grad cap -->
+  <rect x="155" y="130" width="90" height="8" fill="#333" opacity="0.7"/>
+  <rect x="175" y="115" width="50" height="20" rx="2" fill="#333" opacity="0.6"/>
+  <!-- Tassel -->
+  <line x1="245" y1="134" x2="260" y2="165" stroke="#ffeb3b" stroke-width="2" opacity="0.6"/>
+  <circle cx="260" cy="168" r="4" fill="#ffeb3b" opacity="0.5"/>
+  <!-- Diploma scroll -->
+  <rect x="170" y="220" width="60" height="40" rx="3" fill="#f5e6ca" opacity="0.5"/>
+  <circle cx="170" cy="240" r="5" fill="#f5e6ca" opacity="0.5"/>
+  <circle cx="230" cy="240" r="5" fill="#f5e6ca" opacity="0.5"/>
+  <!-- Ribbon -->
+  <rect x="193" y="230" width="14" height="5" rx="1" fill="#e74c3c" opacity="0.4"/>
+  <text x="200" y="370" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#90caf9" opacity="0.7">Graduate</text>
+</svg>
