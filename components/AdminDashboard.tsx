@@ -128,6 +128,8 @@ export default function AdminDashboard() {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [usersHasMore, setUsersHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Pending trainings state
   const [pendingTrainings, setPendingTrainings] = useState<PendingTraining[]>([]);
@@ -212,6 +214,7 @@ export default function AdminDashboard() {
       const usersRes = await fetch(`/api/admin/stats?type=users&sortBy=${sortBy}&order=${order}&limit=50`);
       const usersData = await usersRes.json();
       setUsers(usersData.users);
+      setUsersHasMore((usersData.users || []).length >= 50);
 
       // Load pending trainings
       const trainingsRes = await fetch('/api/admin/stats?type=pending-trainings');
@@ -798,6 +801,21 @@ export default function AdminDashboard() {
     } else {
       setSortBy(column);
       setOrder('DESC');
+    }
+  };
+
+  const loadMoreUsers = async () => {
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/admin/stats?type=users&sortBy=${sortBy}&order=${order}&limit=50&offset=${users.length}`);
+      const data = await res.json();
+      const moreUsers = data.users || [];
+      setUsers(prev => [...prev, ...moreUsers]);
+      setUsersHasMore(moreUsers.length >= 50);
+    } catch (error) {
+      console.error('Failed to load more users:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -1663,7 +1681,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm font-medium text-gray-600">Total Users</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalUsers}</div>
@@ -1680,6 +1698,12 @@ export default function AdminDashboard() {
             <div className="text-sm font-medium text-gray-600">Print Orders</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalPrintOrders}</div>
             <div className="mt-1 text-sm text-gray-500">{stats.totalModels} models trained</div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="text-sm font-medium text-gray-600">Total Activity</div>
+            <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalModels}</div>
+            <div className="mt-1 text-sm text-gray-500">{stats.totalGenerations.toLocaleString()} generations</div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
@@ -1735,9 +1759,9 @@ export default function AdminDashboard() {
             ) : activeCarts.length === 0 ? (
               <div className="text-center py-4 text-gray-500">No active carts</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
@@ -1951,9 +1975,9 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
@@ -2019,6 +2043,17 @@ export default function AdminDashboard() {
         {users.length === 0 && (
           <div className="px-6 py-8 text-center text-gray-500">
             {searchQuery ? 'No users found matching your search' : 'No users yet'}
+          </div>
+        )}
+        {usersHasMore && users.length > 0 && !searchQuery && (
+          <div className="px-6 py-3 border-t border-gray-200 text-center">
+            <button
+              onClick={loadMoreUsers}
+              disabled={loadingMore}
+              className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 disabled:text-gray-400"
+            >
+              {loadingMore ? 'Loading...' : `Load More (showing ${users.length})`}
+            </button>
           </div>
         )}
       </div>
