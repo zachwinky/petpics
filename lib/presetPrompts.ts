@@ -1,12 +1,21 @@
+export type PresetCategory = 'classics' | 'fun' | 'seasonal';
+
 export interface PresetPrompt {
   id: string;
   label: string;
   description: string;
   prompt: string;
   catPrompt?: string; // Cat-specific version of the prompt (if different from dog)
+  category?: PresetCategory; // defaults to 'classics' if omitted
 }
 
 export type PetType = 'dog' | 'cat' | 'unknown';
+
+export const PRESET_CATEGORIES: { id: PresetCategory; label: string }[] = [
+  { id: 'classics', label: 'Classics' },
+  { id: 'fun', label: 'Fun & Quirky' },
+  { id: 'seasonal', label: 'Seasonal' },
+];
 
 /**
  * Get the appropriate prompt for a pet type.
@@ -27,6 +36,16 @@ export function getPromptForPetType(promptId: string, petType: PetType): string 
  */
 export function getPresetById(promptId: string): PresetPrompt | undefined {
   return PRESET_PROMPTS.find(p => p.id === promptId);
+}
+
+/**
+ * Get presets filtered by category. Presets without a category default to 'classics'.
+ */
+export function getPresetsForCategory(category: PresetCategory): PresetPrompt[] {
+  if (category === 'classics') {
+    return PRESET_PROMPTS.filter(p => !p.category || p.category === 'classics');
+  }
+  return PRESET_PROMPTS.filter(p => p.category === category);
 }
 
 export const PRESET_PROMPTS: PresetPrompt[] = [
@@ -136,30 +155,35 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     id: 'valentine-cupid',
     label: 'Cupid',
     description: 'Adorable cupid with wings and bow',
+    category: 'seasonal',
     prompt: 'dressed as adorable cupid with tiny white angel wings and golden bow and arrow, surrounded by floating hearts, soft pink clouds, Valentine romantic atmosphere, cherub-like cuteness',
   },
   {
     id: 'valentine-rose',
     label: 'Rose Delivery',
     description: 'Holding a rose or love letter',
+    category: 'seasonal',
     prompt: 'holding single red rose in mouth or paws, sitting beside love letter with heart seal, romantic red and pink setting, Valentine gift delivery, sweet devoted expression',
   },
   {
     id: 'valentine-chocolates',
     label: 'Chocolates',
     description: 'With heart-shaped chocolate box',
+    category: 'seasonal',
     prompt: 'peeking out of giant heart-shaped chocolate box, surrounded by wrapped chocolates and candy hearts, Valentine gift surprise, adorable mischievous expression, pink and red decor',
   },
   {
     id: 'valentine-balloons',
     label: 'Heart Balloons',
     description: 'Surrounded by heart balloons',
+    category: 'seasonal',
     prompt: 'surrounded by floating red and pink heart-shaped balloons, festive Valentine party atmosphere, confetti, joyful celebratory mood, bright cheerful lighting',
   },
   {
     id: 'valentine-portrait',
     label: 'Be My Valentine',
     description: 'Classic Valentine portrait',
+    category: 'seasonal',
     prompt: 'elegant Valentine portrait with red bow tie or pink ribbon collar, soft romantic bokeh hearts in background, studio lighting, greeting card perfect, loving gaze',
   },
   // Super Bowl
@@ -167,24 +191,28 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     id: 'superbowl-jersey',
     label: 'Game Day Jersey',
     description: 'Wearing a football jersey',
+    category: 'seasonal',
     prompt: 'wearing oversized football jersey, sitting on couch surrounded by game day snacks and chips, big screen TV showing football in background, foam finger nearby, excited fan expression, sports party atmosphere',
   },
   {
     id: 'superbowl-touchdown',
     label: 'Touchdown',
     description: 'Scoring a touchdown on the field',
+    category: 'seasonal',
     prompt: 'running with football in mouth across football field end zone, stadium lights blazing, crowd cheering in background, dramatic sports photography, touchdown celebration, confetti falling',
   },
   {
     id: 'superbowl-halftime',
     label: 'Halftime Show',
     description: 'Performing at the halftime show',
+    category: 'seasonal',
     prompt: 'performing on massive Super Bowl halftime stage, dramatic concert lighting, pyrotechnics and fireworks, wearing sparkly outfit, rockstar pose, packed stadium crowd, epic performance moment',
   },
   {
     id: 'superbowl-champion',
     label: 'Champion',
     description: 'Celebrating with the trophy',
+    category: 'seasonal',
     prompt: 'triumphantly holding Lombardi trophy, showered in confetti and streamers, champion celebration, wearing football helmet tilted to side, victory podium, camera flashes, ultimate champion moment',
   },
 
@@ -193,24 +221,104 @@ export const PRESET_PROMPTS: PresetPrompt[] = [
     id: 'presidents-oval-office',
     label: 'Oval Office',
     description: 'Commander in chief at the desk',
+    category: 'seasonal',
     prompt: 'sitting behind the Resolute Desk in the Oval Office, wearing a tiny presidential suit and tie, American flags on either side, looking dignified and important, presidential portrait lighting, leader of the free world',
   },
   {
     id: 'presidents-mount-rushmore',
     label: 'Mount Rushmore',
     description: 'Carved into the monument',
+    category: 'seasonal',
     prompt: 'face carved into Mount Rushmore alongside the presidents, majestic granite sculpture, dramatic mountain landscape, blue sky, iconic American monument, heroic stone carving',
   },
   {
     id: 'presidents-washington',
     label: 'Crossing the Delaware',
     description: 'Leading the troops across the river',
+    category: 'seasonal',
     prompt: 'standing heroically in wooden boat crossing icy Delaware River, wearing Revolutionary War uniform and tricorn hat, dramatic stormy sky, soldiers rowing behind, iconic patriotic painting style, George Washington pose',
   },
   {
     id: 'presidents-lincoln',
     label: 'Lincoln Memorial',
     description: 'Seated at the memorial',
+    category: 'seasonal',
     prompt: 'seated majestically in giant marble chair of the Lincoln Memorial, wearing top hat and bow tie, monumental marble columns, dramatic upward lighting, dignified contemplative expression, iconic memorial pose',
+  },
+
+  // Fun & Quirky — pets doing human things
+  {
+    id: 'fun-scrolling-phone',
+    label: 'Doomscrolling',
+    description: 'Scrolling through a phone on the couch',
+    category: 'fun',
+    prompt: 'lounging on couch holding smartphone with both paws, scrolling social media, snacks beside them, blanket over lap, cozy indoor lighting, humorous human-like pose',
+    catPrompt: 'lounging on couch holding smartphone with both paws, scrolling with intense focus, one paw tapping screen, snacks beside them, blanket over lap, cozy indoor lighting, humorous human-like pose',
+  },
+  {
+    id: 'fun-chef',
+    label: 'Master Chef',
+    description: 'Cooking up a gourmet meal',
+    category: 'fun',
+    prompt: 'wearing white chef hat and apron, standing at kitchen counter with ingredients, holding wooden spoon, pots simmering on stove, professional kitchen setting, dramatic cooking show lighting, confident chef expression',
+    catPrompt: 'wearing white chef hat and apron, standing at kitchen counter, suspiciously sniffing a fish fillet, pots simmering on stove, professional kitchen setting, dramatic cooking show lighting, mischievous expression',
+  },
+  {
+    id: 'fun-dj',
+    label: 'DJ Booth',
+    description: 'Spinning tracks at a DJ booth',
+    category: 'fun',
+    prompt: 'wearing oversized headphones around neck, standing behind DJ turntable mixing deck, neon club lights and laser beams, packed dance floor in background, cool confident expression, nightclub atmosphere, epic party vibes',
+  },
+  {
+    id: 'fun-road-trip',
+    label: 'Road Trip',
+    description: 'Head out the car window, wind in fur',
+    category: 'fun',
+    prompt: 'head and paws sticking out of car window, wind blowing through fur, tongue out with pure joy, scenic highway and blue sky, sunglasses on head, road trip adventure, golden afternoon light, freedom and happiness',
+    catPrompt: 'sitting regally in car passenger seat wearing tiny sunglasses, looking unimpressed out the window at passing scenery, scenic highway and blue sky, road trip adventure, golden afternoon light, aloof feline attitude',
+  },
+  {
+    id: 'fun-yoga',
+    label: 'Yoga & Spa',
+    description: 'Zen mode with cucumber eye mask',
+    category: 'fun',
+    prompt: 'lying on spa massage table with cucumber slices on eyes, white fluffy robe and towel turban on head, scented candles and orchids around, zen relaxation, serene spa setting, soft ambient lighting, pure bliss expression',
+  },
+  {
+    id: 'fun-office-worker',
+    label: 'Office Worker',
+    description: 'Corporate life at the desk',
+    category: 'fun',
+    prompt: 'sitting at office desk wearing glasses and tiny necktie, paws on keyboard, coffee mug beside monitor, stack of papers, motivational poster on wall, fluorescent office lighting, serious focused expression, corporate professional',
+    catPrompt: 'sitting on office desk keyboard wearing glasses, knocking coffee mug to the edge with one paw, stack of papers scattered, monitor showing spreadsheet, fluorescent office lighting, deliberately mischievous expression, corporate chaos',
+  },
+  {
+    id: 'fun-artist',
+    label: 'Artist',
+    description: 'Painting a masterpiece on canvas',
+    category: 'fun',
+    prompt: 'standing at easel holding paintbrush, wearing French beret and paint-splattered smock, colorful palette in paw, art studio with paintings on walls, warm creative lighting, passionate artistic expression, bohemian atmosphere',
+  },
+  {
+    id: 'fun-astronaut',
+    label: 'Astronaut',
+    description: 'Floating in space with Earth below',
+    category: 'fun',
+    prompt: 'wearing full astronaut space suit with helmet visor open, floating weightless inside space station, Earth visible through window, control panels and equipment, dramatic space lighting, awe-struck expression, cosmic adventure',
+  },
+  {
+    id: 'fun-graduation',
+    label: 'Graduate',
+    description: 'Graduation cap and diploma',
+    category: 'fun',
+    prompt: 'wearing graduation cap and tiny academic gown, proudly holding rolled diploma, confetti falling, university campus steps in background, family cheering, golden afternoon light, beaming with pride, milestone achievement',
+  },
+  {
+    id: 'fun-rockstar',
+    label: 'Rockstar',
+    description: 'Shredding guitar on stage',
+    category: 'fun',
+    prompt: 'standing on concert stage playing electric guitar, wearing leather jacket and sunglasses, dramatic stage lighting with spotlights and smoke machine, adoring crowd with raised hands, rockstar power pose, epic performance moment',
   },
 ];

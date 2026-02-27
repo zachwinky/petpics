@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PRESET_PROMPTS } from '@/lib/presetPrompts';
+import { PRESET_PROMPTS, PRESET_CATEGORIES, getPresetsForCategory, PresetCategory } from '@/lib/presetPrompts';
 import { PLATFORM_PRESETS, DEFAULT_ASPECT_RATIO } from '@/lib/platformPresets';
 import ModelSelector from './ModelSelector';
 import GeneratingModal from './GeneratingModal';
@@ -28,6 +28,7 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
   const [error, setError] = useState('');
   const [batchSize, setBatchSize] = useState<4 | 12 | 20>(4);
   const [selectedScenes, setSelectedScenes] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<PresetCategory>('fun');
   const [selectedPlatform, setSelectedPlatform] = useState(DEFAULT_ASPECT_RATIO);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -230,8 +231,34 @@ export default function GenerateInterface({ models, selectedModel: initialModel 
                 Select up to {maxScenes} scenes. Images will be divided evenly across selected scenes.
               </p>
             )}
+
+            {/* Category Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-3">
+              {PRESET_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                    activeCategory === cat.id
+                      ? 'bg-coral-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Cross-category selection indicator */}
+            {batchSize > 4 && selectedScenes.some(id => !getPresetsForCategory(activeCategory).find(p => p.id === id)) && (
+              <p className="text-xs text-coral-600 mb-2">
+                + {selectedScenes.filter(id => !getPresetsForCategory(activeCategory).find(p => p.id === id)).length} scene(s) selected from other tabs
+              </p>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {PRESET_PROMPTS.map((preset) => (
+              {getPresetsForCategory(activeCategory).map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
