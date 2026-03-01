@@ -33,8 +33,34 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Petpics",
-  description: "Turn your pet into stunning wall art — AI-generated portraits printed on canvas, poster, or mug",
+  title: {
+    default: 'Petpics — AI Pet Portraits on Canvas, Poster & Mug',
+    template: '%s | Petpics',
+  },
+  description: 'Turn your pet into stunning wall art. Upload a photo, pick a scene, and get AI-generated portraits printed on canvas, poster, or mug. The perfect personalized gift.',
+  metadataBase: new URL('https://petpics.akoolai.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Petpics — AI Pet Portraits on Canvas, Poster & Mug',
+    description: 'Turn your pet into stunning wall art. Upload a photo, pick a scene, and get AI-generated portraits printed on canvas, poster, or mug.',
+    url: 'https://petpics.akoolai.com',
+    siteName: 'Petpics',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Petpics — AI Pet Portraits' }],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Petpics — AI Pet Portraits on Canvas, Poster & Mug',
+    description: 'Turn your pet into stunning wall art. Upload a photo, pick a scene, and get AI-generated portraits printed on canvas, poster, or mug.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
