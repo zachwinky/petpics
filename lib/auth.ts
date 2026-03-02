@@ -110,11 +110,15 @@ export const authConfig: NextAuthConfig = {
       if (token.sub) {
         session.user.id = token.sub;
         // Check if user has been banned since last login
-        const { isUserBanned } = await import('./db');
-        const banned = await isUserBanned(parseInt(token.sub));
-        if (banned) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (session as any).banned = true;
+        try {
+          const { isUserBanned } = await import('./db');
+          const banned = await isUserBanned(parseInt(token.sub));
+          if (banned) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (session as any).banned = true;
+          }
+        } catch {
+          // Column may not exist yet — ignore
         }
       } else {
         console.error('Session callback: token.sub is missing', { token, session });
