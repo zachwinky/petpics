@@ -46,12 +46,12 @@ function getQualityLabel(product: Product): { label: string; color: string } | n
   const needed = Math.max(product.min_image_width_px, product.min_image_height_px);
   if (needed <= 0) return null;
   if (MAX_UPSCALED_PX >= needed) {
-    return { label: 'Best quality', color: 'text-green-400' };
+    return { label: 'Best quality', color: 'text-green-500' };
   }
   if (MAX_UPSCALED_PX >= needed * 0.75) {
-    return { label: 'Good quality', color: 'text-yellow-400' };
+    return { label: 'Good quality', color: 'text-green-400' };
   }
-  return { label: 'May appear soft', color: 'text-orange-400' };
+  return { label: 'May appear soft', color: 'text-yellow-400' };
 }
 
 // --- Printful mockup hook ---
