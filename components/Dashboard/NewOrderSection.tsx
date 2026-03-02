@@ -87,19 +87,28 @@ export default function NewOrderSection({ hasModels, models, onOpenStudio, onAdd
       </div>
 
       <div className="dash-products-mini">
-        {PRODUCTS.map(product => (
-          <button
-            key={product.type}
-            className="dash-product-mini"
-            onClick={() => handleProductClick(product.type)}
-          >
-            <div className="dash-product-mini-icon">
-              <img src={product.image} alt={product.name} className="dash-product-mini-img" />
-            </div>
-            <div className="dash-product-mini-name">{product.name}</div>
-            <div className="dash-product-mini-price">From {prices[product.key]} + shipping</div>
-          </button>
-        ))}
+        {PRODUCTS.map((product, i) => {
+          const petModel = hasModels && models.length > 0 ? models[i % models.length] : null;
+          const petPreview = petModel?.preview_image_url;
+          return (
+            <button
+              key={product.type}
+              className="dash-product-mini"
+              onClick={() => handleProductClick(product.type)}
+            >
+              <div className="dash-product-mini-icon">
+                <img src={product.image} alt={product.name} className="dash-product-mini-img" />
+              </div>
+              {petPreview && (
+                <div className="dash-product-mini-pet">
+                  <img src={petPreview} alt={petModel.name} />
+                </div>
+              )}
+              <div className="dash-product-mini-name">{product.name}</div>
+              <div className="dash-product-mini-price">From {prices[product.key]} + shipping</div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
