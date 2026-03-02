@@ -100,25 +100,6 @@ export default function NewOrderSection({ hasModels, models, onOpenStudio, onAdd
             <div className="dash-product-mini-price">From {prices[product.key]} + shipping</div>
           </button>
         ))}
-        {!hasModels && (
-          <div className="dash-product-mini dash-product-placeholder" onClick={onAddPet}>
-            <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg" className="dash-product-placeholder-dog">
-              <ellipse cx="100" cy="120" rx="65" ry="60" stroke="#d4a574" strokeWidth="3" fill="#fdf6f0" />
-              <path d="M45 95 C30 55, 50 40, 65 75" stroke="#d4a574" strokeWidth="3" fill="#f5e6d8" strokeLinecap="round" />
-              <path d="M155 95 C170 55, 150 40, 135 75" stroke="#d4a574" strokeWidth="3" fill="#f5e6d8" strokeLinecap="round" />
-              <circle cx="78" cy="110" r="8" fill="#8b7355" />
-              <circle cx="81" cy="108" r="3" fill="white" />
-              <circle cx="122" cy="110" r="8" fill="#8b7355" />
-              <circle cx="125" cy="108" r="3" fill="white" />
-              <ellipse cx="100" cy="132" rx="10" ry="7" fill="#8b7355" />
-              <path d="M100 139 C100 145, 88 150, 85 145" stroke="#8b7355" strokeWidth="2" fill="none" strokeLinecap="round" />
-              <path d="M100 139 C100 145, 112 150, 115 145" stroke="#8b7355" strokeWidth="2" fill="none" strokeLinecap="round" />
-              <ellipse cx="100" cy="152" rx="6" ry="8" fill="#e8845c" opacity="0.7" />
-              <circle cx="100" cy="115" r="90" stroke="#d4a574" strokeWidth="2" strokeDasharray="8 6" opacity="0.4" />
-            </svg>
-            <div className="dash-product-mini-name" style={{ color: 'var(--lp-accent-coral)' }}>Upload your pet first</div>
-          </div>
-        )}
       </div>
     </div>
   );
