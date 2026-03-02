@@ -8,6 +8,7 @@ interface NewOrderSectionProps {
   models: StudioModel[];
   onOpenStudio: (model: StudioModel, productType: string) => void;
   onAddPet: () => void;
+  onPickModel: (productType: string) => void;
 }
 
 interface ProductPricing {
@@ -28,7 +29,7 @@ const PRODUCTS = [
   { type: 'mug', image: '/products/mug-mockup.png', name: 'Mug', key: 'mug' as const },
 ];
 
-export default function NewOrderSection({ hasModels, models, onOpenStudio, onAddPet }: NewOrderSectionProps) {
+export default function NewOrderSection({ hasModels, models, onOpenStudio, onAddPet, onPickModel }: NewOrderSectionProps) {
   const [prices, setPrices] = useState<ProductPricing>(FALLBACK_PRICES);
 
   useEffect(() => {
@@ -62,9 +63,13 @@ export default function NewOrderSection({ hasModels, models, onOpenStudio, onAdd
 
   const handleProductClick = (productType: string) => {
     if (hasModels && models.length > 0) {
-      // If user has exactly one model, open studio directly
-      // If multiple, use the first one (TODO: could show a model picker)
-      onOpenStudio(models[0], productType);
+      if (models.length > 1) {
+        // Multiple pets — let user pick which one
+        onPickModel(productType);
+      } else {
+        // Single pet — open studio directly
+        onOpenStudio(models[0], productType);
+      }
     } else {
       // No models — store product and scroll to upload section
       localStorage.setItem('selectedProduct', productType);

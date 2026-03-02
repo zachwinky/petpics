@@ -1025,6 +1025,30 @@ button:disabled {
 }
 .dash-section-hero .dash-section-header h2 { font-size: 1.4rem; }
 .dash-section-hero .dash-upload-container { background: white; }
+
+/* Upload hero two-column layout */
+.dash-upload-hero-layout {
+  display: flex; gap: 32px; align-items: flex-start;
+}
+.dash-upload-hero-main { flex: 1; min-width: 0; }
+.dash-upload-hero-placeholder {
+  flex-shrink: 0; width: 200px; display: flex; flex-direction: column;
+  align-items: center; padding-top: 40px;
+}
+.dash-upload-hero-dog { width: 160px; height: auto; opacity: 0.85; }
+.dash-upload-hero-placeholder-text {
+  margin-top: 8px; font-size: 0.85rem; font-weight: 600;
+  color: var(--lp-accent-coral); text-align: center;
+}
+@media (max-width: 768px) {
+  .dash-upload-hero-layout { flex-direction: column-reverse; gap: 16px; }
+  .dash-upload-hero-placeholder {
+    width: 100%; flex-direction: row; justify-content: center;
+    gap: 12px; padding-top: 0;
+  }
+  .dash-upload-hero-dog { width: 80px; }
+  .dash-upload-hero-placeholder-text { margin-top: 0; font-size: 0.8rem; }
+}
 .dash-upload-intro {
   color: var(--lp-soft-brown); font-size: 0.9rem; margin-bottom: 1.2rem; line-height: 1.5;
 }
@@ -1172,4 +1196,42 @@ button:disabled {
   .dash-product-mini:hover { transform: none; box-shadow: 0 2px 12px var(--lp-shadow); border-color: transparent; }
   .dash-order-card:hover { box-shadow: 0 2px 16px var(--lp-shadow); }
   .dash-empty-cta:hover { transform: none; box-shadow: none; }
+}
+
+/* ---- MODEL PICKER MODAL ---- */
+.dash-model-picker-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.dash-model-picker {
+  background: white; border-radius: 20px; padding: 28px; max-width: 440px;
+  width: 100%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.dash-model-picker h3 {
+  font-size: 1.2rem; font-weight: 700; color: var(--lp-charcoal);
+  margin: 0 0 20px; text-align: center;
+}
+.dash-model-picker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px;
+}
+.dash-model-picker-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px 12px; border-radius: 14px; border: 2px solid rgba(139, 115, 85, 0.15);
+  background: var(--lp-cream-light); cursor: pointer; transition: all 0.2s;
+}
+.dash-model-picker-card:hover {
+  border-color: var(--lp-accent-coral); transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(232, 132, 92, 0.2);
+}
+.dash-model-picker-avatar {
+  width: 64px; height: 64px; border-radius: 50%; overflow: hidden;
+  background: rgba(139, 115, 85, 0.1); display: flex; align-items: center;
+  justify-content: center; font-size: 1.8rem;
+}
+.dash-model-picker-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.dash-model-picker-name {
+  font-size: 0.85rem; font-weight: 600; color: var(--lp-charcoal);
+  text-align: center; word-break: break-word;
 }

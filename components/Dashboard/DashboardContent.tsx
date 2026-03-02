@@ -41,6 +41,10 @@ export default function DashboardContent({
   const [selectedModel, setSelectedModel] = useState<StudioModel | null>(null);
   const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
 
+  // Model picker state (for multi-pet users)
+  const [showModelPicker, setShowModelPicker] = useState(false);
+  const [pendingProductType, setPendingProductType] = useState<string | null>(null);
+
   // Check for ?product=X URL param or localStorage on mount
   useEffect(() => {
     const productParam = searchParams.get('product');
@@ -50,11 +54,17 @@ export default function DashboardContent({
     if (product) {
       setSelectedProductType(product);
       if (studioModels.length > 0 && !studioOpen) {
-        // Has models → open Studio with product pre-selected, clear storage
-        setSelectedModel(studioModels[0]);
-        setStudioOpen(true);
-        trackStudioOpened();
         localStorage.removeItem('selectedProduct');
+        if (studioModels.length > 1) {
+          // Multiple pets — show picker
+          setPendingProductType(product);
+          setShowModelPicker(true);
+        } else {
+          // Single pet — open Studio directly
+          setSelectedModel(studioModels[0]);
+          setStudioOpen(true);
+          trackStudioOpened();
+        }
       }
       // If no models, don't clear localStorage — product selection survives training wait
       // Upload section is shown at the top for new users, no scroll needed
@@ -105,6 +115,17 @@ export default function DashboardContent({
   const handleAddPet = useCallback(() => {
     document.getElementById('my-pets')?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  const handlePickModel = useCallback((productType: string) => {
+    setPendingProductType(productType);
+    setShowModelPicker(true);
+  }, []);
+
+  const handleModelPicked = useCallback((model: StudioModel) => {
+    setShowModelPicker(false);
+    openStudio(model, pendingProductType || undefined);
+    setPendingProductType(null);
+  }, [openStudio, pendingProductType]);
 
   const hasModels = studioModels.length > 0;
   const hasPendingTrainings = pendingTrainings.length > 0;
@@ -163,6 +184,7 @@ export default function DashboardContent({
               models={studioModels}
               onOpenStudio={openStudio}
               onAddPet={handleAddPet}
+              onPickModel={handlePickModel}
             />
           </>
         ) : (
@@ -181,6 +203,7 @@ export default function DashboardContent({
               models={studioModels}
               onOpenStudio={openStudio}
               onAddPet={handleAddPet}
+              onPickModel={handlePickModel}
             />
 
             <OrderHistorySection
@@ -197,6 +220,33 @@ export default function DashboardContent({
           </>
         )}
       </main>
+
+      {/* Model picker modal */}
+      {showModelPicker && (
+        <div className="dash-model-picker-overlay" onClick={() => setShowModelPicker(false)}>
+          <div className="dash-model-picker" onClick={(e) => e.stopPropagation()}>
+            <h3>Which pet is this for?</h3>
+            <div className="dash-model-picker-grid">
+              {studioModels.map(model => (
+                <button
+                  key={model.id}
+                  className="dash-model-picker-card"
+                  onClick={() => handleModelPicked(model)}
+                >
+                  <div className="dash-model-picker-avatar">
+                    {model.preview_image_url ? (
+                      <img src={model.preview_image_url} alt={model.name} />
+                    ) : (
+                      <span>{model.pet_type === 'cat' ? '🐱' : '🐶'}</span>
+                    )}
+                  </div>
+                  <div className="dash-model-picker-name">{model.name}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Studio overlay */}
       {studioOpen && selectedModel && (

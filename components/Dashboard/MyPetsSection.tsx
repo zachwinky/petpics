@@ -84,16 +84,46 @@ export default function MyPetsSection({
   if (models.length === 0 && pendingTrainings.length === 0) {
     return (
       <div className="dash-section dash-section-hero" id="my-pets">
-        <div className="dash-section-header">
-          <div>
-            <div className="dash-section-tag">Step 1</div>
-            <h2>Upload photos of your pet</h2>
+        <div className="dash-upload-hero-layout">
+          <div className="dash-upload-hero-main">
+            <div className="dash-section-header">
+              <div>
+                <div className="dash-section-tag">Step 1</div>
+                <h2>Upload photos of your pet</h2>
+              </div>
+            </div>
+            <p className="dash-upload-intro">
+              Add 5–20 clear photos — different angles, good lighting. Our AI takes about 10 minutes to learn your pet&apos;s unique look, then you&apos;ll pick your favorite portrait and we&apos;ll print it.
+            </p>
+            <PetUploadSection onTrainingStarted={handleTrainingStarted} />
+          </div>
+          <div className="dash-upload-hero-placeholder">
+            <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg" className="dash-upload-hero-dog">
+              {/* Dog face outline */}
+              <ellipse cx="100" cy="120" rx="65" ry="60" stroke="#d4a574" strokeWidth="3" fill="#fdf6f0" />
+              {/* Left ear */}
+              <path d="M45 95 C30 55, 50 40, 65 75" stroke="#d4a574" strokeWidth="3" fill="#f5e6d8" strokeLinecap="round" />
+              {/* Right ear */}
+              <path d="M155 95 C170 55, 150 40, 135 75" stroke="#d4a574" strokeWidth="3" fill="#f5e6d8" strokeLinecap="round" />
+              {/* Left eye */}
+              <circle cx="78" cy="110" r="8" fill="#8b7355" />
+              <circle cx="81" cy="108" r="3" fill="white" />
+              {/* Right eye */}
+              <circle cx="122" cy="110" r="8" fill="#8b7355" />
+              <circle cx="125" cy="108" r="3" fill="white" />
+              {/* Nose */}
+              <ellipse cx="100" cy="132" rx="10" ry="7" fill="#8b7355" />
+              {/* Mouth */}
+              <path d="M100 139 C100 145, 88 150, 85 145" stroke="#8b7355" strokeWidth="2" fill="none" strokeLinecap="round" />
+              <path d="M100 139 C100 145, 112 150, 115 145" stroke="#8b7355" strokeWidth="2" fill="none" strokeLinecap="round" />
+              {/* Tongue */}
+              <ellipse cx="100" cy="152" rx="6" ry="8" fill="#e8845c" opacity="0.7" />
+              {/* Dashed circle border to suggest "placeholder" */}
+              <circle cx="100" cy="115" r="90" stroke="#d4a574" strokeWidth="2" strokeDasharray="8 6" opacity="0.4" />
+            </svg>
+            <p className="dash-upload-hero-placeholder-text">Your pet here!</p>
           </div>
         </div>
-        <p className="dash-upload-intro">
-          Add 5–20 clear photos — different angles, good lighting. Our AI takes about 10 minutes to learn your pet&apos;s unique look, then you&apos;ll pick your favorite portrait and we&apos;ll print it.
-        </p>
-        <PetUploadSection onTrainingStarted={handleTrainingStarted} />
       </div>
     );
   }
