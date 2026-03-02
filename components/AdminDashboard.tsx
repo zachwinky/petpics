@@ -23,8 +23,21 @@ interface UserSummary {
   print_order_total_cents: number;
   models_count: number;
   generations_count: number;
+  pending_trainings_count: number;
   created_at: string;
   last_activity: string | null;
+}
+
+interface FunnelStats {
+  signedUp: number;
+  dashboardLoaded: number;
+  photosSelected: number;
+  trainingSubmitted: number;
+  trainingCompleted: number;
+  generationCompleted: number;
+  portraitSelected: number;
+  printPurchased: number;
+  periodLabel: string;
 }
 
 interface PendingTraining {
@@ -150,6 +163,11 @@ export default function AdminDashboard() {
   // Failure counts
   const [failureCounts, setFailureCounts] = useState<FailureCounts | null>(null);
 
+  // Funnel analytics state
+  const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
+  const [funnelPeriod, setFunnelPeriod] = useState<'7' | '30' | 'all'>('30');
+  const [funnelLoading, setFunnelLoading] = useState(false);
+
   // Add Model form state
   const [showAddModel, setShowAddModel] = useState(false);
   const [addModelForm, setAddModelForm] = useState({
@@ -234,6 +252,12 @@ export default function AdminDashboard() {
       const countsData = await countsRes.json();
       setFailureCounts(countsData.counts);
 
+      // Load funnel stats
+      const funnelDays = funnelPeriod === 'all' ? '' : `&days=${funnelPeriod}`;
+      const funnelRes = await fetch(`/api/admin/stats?type=funnel${funnelDays}`);
+      const funnelData = await funnelRes.json();
+      setFunnelStats(funnelData.funnel);
+
       // Load sample prompts config
       const sampleConfigRes = await fetch('/api/admin/sample-config');
       if (sampleConfigRes.ok) {
@@ -260,7 +284,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, order]);
+  }, [sortBy, order, funnelPeriod]);
 
   useEffect(() => {
     loadData();
@@ -1743,6 +1767,123 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Conversion Funnel */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {([['7', '7d'], ['30', '30d'], ['all', 'All']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setFunnelPeriod(val as '7' | '30' | 'all')}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  funnelPeriod === val
+                    ? 'bg-white shadow text-indigo-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {funnelLoading ? (
+          <div className="h-48 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+          </div>
+        ) : funnelStats ? (() => {
+          const stages = [
+            { label: 'Signed Up', key: 'signedUp' as const, color: 'bg-blue-500' },
+            { label: 'Dashboard Loaded', key: 'dashboardLoaded' as const, color: 'bg-sky-500' },
+            { label: 'Photos Selected', key: 'photosSelected' as const, color: 'bg-cyan-500' },
+            { label: 'Training Submitted', key: 'trainingSubmitted' as const, color: 'bg-indigo-500' },
+            { label: 'Training Completed', key: 'trainingCompleted' as const, color: 'bg-purple-500' },
+            { label: 'Generated Images', key: 'generationCompleted' as const, color: 'bg-violet-500' },
+            { label: 'Selected Portrait', key: 'portraitSelected' as const, color: 'bg-fuchsia-500' },
+            { label: 'Purchased Print', key: 'printPurchased' as const, color: 'bg-green-500' },
+          ];
+          const total = funnelStats.signedUp;
+
+          return (
+            <>
+              {total === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  No event data yet. Events will appear here as users interact with the site.
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {stages.map((stage, i) => {
+                      const count = funnelStats[stage.key];
+                      const pctOfTotal = total > 0 ? ((count / total) * 100) : 0;
+                      const prevCount = i === 0 ? count : funnelStats[stages[i - 1].key];
+                      const stepPct = prevCount > 0 ? ((count / prevCount) * 100) : 0;
+                      const barWidth = total > 0 ? Math.max(2, (count / total) * 100) : 0;
+
+                      return (
+                        <div key={stage.key} className="flex items-center gap-3">
+                          <div className="w-36 text-xs font-medium text-gray-600 text-right shrink-0">
+                            {stage.label}
+                          </div>
+                          <div className="flex-1 relative">
+                            <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${stage.color} rounded-full transition-all duration-500`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="w-24 text-right shrink-0">
+                            <span className="text-sm font-bold text-gray-900">{count}</span>
+                            <span className="text-xs text-gray-500 ml-1">({pctOfTotal.toFixed(0)}%)</span>
+                          </div>
+                          <div className="w-16 text-right shrink-0">
+                            {i > 0 && (
+                              <span className={`text-xs font-medium ${
+                                stepPct >= 50 ? 'text-green-600' :
+                                stepPct >= 20 ? 'text-yellow-600' : 'text-red-600'
+                              }`}>
+                                {stepPct.toFixed(0)}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Dropoff cards */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Signup → Dashboard', from: funnelStats.signedUp, to: funnelStats.dashboardLoaded },
+                      { label: 'Dashboard → Photos', from: funnelStats.dashboardLoaded, to: funnelStats.photosSelected },
+                      { label: 'Photos → Training', from: funnelStats.photosSelected, to: funnelStats.trainingSubmitted },
+                      { label: 'Training → Complete', from: funnelStats.trainingSubmitted, to: funnelStats.trainingCompleted },
+                    ].map(({ label, from, to }) => {
+                      const rate = from > 0 ? ((to / from) * 100) : 0;
+                      const dropoff = from - to;
+                      const healthy = rate >= 50;
+                      return (
+                        <div key={label} className={`rounded-lg p-3 ${healthy ? 'bg-green-50' : 'bg-red-50'}`}>
+                          <div className="text-xs font-medium text-gray-600">{label}</div>
+                          <div className={`text-lg font-bold ${healthy ? 'text-green-700' : 'text-red-700'}`}>
+                            {rate.toFixed(0)}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {dropoff} dropped
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })() : null}
+      </div>
+
       {/* Failure Summary */}
       {failureCounts && (failureCounts.failedTrainings > 0 || failureCounts.failedVideos > 0 || failureCounts.pendingTrainings > 0) && (
         <div className="bg-white rounded-lg shadow p-4">
@@ -2018,6 +2159,9 @@ export default function AdminDashboard() {
                   Orders {sortBy === 'print_order_total_cents' && (order === 'DESC' ? '↓' : '↑')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Stage
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Activity
                 </th>
                 <th
@@ -2047,6 +2191,24 @@ export default function AdminDashboard() {
                     ) : (
                       <div className="text-sm text-gray-400">-</div>
                     )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {(() => {
+                      const stage = user.print_order_count > 0
+                        ? { label: 'Purchased', cls: 'bg-green-100 text-green-800' }
+                        : user.generations_count > 0
+                        ? { label: 'Generated', cls: 'bg-violet-100 text-violet-800' }
+                        : user.models_count > 0
+                        ? { label: 'Trained', cls: 'bg-purple-100 text-purple-800' }
+                        : user.pending_trainings_count > 0
+                        ? { label: 'Training', cls: 'bg-indigo-100 text-indigo-800' }
+                        : { label: 'Signup Only', cls: 'bg-gray-100 text-gray-600' };
+                      return (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${stage.cls}`}>
+                          {stage.label}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.models_count} models</div>

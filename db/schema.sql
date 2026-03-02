@@ -219,3 +219,16 @@ CREATE INDEX IF NOT EXISTS idx_print_orders_printful ON print_orders(printful_or
 CREATE INDEX IF NOT EXISTS idx_print_order_items_order ON print_order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_studio_portraits_user ON studio_portraits(user_id);
 CREATE INDEX IF NOT EXISTS idx_studio_portraits_model ON studio_portraits(model_id);
+
+-- User events (funnel analytics / behavior tracking)
+CREATE TABLE IF NOT EXISTS user_events (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  event TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_events_user ON user_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_events_event ON user_events(event);
+CREATE INDEX IF NOT EXISTS idx_user_events_created ON user_events(created_at);

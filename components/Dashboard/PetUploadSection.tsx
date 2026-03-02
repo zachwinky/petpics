@@ -188,6 +188,15 @@ export default function PetUploadSection({ onTrainingStarted, onCancel }: PetUpl
     setError('');
     setStage('uploading');
 
+    // Track that user selected photos and initiated training
+    try {
+      fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'photos_selected', metadata: { count: selectedFiles.length } }),
+      });
+    } catch { /* non-critical */ }
+
     try {
       const formData = new FormData();
       selectedFiles.forEach((img) => formData.append('images', img.file));

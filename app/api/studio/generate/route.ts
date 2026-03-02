@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, getModelById, createGeneration } from '@/lib/db';
+import { getUserById, getModelById, createGeneration, logUserEvent } from '@/lib/db';
 import { getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { getStudioSceneById } from '@/lib/studioScenes';
 import { rateLimit } from '@/lib/rateLimit';
@@ -119,6 +119,8 @@ export async function POST(request: NextRequest) {
       undefined,
       productType || 'square'
     );
+
+    await logUserEvent(userId, 'generation_completed', { image_count: validUrls.length, source: 'studio', scene_ids: sceneIds });
 
     return NextResponse.json({
       success: true,

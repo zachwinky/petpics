@@ -66,6 +66,7 @@ export default function DashboardContent({
     if (productType) setSelectedProductType(productType);
     setStudioOpen(true);
     trackStudioOpened();
+    try { fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'studio_opened', metadata: { model_id: model.id } }) }); } catch { /* */ }
   }, []);
 
   const closeStudio = useCallback(() => {

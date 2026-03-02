@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, createStudioPortrait } from '@/lib/db';
+import { getUserById, createStudioPortrait, logUserEvent } from '@/lib/db';
 
 /**
  * POST /api/studio/save-portrait
@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       imageUrl,
       sceneId
     );
+
+    await logUserEvent(userId, 'portrait_selected', { model_id: modelId, scene_id: sceneId });
 
     return NextResponse.json({ success: true, portrait });
   } catch (error) {

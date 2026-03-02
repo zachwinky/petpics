@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 // Email verification disabled - uncomment when re-enabling
 // import crypto from 'crypto';
-import { getUserByEmail, createUser } from '@/lib/db';
+import { getUserByEmail, createUser, logUserEvent } from '@/lib/db';
 import { rateLimit } from '@/lib/rateLimit';
 // import { setEmailVerificationToken } from '@/lib/db';
 // import { sendVerificationEmail } from '@/lib/email';
@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const user = await createUser(email, name, passwordHash);
+    await logUserEvent(user.id, 'signup', { provider: 'email' });
 
     // Email verification disabled for now - will re-enable once email provider is configured
     // const verificationToken = crypto.randomBytes(32).toString('hex');

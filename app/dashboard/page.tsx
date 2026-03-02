@@ -9,6 +9,7 @@ import {
   getUserActivePrintOrders,
   getUserCompletedPrintOrders,
   getOrderItemsForOrders,
+  logUserEvent,
 } from '@/lib/db';
 import type { PrintOrderItem } from '@/lib/db';
 import DashboardNavWrapper from '@/components/DashboardNavWrapper';
@@ -36,6 +37,13 @@ export default async function DashboardPage() {
       getUserActivePrintOrders(user.id),
       getUserCompletedPrintOrders(user.id, 10),
     ]);
+
+    // Log dashboard visit (fire and forget — don't block page render)
+    logUserEvent(user.id, 'dashboard_loaded', {
+      has_models: models.length > 0,
+      has_pending: pendingTrainings.length > 0,
+      model_count: models.length,
+    });
 
     // Get generation counts and recent images for each model
     const modelsWithCounts = await Promise.all(

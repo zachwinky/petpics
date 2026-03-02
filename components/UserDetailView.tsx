@@ -41,12 +41,22 @@ interface UserDetail {
   recentGenerations: Generation[];
 }
 
+interface UserEvent {
+  id: number;
+  event: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
 export default function UserDetailView({ userId }: { userId: string }) {
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<UserEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   useEffect(() => {
     loadUserDetail();
+    loadUserEvents();
   }, [userId]);
 
   const loadUserDetail = async () => {
@@ -59,6 +69,19 @@ export default function UserDetailView({ userId }: { userId: string }) {
       console.error('Failed to load user detail:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserEvents = async () => {
+    setEventsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/stats?type=user-events&userId=${userId}`);
+      const data = await res.json();
+      setEvents(data.events || []);
+    } catch (error) {
+      console.error('Failed to load user events:', error);
+    } finally {
+      setEventsLoading(false);
     }
   };
 
@@ -254,6 +277,37 @@ export default function UserDetailView({ userId }: { userId: string }) {
             </table>
           )}
         </div>
+      </div>
+
+      {/* Event Timeline */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Event Timeline</h3>
+        </div>
+        {eventsLoading ? (
+          <div className="px-6 py-8 text-center text-gray-500">Loading events...</div>
+        ) : events.length === 0 ? (
+          <div className="px-6 py-8 text-center text-gray-400 text-sm">No events recorded yet</div>
+        ) : (
+          <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+            {events.map((event) => (
+              <div key={event.id} className="px-6 py-3 flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900">{event.event.replace(/_/g, ' ')}</div>
+                  {Object.keys(event.metadata).length > 0 && (
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {Object.entries(event.metadata).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-gray-400 shrink-0">
+                  {formatDate(event.created_at)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

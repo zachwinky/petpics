@@ -10,6 +10,8 @@ import {
   getVideoGenerations,
   getFailureCounts,
   getActiveCartSnapshots,
+  getEventFunnelStats,
+  getUserEvents,
 } from '@/lib/admin';
 
 export async function GET(request: Request) {
@@ -66,6 +68,24 @@ export async function GET(request: Request) {
     if (type === 'active-carts') {
       const carts = await getActiveCartSnapshots();
       return NextResponse.json({ carts });
+    }
+
+    if (type === 'funnel') {
+      const days = searchParams.get('days');
+      const parsedDays = days ? parseInt(days) : undefined;
+      const validDays = [7, 30, 90];
+      const safeDays = parsedDays && validDays.includes(parsedDays) ? parsedDays : undefined;
+      const funnel = await getEventFunnelStats(safeDays);
+      return NextResponse.json({ funnel });
+    }
+
+    if (type === 'user-events') {
+      const userId = searchParams.get('userId');
+      if (!userId) {
+        return NextResponse.json({ error: 'userId required' }, { status: 400 });
+      }
+      const events = await getUserEvents(parseInt(userId), 100);
+      return NextResponse.json({ events });
     }
 
     // Default: return stats

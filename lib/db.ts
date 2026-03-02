@@ -1018,3 +1018,104 @@ export async function getActiveCartSnapshots(): Promise<CartSnapshot[]> {
   );
   return result.rows as CartSnapshot[];
 }
+
+// ========== User Events (Funnel Analytics) ==========
+
+export async function logUserEvent(
+  userId: number,
+  event: string,
+  metadata?: Record<string, unknown>
+): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO user_events (user_id, event, metadata) VALUES ($1, $2, $3)`,
+      [userId, event, JSON.stringify(metadata || {})]
+    );
+  } catch (error) {
+    // Never let event logging break the main flow
+    console.error('Failed to log user event:', event, error);
+  }
+}
+
+export interface UserEvent {
+  id: number;
+  user_id: number;
+  event: string;
+  metadata: Record<string, unknown>;
+  created_at: Date;
+}
+
+export async function getUserEvents(userId: number, limit: number = 50): Promise<UserEvent[]> {
+  const result = await pool.query(
+    `SELECT id, user_id, event, metadata, created_at
+     FROM user_events
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [userId, limit]
+  );
+  return result.rows as UserEvent[];
+}
+
+export interface FunnelStats {
+  signedUp: number;
+  dashboardLoaded: number;
+  photosSelected: number;
+  trainingSubmitted: number;
+  trainingCompleted: number;
+  generationCompleted: number;
+  portraitSelected: number;
+  printPurchased: number;
+  periodLabel: string;
+}
+
+export async function getEventFunnelStats(days?: number): Promise<FunnelStats> {
+  const params: number[] = [];
+  let timeFilter = '';
+
+  if (days) {
+    params.push(days);
+    timeFilter = `AND u.created_at > NOW() - INTERVAL '1 day' * $1`;
+  }
+
+  const result = await pool.query(`
+    SELECT
+      COUNT(*) as signed_up,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'dashboard_loaded'
+      )) as dashboard_loaded,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'photos_selected'
+      )) as photos_selected,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'training_submitted'
+      )) as training_submitted,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'training_completed'
+      )) as training_completed,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'generation_completed'
+      )) as generation_completed,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'portrait_selected'
+      )) as portrait_selected,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1 FROM user_events e WHERE e.user_id = u.id AND e.event = 'print_purchased'
+      )) as print_purchased
+    FROM users u
+    WHERE 1=1 ${timeFilter}
+  `, params);
+
+  const row = result.rows[0];
+  return {
+    signedUp: parseInt(row.signed_up) || 0,
+    dashboardLoaded: parseInt(row.dashboard_loaded) || 0,
+    photosSelected: parseInt(row.photos_selected) || 0,
+    trainingSubmitted: parseInt(row.training_submitted) || 0,
+    trainingCompleted: parseInt(row.training_completed) || 0,
+    generationCompleted: parseInt(row.generation_completed) || 0,
+    portraitSelected: parseInt(row.portrait_selected) || 0,
+    printPurchased: parseInt(row.print_purchased) || 0,
+    periodLabel: days ? `${days}d` : 'all',
+  };
+}

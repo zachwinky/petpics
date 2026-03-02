@@ -2,7 +2,7 @@ import NextAuth, { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { getUserByEmail, getUserByGoogleId, createUser } from './db';
+import { getUserByEmail, getUserByGoogleId, createUser, logUserEvent } from './db';
 
 // Log environment for debugging
 console.log('Auth config loading:', {
@@ -81,6 +81,7 @@ export const authConfig: NextAuthConfig = {
               );
               const { verifyUserEmail } = await import('./db');
               await verifyUserEmail(dbUser.id);
+              await logUserEvent(dbUser.id, 'signup', { provider: 'google' });
             } else {
               dbUser = existingUser;
             }

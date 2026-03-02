@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { fulfillPrintOrder } from '@/app/api/print/checkout/route';
 import { sendOrderConfirmationEmail } from '@/lib/email';
-import { getPrintOrderByStripePaymentIntent } from '@/lib/db';
+import { getPrintOrderByStripePaymentIntent, logUserEvent } from '@/lib/db';
 import Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
         );
 
         console.log(`Print order ${result.orderId} created for user ${userId}`);
+        await logUserEvent(userId, 'print_purchased', { order_id: result.orderId, total_cents: totalCents });
 
         // Send confirmation email
         try {

@@ -1,5 +1,5 @@
-import { pool, getAdminConfig, getActiveCartSnapshots } from '@/lib/db';
-export { getActiveCartSnapshots };
+import { pool, getAdminConfig, getActiveCartSnapshots, getEventFunnelStats, getUserEvents } from '@/lib/db';
+export { getActiveCartSnapshots, getEventFunnelStats, getUserEvents };
 
 // Admin user emails (configure these in environment variable)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
@@ -29,6 +29,7 @@ export interface UserSummary {
   print_order_total_cents: number;
   models_count: number;
   generations_count: number;
+  pending_trainings_count: number;
   created_at: Date;
   last_activity: Date | null;
 }
@@ -81,6 +82,7 @@ export async function getAllUsers(
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
+      (SELECT COUNT(*) FROM pending_trainings WHERE user_id = u.id) as pending_trainings_count,
       u.created_at,
       GREATEST(
         u.created_at,
@@ -101,6 +103,7 @@ export async function getAllUsers(
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
     generations_count: parseInt(row.generations_count) || 0,
+    pending_trainings_count: parseInt(row.pending_trainings_count) || 0,
     created_at: row.created_at,
     last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
   }));
@@ -139,6 +142,7 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
+      (SELECT COUNT(*) FROM pending_trainings WHERE user_id = u.id) as pending_trainings_count,
       u.created_at,
       GREATEST(
         u.created_at,
@@ -189,6 +193,7 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
     generations_count: parseInt(row.generations_count) || 0,
+    pending_trainings_count: parseInt(row.pending_trainings_count) || 0,
     created_at: row.created_at,
     last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
     printOrders: ordersResult.rows,
@@ -213,6 +218,7 @@ export async function searchUsers(
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
       (SELECT COUNT(*) FROM generations WHERE user_id = u.id) as generations_count,
+      (SELECT COUNT(*) FROM pending_trainings WHERE user_id = u.id) as pending_trainings_count,
       u.created_at,
       GREATEST(
         u.created_at,
@@ -234,6 +240,7 @@ export async function searchUsers(
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
     generations_count: parseInt(row.generations_count) || 0,
+    pending_trainings_count: parseInt(row.pending_trainings_count) || 0,
     created_at: row.created_at,
     last_activity: row.last_activity !== '1970-01-01T00:00:00.000Z' ? row.last_activity : null,
   }));

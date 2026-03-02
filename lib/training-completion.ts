@@ -1,5 +1,5 @@
 import { fal } from '@fal-ai/client';
-import { createModel, createGeneration, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getAdminConfig, PendingTraining } from '@/lib/db';
+import { createModel, createGeneration, updateModelPreviewImage, deletePendingTraining, updatePendingTrainingStatus, getAdminConfig, PendingTraining, logUserEvent } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
 import { getPromptForPetType } from '@/lib/presetPrompts';
@@ -175,6 +175,8 @@ export async function checkAndCompleteTraining(
         console.error('Error creating model record:', error);
         return { completed: true, failed: false }; // Training done but DB failed
       }
+
+      await logUserEvent(userId, 'training_completed', { model_id: model.id, trigger_word: training.trigger_word, via: 'pending_poll' });
 
       // Generate sample images with watermarks, then send email
       // Wrapped in try/catch so model creation is never lost even if samples fail

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserById, createGeneration, getModelById } from '@/lib/db';
+import { getUserById, createGeneration, getModelById, logUserEvent } from '@/lib/db';
 import { rateLimit } from '@/lib/rateLimit';
 import { PRESET_PROMPTS, getPromptForPetType, PetType } from '@/lib/presetPrompts';
 import { scoreImagesWithPrompts } from '@/lib/imageQuality';
@@ -237,6 +237,8 @@ export async function POST(request: NextRequest) {
         qualityScores,  // Store quality scores for each image
         aspectRatio || DEFAULT_ASPECT_RATIO  // Store aspect ratio for reroll support
       );
+
+      await logUserEvent(userId, 'generation_completed', { image_count: finalImageUrls.length, source: 'batch' });
 
       return NextResponse.json({
         success: true,

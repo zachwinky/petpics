@@ -3,7 +3,7 @@ import { fal } from '@fal-ai/client';
 import JSZip from 'jszip';
 import { rateLimit } from '@/lib/rateLimit';
 import { auth } from '@/lib/auth';
-import { getUserById, createModel, updateModelProductDescription, createPendingTraining, updatePendingTrainingRequestId, deletePendingTraining, updatePendingTrainingStatus, updatePendingTrainingPetType } from '@/lib/db';
+import { getUserById, createModel, updateModelProductDescription, createPendingTraining, updatePendingTrainingRequestId, deletePendingTraining, updatePendingTrainingStatus, updatePendingTrainingPetType, logUserEvent } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { detectPetType, PetType } from '@/lib/petTypeDetection';
 import { generateSampleImages } from '@/lib/training-completion';
@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting: 2 training requests per hour per IP (training is expensive)
     const rateLimitResult = await rateLimit(request, 2, 60 * 60 * 1000);
     if (rateLimitResult.isRateLimited) {
+      await logUserEvent(userId, 'training_failed', { reason: 'rate_limit' });
       return NextResponse.json(
         {
           error: 'Training rate limit exceeded. You can train 2 models per hour.',
@@ -219,6 +220,7 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('Training job submitted with request_id:', request_id);
+    await logUserEvent(userId, 'training_submitted', { image_count: images.length, trigger_word: triggerWord });
 
     // Update pending training with actual FAL request ID
     await updatePendingTrainingRequestId(pendingTraining.id, request_id);
@@ -344,6 +346,8 @@ export async function POST(request: NextRequest) {
         warning: 'Database record creation failed',
       });
     }
+
+    await logUserEvent(userId, 'training_completed', { model_id: model.id, trigger_word: triggerWord });
 
     // Analyze product image to extract description (helps with text rendering in generations)
     // Run this in background - don't wait

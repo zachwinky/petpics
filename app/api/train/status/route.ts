@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 import { auth } from '@/lib/auth';
-import { getUserById, createModel, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId } from '@/lib/db';
+import { getUserById, createModel, deletePendingTraining, updatePendingTrainingStatus, getPendingTrainingByRequestId, logUserEvent } from '@/lib/db';
 import { sendTrainingCompleteEmail, sendTrainingCompleteEmailWithImages, sendTrainingFailedEmail } from '@/lib/email';
 import { PetType } from '@/lib/petTypeDetection';
 import { generateSampleImages } from '@/lib/training-completion';
@@ -113,6 +113,8 @@ export async function POST(request: NextRequest) {
           warning: 'Model trained but failed to save to account. Please contact support.',
         });
       }
+
+      await logUserEvent(userId, 'training_completed', { model_id: model.id, trigger_word: triggerWord });
 
       // Generate sample images with watermarks, then send email
       console.log('Generating sample images for email...');

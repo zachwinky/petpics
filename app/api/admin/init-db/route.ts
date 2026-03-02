@@ -149,6 +149,18 @@ export async function POST(request: NextRequest) {
     `);
     results.push('✓ cart_snapshots table');
 
+    // Create user_events table (funnel analytics)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_events (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        event TEXT NOT NULL,
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    results.push('✓ user_events table');
+
     // Add missing columns (safe to run multiple times)
     const alterQueries = [
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE',
@@ -187,6 +199,9 @@ export async function POST(request: NextRequest) {
       'CREATE INDEX IF NOT EXISTS idx_video_generations_user_id ON video_generations(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_video_generations_fal_request_id ON video_generations(fal_request_id)',
       'CREATE INDEX IF NOT EXISTS idx_cart_snapshots_user ON cart_snapshots(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_user_events_user ON user_events(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_user_events_event ON user_events(event)',
+      'CREATE INDEX IF NOT EXISTS idx_user_events_created ON user_events(created_at)',
     ];
 
     for (const query of indexQueries) {
