@@ -1026,28 +1026,17 @@ button:disabled {
 .dash-section-hero .dash-section-header h2 { font-size: 1.4rem; }
 .dash-section-hero .dash-upload-container { background: white; }
 
-/* Upload hero two-column layout */
-.dash-upload-hero-layout {
-  display: flex; gap: 32px; align-items: flex-start;
+/* Product placeholder dog card (desktop only, for new users) */
+.dash-product-placeholder {
+  border-style: dashed; border-color: rgba(212, 165, 116, 0.4);
+  cursor: pointer; display: none;
 }
-.dash-upload-hero-main { flex: 1; min-width: 0; }
-.dash-upload-hero-placeholder {
-  flex-shrink: 0; width: 200px; display: flex; flex-direction: column;
-  align-items: center; padding-top: 40px;
+.dash-product-placeholder:hover {
+  border-color: var(--lp-accent-coral); background: rgba(232, 132, 92, 0.04);
 }
-.dash-upload-hero-dog { width: 160px; height: auto; opacity: 0.85; }
-.dash-upload-hero-placeholder-text {
-  margin-top: 8px; font-size: 0.85rem; font-weight: 600;
-  color: var(--lp-accent-coral); text-align: center;
-}
-@media (max-width: 768px) {
-  .dash-upload-hero-layout { flex-direction: column-reverse; gap: 16px; }
-  .dash-upload-hero-placeholder {
-    width: 100%; flex-direction: row; justify-content: center;
-    gap: 12px; padding-top: 0;
-  }
-  .dash-upload-hero-dog { width: 80px; }
-  .dash-upload-hero-placeholder-text { margin-top: 0; font-size: 0.8rem; }
+.dash-product-placeholder-dog { width: 80px; height: 80px; margin-bottom: 8px; }
+@media (min-width: 769px) {
+  .dash-product-placeholder { display: flex; }
 }
 .dash-upload-intro {
   color: var(--lp-soft-brown); font-size: 0.9rem; margin-bottom: 1.2rem; line-height: 1.5;
