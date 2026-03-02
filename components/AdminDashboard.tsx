@@ -19,6 +19,7 @@ interface UserSummary {
   id: number;
   email: string;
   name: string | null;
+  banned_at: string | null;
   print_order_count: number;
   print_order_total_cents: number;
   models_count: number;
@@ -845,6 +846,46 @@ export default function AdminDashboard() {
     } finally {
       setLoadingMore(false);
     }
+  };
+
+  const handleBanUser = async (userId: number, email: string) => {
+    if (!confirm(`Ban user ${email}? They will not be able to sign in.`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/ban`, { method: 'POST' });
+      if (res.ok) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, banned_at: new Date().toISOString() } : u));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to ban user');
+      }
+    } catch { alert('Network error'); }
+  };
+
+  const handleUnbanUser = async (userId: number, email: string) => {
+    if (!confirm(`Unban user ${email}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/ban`, { method: 'DELETE' });
+      if (res.ok) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, banned_at: null } : u));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to unban user');
+      }
+    } catch { alert('Network error'); }
+  };
+
+  const handleDeleteUser = async (userId: number, email: string) => {
+    const confirmed = prompt(`Type "${email}" to permanently delete this user and ALL their data:`);
+    if (confirmed !== email) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/delete`, { method: 'DELETE' });
+      if (res.ok) {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch { alert('Network error'); }
   };
 
   const handleAddModel = async (e: React.FormEvent) => {
@@ -2208,7 +2249,12 @@ export default function AdminDashboard() {
               {users.map((user, idx) => (
                 <tr key={user.id} className={`hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50/50' : ''}`}>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-gray-900">{user.email}</span>
+                      {user.banned_at && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Banned</span>
+                      )}
+                    </div>
                     {user.name && <div className="text-sm text-gray-500">{user.name}</div>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -2248,12 +2294,26 @@ export default function AdminDashboard() {
                     <div className="text-xs text-gray-500">Last: {formatDate(user.last_activity)}</div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-indigo-600 hover:text-indigo-900 font-medium"
-                    >
-                      View
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className="text-indigo-600 hover:text-indigo-900 font-medium"
+                      >
+                        View
+                      </Link>
+                      {user.banned_at ? (
+                        <button onClick={() => handleUnbanUser(user.id, user.email)} className="text-green-600 hover:text-green-900 font-medium cursor-pointer">
+                          Unban
+                        </button>
+                      ) : (
+                        <button onClick={() => handleBanUser(user.id, user.email)} className="text-orange-600 hover:text-orange-900 font-medium cursor-pointer">
+                          Ban
+                        </button>
+                      )}
+                      <button onClick={() => handleDeleteUser(user.id, user.email)} className="text-red-600 hover:text-red-900 font-medium cursor-pointer">
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

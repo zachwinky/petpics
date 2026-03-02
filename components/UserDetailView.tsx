@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface PrintOrder {
@@ -30,6 +31,7 @@ interface UserDetail {
   id: number;
   email: string;
   name: string | null;
+  banned_at: string | null;
   print_order_count: number;
   print_order_total_cents: number;
   models_count: number;
@@ -49,10 +51,12 @@ interface UserEvent {
 }
 
 export default function UserDetailView({ userId }: { userId: string }) {
+  const router = useRouter();
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<UserEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadUserDetail();
@@ -100,6 +104,53 @@ export default function UserDetailView({ userId }: { userId: string }) {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleBan = async () => {
+    if (!user || !confirm(`Ban user ${user.email}? They will not be able to sign in.`)) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/ban`, { method: 'POST' });
+      if (res.ok) {
+        setUser(prev => prev ? { ...prev, banned_at: new Date().toISOString() } : prev);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to ban user');
+      }
+    } catch { alert('Network error'); }
+    setActionLoading(false);
+  };
+
+  const handleUnban = async () => {
+    if (!user || !confirm(`Unban user ${user.email}?`)) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/ban`, { method: 'DELETE' });
+      if (res.ok) {
+        setUser(prev => prev ? { ...prev, banned_at: null } : prev);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to unban user');
+      }
+    } catch { alert('Network error'); }
+    setActionLoading(false);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!user) return;
+    const confirmed = prompt(`Type "${user.email}" to permanently delete this user and ALL their data:`);
+    if (confirmed !== user.email) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/delete`, { method: 'DELETE' });
+      if (res.ok) {
+        router.push('/admin');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch { alert('Network error'); }
+    setActionLoading(false);
   };
 
   if (loading) {
@@ -167,6 +218,40 @@ export default function UserDetailView({ userId }: { userId: string }) {
             <div className="text-sm text-gray-600">Generations</div>
             <div className="text-xl font-semibold text-gray-900">{user.generations_count}</div>
           </div>
+        </div>
+
+        {/* Admin Actions */}
+        <div className="mt-6 pt-6 border-t flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600 mr-1">Actions:</span>
+          {user.banned_at ? (
+            <>
+              <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium">
+                Banned {formatDate(user.banned_at)}
+              </span>
+              <button
+                onClick={handleUnban}
+                disabled={actionLoading}
+                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium cursor-pointer"
+              >
+                {actionLoading ? 'Processing...' : 'Unban'}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleBan}
+              disabled={actionLoading}
+              className="px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-medium cursor-pointer"
+            >
+              {actionLoading ? 'Processing...' : 'Ban User'}
+            </button>
+          )}
+          <button
+            onClick={handleDeleteUser}
+            disabled={actionLoading}
+            className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm font-medium cursor-pointer"
+          >
+            {actionLoading ? 'Processing...' : 'Delete User'}
+          </button>
         </div>
       </div>
 

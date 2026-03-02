@@ -11,6 +11,7 @@ function ErrorContent() {
     Configuration: 'There is a problem with the server configuration.',
     AccessDenied: 'You do not have permission to sign in.',
     Verification: 'The verification token has expired or has already been used.',
+    Banned: 'Your account has been suspended. Please contact support if you believe this is an error.',
     Default: 'An error occurred during authentication.',
   };
 

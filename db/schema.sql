@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified BOOLEAN DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expires TIMESTAMP,
+  banned_at TIMESTAMP,
+  banned_by TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

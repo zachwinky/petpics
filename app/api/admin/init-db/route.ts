@@ -175,6 +175,8 @@ export async function POST(request: NextRequest) {
       'ALTER TABLE generations ADD COLUMN IF NOT EXISTS image_quality_scores REAL[]',
       'ALTER TABLE generations ADD COLUMN IF NOT EXISTS aspect_ratio VARCHAR(50)',
       'ALTER TABLE generations ADD COLUMN IF NOT EXISTS upscale_used BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_by TEXT',
     ];
 
     for (const query of alterQueries) {

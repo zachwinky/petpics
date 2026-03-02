@@ -42,6 +42,10 @@ export const authConfig: NextAuthConfig = {
         //   throw new Error('Please verify your email before signing in. Check your inbox for the verification link.');
         // }
 
+        if (user.banned_at) {
+          throw new Error('Your account has been suspended.');
+        }
+
         const isValid = await bcrypt.compare(
           credentials.password as string,
           user.password_hash
@@ -87,6 +91,11 @@ export const authConfig: NextAuthConfig = {
             }
           }
 
+          // Block banned users
+          if (dbUser.banned_at) {
+            return '/auth/error?error=Banned';
+          }
+
           // Store database user ID in the user object for JWT callback
           user.id = dbUser.id.toString();
         } catch (error) {
@@ -100,6 +109,13 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;
+        // Check if user has been banned since last login
+        const { isUserBanned } = await import('./db');
+        const banned = await isUserBanned(parseInt(token.sub));
+        if (banned) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (session as any).banned = true;
+        }
       } else {
         console.error('Session callback: token.sub is missing', { token, session });
       }

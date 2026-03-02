@@ -21,6 +21,8 @@ export interface User {
   email_verified: boolean;
   email_verification_token?: string;
   email_verification_expires?: Date;
+  banned_at?: Date;
+  banned_by?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -149,6 +151,59 @@ export async function createUser(
     [email, name || null, passwordHash || null, googleId || null]
   );
   return result.rows[0] as User;
+}
+
+// Ban/unban/delete operations
+export async function banUser(userId: number, adminEmail: string): Promise<User | null> {
+  const result = await pool.query(
+    'UPDATE users SET banned_at = CURRENT_TIMESTAMP, banned_by = $1 WHERE id = $2 RETURNING *',
+    [adminEmail, userId]
+  );
+  return result.rows[0] as User || null;
+}
+
+export async function unbanUser(userId: number): Promise<User | null> {
+  const result = await pool.query(
+    'UPDATE users SET banned_at = NULL, banned_by = NULL WHERE id = $1 RETURNING *',
+    [userId]
+  );
+  return result.rows[0] as User || null;
+}
+
+export async function isUserBanned(userId: number): Promise<boolean> {
+  const result = await pool.query(
+    'SELECT banned_at FROM users WHERE id = $1',
+    [userId]
+  );
+  return !!result.rows[0]?.banned_at;
+}
+
+export async function deleteUserCompletely(userId: number): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check for active print orders
+    const activeOrders = await client.query(
+      "SELECT COUNT(*) FROM print_orders WHERE user_id = $1 AND status NOT IN ('delivered', 'failed', 'refunded')",
+      [userId]
+    );
+    if (parseInt(activeOrders.rows[0].count) > 0) {
+      await client.query('ROLLBACK');
+      throw new Error('User has active print orders. Ban the user instead, or wait for orders to complete.');
+    }
+
+    // Delete user — cascades handle all child tables
+    const result = await client.query('DELETE FROM users WHERE id = $1', [userId]);
+
+    await client.query('COMMIT');
+    return result.rowCount ? result.rowCount > 0 : false;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 // Model operations

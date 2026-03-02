@@ -25,6 +25,7 @@ export interface UserSummary {
   id: number;
   email: string;
   name: string | null;
+  banned_at: string | null;
   print_order_count: number;
   print_order_total_cents: number;
   models_count: number;
@@ -78,6 +79,7 @@ export async function getAllUsers(
       u.id,
       u.email,
       u.name,
+      u.banned_at,
       COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
@@ -99,6 +101,7 @@ export async function getAllUsers(
     id: row.id,
     email: row.email,
     name: row.name,
+    banned_at: row.banned_at || null,
     print_order_count: parseInt(row.print_order_count) || 0,
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
@@ -138,6 +141,7 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
       u.id,
       u.email,
       u.name,
+      u.banned_at,
       COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
@@ -189,6 +193,7 @@ export async function getUserDetail(userId: number): Promise<UserDetail | null> 
     id: row.id,
     email: row.email,
     name: row.name,
+    banned_at: row.banned_at || null,
     print_order_count: parseInt(row.print_order_count) || 0,
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
@@ -214,6 +219,7 @@ export async function searchUsers(
       u.id,
       u.email,
       u.name,
+      u.banned_at,
       COALESCE((SELECT COUNT(*) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_count,
       COALESCE((SELECT SUM(total_cents) FROM print_orders WHERE user_id = u.id AND status NOT IN ('failed', 'refunded')), 0) as print_order_total_cents,
       (SELECT COUNT(*) FROM models WHERE user_id = u.id) as models_count,
@@ -236,6 +242,7 @@ export async function searchUsers(
     id: row.id,
     email: row.email,
     name: row.name,
+    banned_at: row.banned_at || null,
     print_order_count: parseInt(row.print_order_count) || 0,
     print_order_total_cents: parseInt(row.print_order_total_cents) || 0,
     models_count: parseInt(row.models_count) || 0,
