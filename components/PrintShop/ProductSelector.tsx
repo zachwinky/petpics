@@ -209,7 +209,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
     });
 
     trackAddToCart(selectedProduct.product_type, selectedProduct.price_cents);
-    window.location.href = '/print/checkout';
+    window.location.href = '/print/cart';
   }, [selectedProduct, frameColor, imageUrl, generationId, imageIndex, addItem, mockupUrl]);
 
   if (loading) {
@@ -282,8 +282,8 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
               {selectedType ? `${PRODUCT_TYPE_INFO[selectedType]?.label}` : 'Choose Your Product'}
             </h1>
           </div>
-          <a href="/print/checkout" className="text-sm text-white/60 hover:text-white transition-colors">
-            Checkout →
+          <a href="/print/cart" className="text-sm text-white/60 hover:text-white transition-colors">
+            Cart →
           </a>
         </div>
 
@@ -406,7 +406,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
                       onClick={handleAddToCart}
                       className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base hover:bg-white/90 active:scale-[0.98] transition-all cursor-pointer"
                     >
-                      Checkout — ${(selectedProduct.price_cents / 100).toFixed(2)}
+                      Add to Cart — ${(selectedProduct.price_cents / 100).toFixed(2)}
                     </button>
                   </div>
                 )}
@@ -432,7 +432,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
             onClick={handleAddToCart}
             className="w-full py-4 rounded-xl bg-white text-black font-semibold text-base active:scale-[0.98] transition-all cursor-pointer"
           >
-            Checkout — ${(selectedProduct.price_cents / 100).toFixed(2)}
+            Add to Cart — ${(selectedProduct.price_cents / 100).toFixed(2)}
           </button>
         </div>
       )}
