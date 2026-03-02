@@ -167,6 +167,7 @@ export default function AdminDashboard() {
   const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
   const [funnelPeriod, setFunnelPeriod] = useState<'7' | '30' | 'all'>('30');
   const [funnelLoading, setFunnelLoading] = useState(false);
+  const [funnelOpen, setFunnelOpen] = useState(false);
 
   // Add Model form state
   const [showAddModel, setShowAddModel] = useState(false);
@@ -1768,120 +1769,148 @@ export default function AdminDashboard() {
       )}
 
       {/* Conversion Funnel */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {([['7', '7d'], ['30', '30d'], ['all', 'All']] as const).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() => setFunnelPeriod(val as '7' | '30' | 'all')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  funnelPeriod === val
-                    ? 'bg-white shadow text-indigo-600'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+      <div className="bg-white rounded-lg shadow">
+        <button
+          onClick={() => setFunnelOpen(!funnelOpen)}
+          className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors rounded-lg"
+        >
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
+            {funnelStats && funnelStats.signedUp > 0 && !funnelOpen && (
+              <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+                {funnelStats.signedUp} signups
+              </span>
+            )}
           </div>
-        </div>
+          <svg className={`w-5 h-5 text-gray-400 transition-transform ${funnelOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
-        {funnelLoading ? (
-          <div className="h-48 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-          </div>
-        ) : funnelStats ? (() => {
-          const stages = [
-            { label: 'Signed Up', key: 'signedUp' as const, color: 'bg-blue-500' },
-            { label: 'Dashboard Loaded', key: 'dashboardLoaded' as const, color: 'bg-sky-500' },
-            { label: 'Photos Selected', key: 'photosSelected' as const, color: 'bg-cyan-500' },
-            { label: 'Training Submitted', key: 'trainingSubmitted' as const, color: 'bg-indigo-500' },
-            { label: 'Training Completed', key: 'trainingCompleted' as const, color: 'bg-purple-500' },
-            { label: 'Generated Images', key: 'generationCompleted' as const, color: 'bg-violet-500' },
-            { label: 'Selected Portrait', key: 'portraitSelected' as const, color: 'bg-fuchsia-500' },
-            { label: 'Purchased Print', key: 'printPurchased' as const, color: 'bg-green-500' },
-          ];
-          const total = funnelStats.signedUp;
+        {funnelOpen && (
+          <div className="px-6 pb-6">
+            <div className="flex justify-end mb-4">
+              <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                {([['7', '7d'], ['30', '30d'], ['all', 'All']] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    onClick={() => setFunnelPeriod(val as '7' | '30' | 'all')}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                      funnelPeriod === val
+                        ? 'bg-white shadow text-indigo-600'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          return (
-            <>
-              {total === 0 ? (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  No event data yet. Events will appear here as users interact with the site.
-                </div>
-              ) : (
+            {funnelLoading ? (
+              <div className="h-48 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+              </div>
+            ) : funnelStats ? (() => {
+              const allStages = [
+                { label: 'Signed Up', key: 'signedUp' as const, color: 'bg-blue-500' },
+                { label: 'Dashboard Loaded', key: 'dashboardLoaded' as const, color: 'bg-sky-500' },
+                { label: 'Photos Selected', key: 'photosSelected' as const, color: 'bg-cyan-500' },
+                { label: 'Training Submitted', key: 'trainingSubmitted' as const, color: 'bg-indigo-500' },
+                { label: 'Training Completed', key: 'trainingCompleted' as const, color: 'bg-purple-500' },
+                { label: 'Generated Images', key: 'generationCompleted' as const, color: 'bg-violet-500' },
+                { label: 'Selected Portrait', key: 'portraitSelected' as const, color: 'bg-fuchsia-500' },
+                { label: 'Purchased Print', key: 'printPurchased' as const, color: 'bg-green-500' },
+              ];
+              // Only show stages that have data (always show Signed Up if > 0)
+              const stages = allStages.filter((stage, i) => i === 0 ? funnelStats[stage.key] > 0 : funnelStats[stage.key] > 0);
+              const total = funnelStats.signedUp;
+
+              return (
                 <>
-                  <div className="space-y-2">
-                    {stages.map((stage, i) => {
-                      const count = funnelStats[stage.key];
-                      const pctOfTotal = total > 0 ? ((count / total) * 100) : 0;
-                      const prevCount = i === 0 ? count : funnelStats[stages[i - 1].key];
-                      const stepPct = prevCount > 0 ? ((count / prevCount) * 100) : 0;
-                      const barWidth = total > 0 ? Math.max(2, (count / total) * 100) : 0;
+                  {total === 0 ? (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      No event data yet. Events will appear here as users interact with the site.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        {stages.map((stage, i) => {
+                          const count = funnelStats[stage.key];
+                          const pctOfTotal = total > 0 ? ((count / total) * 100) : 0;
+                          const prevCount = i === 0 ? count : funnelStats[stages[i - 1].key];
+                          const stepPct = prevCount > 0 ? ((count / prevCount) * 100) : 0;
+                          const barWidth = total > 0 ? Math.max(2, (count / total) * 100) : 0;
 
-                      return (
-                        <div key={stage.key} className="flex items-center gap-3">
-                          <div className="w-36 text-xs font-medium text-gray-600 text-right shrink-0">
-                            {stage.label}
-                          </div>
-                          <div className="flex-1 relative">
-                            <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full ${stage.color} rounded-full transition-all duration-500`}
-                                style={{ width: `${barWidth}%` }}
-                              />
+                          return (
+                            <div key={stage.key} className="flex items-center gap-3">
+                              <div className="w-36 text-xs font-medium text-gray-600 text-right shrink-0">
+                                {stage.label}
+                              </div>
+                              <div className="flex-1 relative">
+                                <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full ${stage.color} rounded-full transition-all duration-500`}
+                                    style={{ width: `${barWidth}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="w-24 text-right shrink-0">
+                                <span className="text-sm font-bold text-gray-900">{count}</span>
+                                <span className="text-xs text-gray-500 ml-1">({pctOfTotal.toFixed(0)}%)</span>
+                              </div>
+                              <div className="w-16 text-right shrink-0">
+                                {i > 0 && (
+                                  <span className={`text-xs font-medium ${
+                                    stepPct >= 50 ? 'text-green-600' :
+                                    stepPct >= 20 ? 'text-yellow-600' : 'text-red-600'
+                                  }`}>
+                                    {stepPct.toFixed(0)}%
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="w-24 text-right shrink-0">
-                            <span className="text-sm font-bold text-gray-900">{count}</span>
-                            <span className="text-xs text-gray-500 ml-1">({pctOfTotal.toFixed(0)}%)</span>
-                          </div>
-                          <div className="w-16 text-right shrink-0">
-                            {i > 0 && (
-                              <span className={`text-xs font-medium ${
-                                stepPct >= 50 ? 'text-green-600' :
-                                stepPct >= 20 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>
-                                {stepPct.toFixed(0)}%
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          );
+                        })}
+                      </div>
 
-                  {/* Dropoff cards */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { label: 'Signup → Dashboard', from: funnelStats.signedUp, to: funnelStats.dashboardLoaded },
-                      { label: 'Dashboard → Photos', from: funnelStats.dashboardLoaded, to: funnelStats.photosSelected },
-                      { label: 'Photos → Training', from: funnelStats.photosSelected, to: funnelStats.trainingSubmitted },
-                      { label: 'Training → Complete', from: funnelStats.trainingSubmitted, to: funnelStats.trainingCompleted },
-                    ].map(({ label, from, to }) => {
-                      const rate = from > 0 ? ((to / from) * 100) : 0;
-                      const dropoff = from - to;
-                      const healthy = rate >= 50;
-                      return (
-                        <div key={label} className={`rounded-lg p-3 ${healthy ? 'bg-green-50' : 'bg-red-50'}`}>
-                          <div className="text-xs font-medium text-gray-600">{label}</div>
-                          <div className={`text-lg font-bold ${healthy ? 'text-green-700' : 'text-red-700'}`}>
-                            {rate.toFixed(0)}%
+                      {/* Dropoff cards — only show pairs where the "from" side has data */}
+                      {(() => {
+                        const dropoffs = [
+                          { label: 'Signup \u2192 Dashboard', from: funnelStats.signedUp, to: funnelStats.dashboardLoaded },
+                          { label: 'Dashboard \u2192 Photos', from: funnelStats.dashboardLoaded, to: funnelStats.photosSelected },
+                          { label: 'Photos \u2192 Training', from: funnelStats.photosSelected, to: funnelStats.trainingSubmitted },
+                          { label: 'Training \u2192 Complete', from: funnelStats.trainingSubmitted, to: funnelStats.trainingCompleted },
+                        ].filter(d => d.from > 0);
+
+                        return dropoffs.length > 0 ? (
+                          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {dropoffs.map(({ label, from, to }) => {
+                              const rate = from > 0 ? ((to / from) * 100) : 0;
+                              const dropoff = from - to;
+                              const healthy = rate >= 50;
+                              return (
+                                <div key={label} className={`rounded-lg p-3 ${healthy ? 'bg-green-50' : 'bg-red-50'}`}>
+                                  <div className="text-xs font-medium text-gray-600">{label}</div>
+                                  <div className={`text-lg font-bold ${healthy ? 'text-green-700' : 'text-red-700'}`}>
+                                    {rate.toFixed(0)}%
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {dropoff} dropped
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {dropoff} dropped
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        ) : null;
+                      })()}
+                    </>
+                  )}
                 </>
-              )}
-            </>
-          );
-        })() : null}
+              );
+            })() : null}
+          </div>
+        )}
       </div>
 
       {/* Failure Summary */}
