@@ -41,11 +41,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, reason }: AuthMo
       });
 
       if (result?.error) {
-        if (result.error.includes('verify your email')) {
-          setError(result.error);
-        } else {
-          setError('Invalid email or password');
-        }
+        setError('Invalid email or password');
       } else {
         // Success - trigger callback and close
         onClose();

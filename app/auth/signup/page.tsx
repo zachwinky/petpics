@@ -9,7 +9,6 @@ export default function SignUpPage() {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +33,18 @@ export default function SignUpPage() {
         if (typeof window !== 'undefined' && window.fbq) {
           window.fbq('track', 'CompleteRegistration');
         }
-        setSuccess(true);
+        // Auto-sign in and redirect to dashboard
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+        if (result?.ok) {
+          window.location.href = '/dashboard';
+        } else {
+          // Sign-in failed for some reason — send them to sign in page
+          window.location.href = '/auth/signin';
+        }
       }
     } catch (err) {
       setError('An error occurred while creating your account');
@@ -46,42 +56,6 @@ export default function SignUpPage() {
   const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/dashboard' });
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 md:h-16 md:w-16 rounded-full bg-green-100 mb-4">
-                <svg className="h-6 w-6 md:h-8 md:w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
-              <p className="text-gray-600 mb-6">
-                We've sent a verification link to <strong>{email}</strong>
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Please click the link in the email to verify your account. The link will expire in 24 hours.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-blue-800">
-                  <strong>Don't see the email?</strong> Check your spam folder. If you still can't find it, you can try signing up again.
-                </p>
-              </div>
-              <a
-                href="/auth/signin"
-                className="inline-block w-full py-3 px-6 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Back to Sign In
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
