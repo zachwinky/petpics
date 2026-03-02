@@ -31,7 +31,9 @@ export default function PetUploadSection({ onTrainingStarted, onCancel }: PetUpl
   const [showCamera, setShowCamera] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const petNameRef = useRef<HTMLInputElement>(null);
   const handleTrainRef = useRef<() => void>(() => {});
+  const hasAutoFocusedName = useRef(false);
   const { showAuthModal } = useAuthModal();
 
   useEffect(() => {
@@ -260,6 +262,18 @@ export default function PetUploadSection({ onTrainingStarted, onCancel }: PetUpl
   handleTrainRef.current = handleTrain;
 
   const canTrain = selectedFiles.length >= MIN_FILES && petName.trim().length >= 2 && !isSubmitting;
+  const needsName = selectedFiles.length >= MIN_FILES && petName.trim().length === 0;
+
+  // Auto-focus pet name input when user first reaches minimum photo count
+  useEffect(() => {
+    if (selectedFiles.length >= MIN_FILES && !hasAutoFocusedName.current) {
+      hasAutoFocusedName.current = true;
+      setTimeout(() => {
+        petNameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        petNameRef.current?.focus();
+      }, 300);
+    }
+  }, [selectedFiles.length]);
 
   return (
     <div className="dash-upload-container">
@@ -359,10 +373,16 @@ export default function PetUploadSection({ onTrainingStarted, onCancel }: PetUpl
 
           {/* Pet Name + Train Button */}
           <div className="dash-upload-form">
-            <div className="dash-upload-field">
+            <div className={`dash-upload-field ${needsName ? 'dash-upload-field-highlight' : ''}`}>
+              {needsName && (
+                <div className="dash-upload-name-prompt">
+                  <span className="dash-upload-name-prompt-arrow">&#8595;</span> Now name your pet to continue
+                </div>
+              )}
               <label htmlFor="pet-name">What&apos;s your pet&apos;s name?</label>
               <input
                 id="pet-name"
+                ref={petNameRef}
                 type="text"
                 value={petName}
                 onChange={(e) => setPetName(e.target.value)}
