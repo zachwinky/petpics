@@ -1094,6 +1094,18 @@ button:disabled {
 }
 .dash-upload-preview-item:hover .dash-upload-preview-remove { opacity: 1; }
 @media (hover: none) { .dash-upload-preview-remove { opacity: 1; } }
+.dash-upload-add-card {
+  border: 3px dashed #34a853; background: rgba(52, 168, 83, 0.06);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; cursor: pointer; transition: all 0.2s;
+}
+.dash-upload-add-card:hover { background: rgba(52, 168, 83, 0.12); border-color: #2d9249; }
+.dash-upload-add-card-plus {
+  font-size: 2.5rem; font-weight: 300; color: #34a853; line-height: 1;
+}
+.dash-upload-add-card-text {
+  font-size: 0.7rem; font-weight: 600; color: #34a853;
+}
 .dash-upload-form { display: flex; flex-direction: column; gap: 12px; }
 .dash-upload-field label {
   display: block; font-size: 0.85rem; font-weight: 600; color: var(--lp-charcoal); margin-bottom: 6px;

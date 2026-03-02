@@ -369,6 +369,17 @@ export default function PetUploadSection({ onTrainingStarted, onCancel }: PetUpl
                 </button>
               </div>
             ))}
+            {selectedFiles.length < MIN_FILES && (
+              <button
+                className="dash-upload-preview-item dash-upload-add-card"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <span className="dash-upload-add-card-plus">+</span>
+                <span className="dash-upload-add-card-text">
+                  {MIN_FILES - selectedFiles.length} more
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Pet Name + Train Button */}
