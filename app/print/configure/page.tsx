@@ -9,9 +9,7 @@ export default async function PrintConfigurePage({
   searchParams: Promise<{ image?: string; generationId?: string; imageIndex?: string; productType?: string; mockupUrl?: string }>;
 }) {
   const session = await auth();
-  if (!session?.user?.id) {
-    redirect('/auth/signin');
-  }
+  const isAuthenticated = !!session?.user?.id;
 
   const params = await searchParams;
   const imageUrl = params.image;
@@ -33,6 +31,7 @@ export default async function PrintConfigurePage({
         imageIndex={imageIndex}
         initialProductType={productType}
         initialMockupUrl={mockupUrl}
+        isAuthenticated={isAuthenticated}
       />
     </div>
   );

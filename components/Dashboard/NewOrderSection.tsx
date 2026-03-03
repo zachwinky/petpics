@@ -112,6 +112,11 @@ export default function NewOrderSection({ hasModels, models, onOpenStudio, onAdd
           );
         })}
       </div>
+      <div className="text-center mt-4">
+        <a href="/print/upload" className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors">
+          Or upload your own photo to print &rarr;
+        </a>
+      </div>
     </div>
   );
 }

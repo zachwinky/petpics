@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useCart } from '@/lib/cart-context';
+import { useAuthModal } from '@/lib/auth-context';
 import { trackSelectProduct, trackAddToCart } from '@/components/MetaPixelEvents';
 import { MINI_MOCKUPS } from './MiniMockups';
 import {
@@ -28,6 +29,7 @@ interface ProductSelectorProps {
   imageIndex: number;
   initialProductType?: string;
   initialMockupUrl?: string;
+  isAuthenticated?: boolean;
 }
 
 const PRODUCT_TYPE_INFO: Record<string, { label: string; description: string }> = {
@@ -121,8 +123,9 @@ function usePrintfulMockup(
 
 // --- Main component ---
 
-export default function ProductSelector({ imageUrl, generationId, imageIndex, initialProductType, initialMockupUrl }: ProductSelectorProps) {
+export default function ProductSelector({ imageUrl, generationId, imageIndex, initialProductType, initialMockupUrl, isAuthenticated = true }: ProductSelectorProps) {
   const { addItem } = useCart();
+  const { showAuthModal } = useAuthModal();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(initialProductType || null);
@@ -179,7 +182,7 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
     setSelectedProduct(product);
   }, []);
 
-  const handleAddToCart = useCallback(() => {
+  const doAddToCart = useCallback(() => {
     if (!selectedProduct) return;
 
     const options: Record<string, string> = {};
@@ -211,6 +214,23 @@ export default function ProductSelector({ imageUrl, generationId, imageIndex, in
     trackAddToCart(selectedProduct.product_type, selectedProduct.price_cents);
     window.location.href = '/print/cart';
   }, [selectedProduct, frameColor, imageUrl, generationId, imageIndex, addItem, mockupUrl]);
+
+  const handleAddToCart = useCallback(() => {
+    if (!selectedProduct) return;
+
+    if (!isAuthenticated) {
+      showAuthModal({
+        reason: 'Sign in to add items to your cart',
+        onSuccess: () => {
+          // After auth, reload the page so the server picks up the new session
+          window.location.reload();
+        },
+      });
+      return;
+    }
+
+    doAddToCart();
+  }, [selectedProduct, isAuthenticated, showAuthModal, doAddToCart]);
 
   if (loading) {
     return (

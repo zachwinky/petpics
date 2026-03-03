@@ -239,6 +239,11 @@ export default function Home() {
             </div>
           ))}
         </div>
+        <div className="text-center mt-6">
+          <a href="/print/upload" className="text-sm text-[var(--lp-soft-brown)] underline opacity-70 hover:opacity-100 transition-opacity">
+            Already have a photo you love? Print it directly &rarr;
+          </a>
+        </div>
       </section>
 
       {/* HOW IT WORKS */}
